@@ -125,7 +125,9 @@
      *               ]
      *          }
      *       ~ columns: array - Array of objects with the configuration of all the columns to display in the table.
-     *          Column object contains a 'label' and a 'property' or a link.
+     *          Column object contains a 'label' and a 'property' or a link. Additionally it can contain a 'width' that
+     *          may take any CSS value (3em, 20px, 10%, etc). Please note that pixel perfect column width is virtually
+     *          impossible to achieve in tables with dynamic content.
      *          In case of a property, it is the name of the property of the data retrieved from the framework that
      *          must be displayed in that column.
      *          In case of a link, it displays a link to change to other dashboard. A link is an object with multiple
@@ -239,20 +241,32 @@
         var columns = [];
         for(var i in this.configuration.columns) {
 
-            var column = this.configuration.columns[i];
+            var columnConfig = this.configuration.columns[i];
+            var column = null;
 
-            if(column['property'] != null) { //Is a property
-                columns.push({data: column['property']});
+            if(columnConfig['property'] != null) { //Is a property
+                column = { data: columnConfig['property'] };
 
-            } else if(column['link'] != null && column['link']['href'] != null) { //Is a link
-
-                columns.push( {
-                    data: function(){return column['link']},
+            } else if(columnConfig['link'] != null && columnConfig['link']['href'] != null) { //Is a link
+                column = {
+                    data: function(){ return columnConfig['link']; },
                     orderable: false,
                     searchable: false,
                     render: columnIconRenderer
-                } );
+                };
+
             }
+
+            //If it has the required properties
+            if(column != null) {
+
+                if(columnConfig['width'] != null) {
+                    column['width'] = columnConfig['width'];
+                }
+
+                columns.push(column);
+            }
+
 
         }
 
