@@ -179,20 +179,12 @@
 
         this.element = $(element); //Store as jquery object
         this.data = null;
-        this.chart = null;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
         this.configuration = normalizeConfig(configuration);
-
-        this.element.append('<table class="blurable table table-striped table-bordered"><thead><tr></tr></thead><tbody></tbody></table>');
-        this.tableDom = this.element.children("table");
-        this.tableDom.get(0).style.minHeight = configuration.height;
-
-        //Add click listener for links
-        this.tableDom.on( 'click', '.dashboardLink', this, dashboardLinkClickHandler);
 
         this.observeCallback = function(event){
 
@@ -210,7 +202,22 @@
 
     Table.prototype = new framework.widgets.CommonWidget(true);
 
+    /**
+     *
+     * @param framework_data
+     */
     Table.prototype.updateData = function(framework_data) {
+
+        if(this.tableDom == null) {
+
+            //Create the html for the table
+            this.element.append('<table class="blurable table table-striped table-bordered"><thead><tr></tr></thead><tbody></tbody></table>');
+            this.tableDom = this.element.children("table");
+            this.tableDom.get(0).style.minHeight = this.configuration.height;
+
+            //Add click listener for links
+            this.tableDom.on( 'click', '.dashboardLink', this, dashboardLinkClickHandler);
+        }
 
         var normalizedData = getNormalizedData.call(this,framework_data);
 
@@ -264,12 +271,26 @@
 
     };
 
+    /**
+     * Deletes the widget.
+     */
     Table.prototype.delete = function() {
 
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
-        //TODO
+        //Remove event listeners
+        this.tableDom.off();
+
+        //Destroy DataTable
+        this.table.destroy()
+
+        //Clear DOM
+        this.tableDom.empty();
+        this.element.empty();
+
+        this.tableDom = null;
+        this.table = null;
 
     };
 
