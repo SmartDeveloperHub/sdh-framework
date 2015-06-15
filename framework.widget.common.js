@@ -22,7 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common'], function() {
+define(['css!sdh-framework/framework.widget.common'], function() {
 
     // CHECK D3
     if(typeof d3 === 'undefined') {
