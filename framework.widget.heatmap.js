@@ -22,7 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.widget.heatmap'], function() {
 
     //Constants
     var ONE_DAY_MS = 86400000;
@@ -321,4 +321,4 @@
 
     window.framework.widgets.Heatmap = Heatmap;
 
-})();
+});

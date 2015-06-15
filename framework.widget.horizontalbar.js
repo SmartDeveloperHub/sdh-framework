@@ -22,7 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework.widget.common'], function() {
 
     // CHECK D3
     if(typeof d3 === 'undefined') {
@@ -316,9 +316,4 @@
 
     window.framework.widgets.HorizontalBar = HorizontalBar;
 
-})();
-
-
-
-
-
+});

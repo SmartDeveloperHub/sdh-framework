@@ -22,7 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.widget.rangechart'], function() {
 
     // CHECK D3
     if(typeof d3 === 'undefined') {
@@ -475,4 +475,5 @@
         setSvg.call(this);
         setGs.call(this);
     };
-})();
+
+});

@@ -22,7 +22,8 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework.widget.common', 'sdh-framework/lib/jquery/jquery.dataTables',
+    'css!sdh-framework/lib/jquery/jquery.dataTables.min'], function() {
 
     /**
      *
@@ -486,9 +487,4 @@
 
     window.framework.widgets.Table = Table;
 
-})();
-
-
-
-
-
+});

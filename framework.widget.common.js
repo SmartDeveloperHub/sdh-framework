@@ -22,7 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework'], function() {
 
     // CHECK D3
     if(typeof d3 === 'undefined') {
@@ -128,4 +128,5 @@
 
 
 	window.framework.widgets.CommonWidget = CommonWidget;
-})();
+
+});
