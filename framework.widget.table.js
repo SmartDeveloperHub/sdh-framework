@@ -22,8 +22,8 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common', 'sdh-framework/lib/jquery/jquery.dataTables',
-    'css!sdh-framework/lib/jquery/jquery.dataTables.min'], function() {
+define(['sdh-framework/framework.widget.common', 'datatables',
+    'css!sdh-framework/lib/jquery/datatables/css/jquery.dataTables.min'], function() {
 
     /**
      *
