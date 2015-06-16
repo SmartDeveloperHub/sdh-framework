@@ -69,8 +69,18 @@ define(['sdh-framework/framework.widget.common'], function() {
         if (typeof configuration.interpolate != "string") {
             configuration.interpolate = "linear";
         }
-
-        return configuration;
+        if (typeof configuration.background != "string") {
+            configuration.background = "rgba(0,0,0,0)";
+        }
+        if (typeof configuration.axisColor != "string") {
+            configuration.axisColor = "#000";
+        }
+        if (typeof configuration.colors != "object") {
+            configuration.colors = undefined;
+        }
+        if (typeof configuration.showLegend != "boolean") {
+            configuration.showLegend = true;
+        }return configuration;
     };
 
     /* rangeNv constructor
@@ -130,6 +140,7 @@ define(['sdh-framework/framework.widget.common'], function() {
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
         this.svg.get(0).style.minHeight = configuration.height;
+        this.svg.get(0).style.backgroundColor = configuration.background;
 
         this.observeCallback = function(event){
 
@@ -178,7 +189,7 @@ define(['sdh-framework/framework.widget.common'], function() {
 
     RangeNv.prototype.updateContext = function(d) {
         framework.data.updateContext(this.ownContext, {from: moment(d[0]).format("YYYY-MM-DD"), to: moment(d[1]).format("YYYY-MM-DD")});
-
+        setTimeInfo(d[0], d[1]);
     };
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
@@ -237,12 +248,12 @@ define(['sdh-framework/framework.widget.common'], function() {
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
                     timePoint += framework_data[metricid][i].step;
-                    return {'x': new Date(new Date(timePoint).getTime()), 'y': dat};
+                    return {'x': new Date(timePoint), 'y': dat};
                 });
                 series.push({
                     values: dat,      //values - represents the array of {x,y} data points
-                    key: label //key  - the name of the series.
-                    //color: colors[series.length],  //color - optional: choose your own line color.
+                    key: label, //key  - the name of the series.
+                    area: this.configuration.isArea
                 });
                 if (series.length == 1) {
                     series[0]['bar'] = true
@@ -262,19 +273,20 @@ define(['sdh-framework/framework.widget.common'], function() {
         nv.addGraph(function() {
             var chart = nv.models.lineWithFocusChart()
                 .focusHeight(this.configuration.focusHeight)
-                .isArea(this.configuration.isArea)
                 .interpolate(this.configuration.interpolate)
-                .duration(this.configuration.duration);
+                .color(this.configuration.colors)
+                .duration(this.configuration.duration)
+                .showLegend(this.configuration.showLegend);
             this.chart = chart;
 
             chart.xAxis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d));
                 })
-                .showMaxMin(false);        
+                .showMaxMin(false);
             chart.x2Axis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d))
                 })
-                .showMaxMin(false);
+                .showMaxMin(false)
 
             chart.yAxis.tickFormat(function(d) {
                 if (d >= 1000 || d <= -1000) {
@@ -311,6 +323,11 @@ define(['sdh-framework/framework.widget.common'], function() {
             if (!this.configuration.showFocus) {
                 $(".nv-focus").attr("class", "nv-focus hidden");
             }
+            // axis color
+            $(this.svg).find(".nv-axis").attr('style', 'fill:' + this.configuration.axisColor + ';')
+            // leyebd color
+            $(this.svg).find(".nv-legend-text").attr('style', 'fill:' + this.configuration.axisColor + ';')
+
             return chart;
         }.bind(this));
 
