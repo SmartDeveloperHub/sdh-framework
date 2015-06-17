@@ -22,7 +22,19 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-(function() {
+define(['sdh-framework/framework.widget.common'], function() {
+
+    // CHECK D3
+    if(typeof d3 === 'undefined') {
+        console.error("rangeNv could not be loaded because d3 did not exist.");
+        return;
+    }
+
+    // CHECK NVD3
+    if(typeof nv === 'undefined') {
+        console.error("rangeNv could not be loaded because nvd3 did not exist.");
+        return;
+    }
 
     var normalizeConfig = function normalizeConfig(configuration) {
         if (configuration == null) {
@@ -99,18 +111,6 @@
             return;
         }
 
-        // CHECK D3
-        if(typeof d3 === 'undefined') {
-            console.error("rangeNv could not be loaded because d3 did not exist.");
-            return;
-        }
-
-        // CHECK NVD3
-        if(typeof nv === 'undefined') {
-            console.error("rangeNv could not be loaded because nvd3 did not exist.");
-            return;
-        }
-
         // We need relative position for the nvd3 tooltips
         element.style.position = 'inherit';
 
@@ -118,17 +118,11 @@
         this.data = null;
         this.chart = null;
         this.labels = {};
+        this.maxY = Number.MIN_VALUE;
+        this.minY = Number.MAX_VALUE;
+        this.maxT = -8640000000000000;
+        this.minT = 8640000000000000;
 
-
-
-        /*this.element.append('<div><button>toggle focus</button></div>');
-        this.element.find('button').get(0).addEventListener('click', function() {
-            if(this.chart == null) {
-                return;
-            }
-            this.chart.focusEnable(!this.chart.focusEnable());
-            this.chart.update();
-        }.bind(this))*/
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
@@ -161,6 +155,7 @@
     RangeNv.prototype.updateData = function(framework_data) {
 
         var normalizedData = getNormalizedData.call(this,framework_data);
+        setTimeInfo(this.minT, this.maxT);
 
         //Update data
         if(this.chart != null) {
@@ -224,6 +219,12 @@
         //Data is represented as an array of {x,y} pairs.
         for (metricid in framework_data) {
             for (i=0; i < framework_data[metricid].length; i++) {
+                if(framework_data[metricid][i].interval.from < this.minT) {
+                    this.minT = framework_data[metricid][i].interval.from;
+                }
+                if(framework_data[metricid][i].interval.to > this.maxT) {
+                    this.maxT = framework_data[metricid][i].interval.to;
+                }
                 var timePoint = framework_data[metricid][i].interval.from - framework_data[metricid][i].step;
                 var yserie = framework_data[metricid][i].values;
 
@@ -247,9 +248,15 @@
 
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
+                    if(dat > this.maxY) {
+                        this.maxY = dat;
+                    }
+                    if (dat < this.minY) {
+                        this.minY = dat;
+                    }
                     timePoint += framework_data[metricid][i].step;
                     return {'x': new Date(timePoint), 'y': dat};
-                });
+                }.bind(this));
                 series.push({
                     values: dat,      //values - represents the array of {x,y} data points
                     key: label, //key  - the name of the series.
@@ -260,7 +267,6 @@
                 }
             }
         }
-
         //Line chart data should be sent as an array of series objects.
         return series;
     };
@@ -276,17 +282,20 @@
                 .interpolate(this.configuration.interpolate)
                 .color(this.configuration.colors)
                 .duration(this.configuration.duration)
-                .showLegend(this.configuration.showLegend);
+                .showLegend(this.configuration.showLegend)
+                // only affect to focus .How can i force Y axis in context chart?
+                // ... i don't know ...
+                //.forceY([this.maxY + 10, this.minY]);
             this.chart = chart;
+
+            chart.margin({"top":10,"bottom":14});
 
             chart.xAxis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d));
-                })
-                .showMaxMin(false);
+                });
             chart.x2Axis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d))
-                })
-                .showMaxMin(false)
+                });
 
             chart.yAxis.tickFormat(function(d) {
                 if (d >= 1000 || d <= -1000) {
@@ -320,13 +329,18 @@
             }.bind(this));
 
             nv.utils.windowResize(chart.update);
+
             if (!this.configuration.showFocus) {
                 $(".nv-focus").attr("class", "nv-focus hidden");
             }
             // axis color
             $(this.svg).find(".nv-axis").attr('style', 'fill:' + this.configuration.axisColor + ';')
-            // leyebd color
+            // leyend color
             $(this.svg).find(".nv-legend-text").attr('style', 'fill:' + this.configuration.axisColor + ';')
+
+            // bigger brush cover
+            $(this.svg).find(".nv-brushBackground rect").attr('height', 98);
+            $(this.svg).find(".nv-brushBackground rect").attr('transform', 'translate(0,-4)');
 
             return chart;
         }.bind(this));
@@ -335,9 +349,4 @@
 
     window.framework.widgets.RangeNv = RangeNv;
 
-    // AMD compliant
-    if ( typeof define === "function" && define.amd) {
-        define( [], function () { return RangeNv; } );
-    }
-
-})();
+});
