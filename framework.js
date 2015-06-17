@@ -1099,6 +1099,11 @@
                 isReady: isFrameworkReady
             };
 
+            // AMD compliant
+            if ( typeof define === "function" && define.amd) {
+                define( [], function () { return window.framework; } );
+            }
+
         }
 
     };

@@ -22,8 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common', 'datatables',
-    'css!sdh-framework/lib/jquery/datatables/css/jquery.dataTables.min'], function() {
+(function() {
 
     /**
      *
@@ -444,13 +443,24 @@ define(['sdh-framework/framework.widget.common', 'datatables',
         for(var e = 0; e < envProperty.length; ++e) {
 
             var envEntry = envProperty[e];
-            var property = envEntry['property'];
-            var as = envEntry['as'] || property;
+            var property, as, envValue;
 
-            var propertyValue = rowData[property];
+            if(envEntry['property'] != null) {
 
-            if(typeof propertyValue !== 'undefined') {
-                env[as] = propertyValue;
+                property = envEntry['property'];
+                as = envEntry['as'] || property;
+                envValue = rowData[property];
+
+            } else if(envEntry['currentEnv']) {
+
+                property = envEntry['currentEnv'];
+                as = envEntry['as'] || property;
+                envValue = framework.dashboard.getEnv()[property];
+
+            }
+
+            if(typeof envValue !== 'undefined') {
+                env[as] = envValue;
             }
 
         }
@@ -487,4 +497,10 @@ define(['sdh-framework/framework.widget.common', 'datatables',
 
     window.framework.widgets.Table = Table;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( ['datatables',
+            'css!sdh-framework/lib/jquery/datatables/css/jquery.dataTables.min'], function () { return Table; } );
+    }
+
+})();

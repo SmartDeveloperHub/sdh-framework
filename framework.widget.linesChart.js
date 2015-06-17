@@ -22,19 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common'], function() {
-
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("LinesChart could not be loaded because d3 did not exist.");
-        return;
-    }
-
-    // CHECK NVD3
-    if(typeof nv === 'undefined') {
-        console.error("LinesChart could not be loaded because nvd3 did not exist.");
-        return;
-    }
+(function() {
 
     var normalizeConfig = function normalizeConfig(configuration) {
         if (configuration == null) {
@@ -93,6 +81,18 @@ define(['sdh-framework/framework.widget.common'], function() {
 
         if(!framework.isReady()) {
             console.error("LinesChart object could not be created because framework is not loaded.");
+            return;
+        }
+
+        // CHECK D3
+        if(typeof d3 === 'undefined') {
+            console.error("LinesChart could not be loaded because d3 did not exist.");
+            return;
+        }
+
+        // CHECK NVD3
+        if(typeof nv === 'undefined') {
+            console.error("LinesChart could not be loaded because nvd3 did not exist.");
             return;
         }
 
@@ -279,4 +279,9 @@ define(['sdh-framework/framework.widget.common'], function() {
 
     window.framework.widgets.LinesChart = LinesChart;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( [], function () { return LinesChart; } );
+    }
+
+})();

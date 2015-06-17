@@ -22,13 +22,8 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.widget.rangechart'], function() {
+(function() {
 
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("RangeChart could not be loaded because d3 did not exist.");
-        return;
-    }
     // BASIC METHODS - - - - - - - - - - - - - - - - - - - - - -
     function normalizeConfig(configuration) {
         if (typeof configuration !== 'object') {
@@ -67,6 +62,13 @@ define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.wi
             console.error("RangeChart object could not be created because framework is not loaded.");
             return;
         }
+
+        // CHECK D3
+        if(typeof d3 === 'undefined') {
+            console.error("RangeChart could not be loaded because d3 did not exist.");
+            return;
+        }
+
         configuration = normalizeConfig(configuration);
 
         this.ownContext = configuration.ownContext;
@@ -476,4 +478,9 @@ define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.wi
         setGs.call(this);
     };
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( ['css!sdh-framework/framework.widget.rangechart'], function () { return RangeChart; });
+    }
+
+})();

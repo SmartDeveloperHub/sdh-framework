@@ -22,18 +22,12 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.widget.heatmap'], function() {
+(function() {
 
     //Constants
     var ONE_DAY_MS = 86400000;
     var ONE_WEEK_MS = 604800000;
     var PAINT_DELAY_MS = 1000;
-
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("Heatmap could not be loaded because d3 did not exist.");
-        return;
-    }
 
     // Configuration checker
     var normalizeConfig = function normalizeConfig(configuration) {
@@ -55,6 +49,12 @@ define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.wi
 
         if(!framework.isReady()) {
             console.error("Heatmap object could not be created because framework is not loaded.");
+            return;
+        }
+
+        // CHECK D3
+        if(typeof d3 === 'undefined') {
+            console.error("Heatmap could not be loaded because d3 did not exist.");
             return;
         }
 
@@ -321,4 +321,9 @@ define(['sdh-framework/framework.widget.common', 'css!sdh-framework/framework.wi
 
     window.framework.widgets.Heatmap = Heatmap;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( ['css!sdh-framework/framework.widget.heatmap'], function () { return Heatmap; });
+    }
+
+})();

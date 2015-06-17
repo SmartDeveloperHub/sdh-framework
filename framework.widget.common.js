@@ -22,17 +22,11 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['css!sdh-framework/framework.widget.common'], function() {
+(function() {
 
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("RangeChart could not be loaded because d3 did not exist.");
-        return;
-    }
+    var CommonWidget = function CommonWidget(extending, container) {
 
-	var CommonWidget = function CommonWidget(extending, container) {
-
-		if (extending === true) {
+        if (extending === true) {
             return;
         }
 
@@ -64,7 +58,7 @@ define(['css!sdh-framework/framework.widget.common'], function() {
                 this.callback();
             }
         }.bind(this);
-	};
+    };
 
     var oldContainerClass, oldposstyle;
 
@@ -86,7 +80,7 @@ define(['css!sdh-framework/framework.widget.common'], function() {
 
     var setLoadingSize = function setLoadingSize() {
         var wsize = this._common.container.getBoundingClientRect();
-        // center the spinner vertically because a responsive 
+        // center the spinner vertically because a responsive
         // widget can change it height dynamically
         this._common.loadingLayer.style.lineHeight = wsize.height + 'px';
         this._common.loadingContainer.style.height = wsize.height + 'px';
@@ -127,6 +121,11 @@ define(['css!sdh-framework/framework.widget.common'], function() {
     };
 
 
-	window.framework.widgets.CommonWidget = CommonWidget;
+    window.framework.widgets.CommonWidget = CommonWidget;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( ['css!sdh-framework/framework.widget.common'], function () { return CommonWidget; } );
+    }
+
+})();

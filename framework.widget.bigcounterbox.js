@@ -22,13 +22,8 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common'], function() {
+(function() {
 
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("CounterBox could not be loaded because d3 did not exist.");
-        return;
-    }
 
     var normalizeConfig = function normalizeConfig(configuration) {
         if (typeof configuration !== 'object') {
@@ -132,6 +127,13 @@ define(['sdh-framework/framework.widget.common'], function() {
             console.error("BigCounterBox object could not be created because framework is not loaded.");
             return;
         }
+
+        // CHECK D3
+        if(typeof d3 === 'undefined') {
+            console.error("CounterBox could not be loaded because d3 did not exist.");
+            return;
+        }
+
         this.element = $(element);
 
         this.configuration = normalizeConfig(configuration);
@@ -266,4 +268,9 @@ define(['sdh-framework/framework.widget.common'], function() {
 
     window.framework.widgets.BigCounterBox = BigCounterBox;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( [], function () { return BigCounterBox; } );
+    }
+
+})();
