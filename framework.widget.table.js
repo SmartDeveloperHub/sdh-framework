@@ -270,6 +270,11 @@
 
         }
 
+        //Destroy the table it already exists
+        if(this.table != null) {
+            this.table.destroy();
+        }
+
         //DataTable object
         this.table = this.tableDom.DataTable({
             data: normalizedData,
