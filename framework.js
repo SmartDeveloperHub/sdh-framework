@@ -940,6 +940,12 @@
         //Update values of the context (if null, remove it)
         var hasChanged = false;
         var changes = {};
+
+        var setChange = function(name, newValue) {
+            hasChanged = true;
+            changes[name] = newValue;
+        };
+
         for(var name in contextData) {
 
             //Check if that parameter exists. If not, ignore it
@@ -951,10 +957,22 @@
             var newValue = contextData[name];
             var oldValue = _resourcesContexts[contextId]['data'][name];
 
-            //Save the changes
-            if(newValue != oldValue) {
-                hasChanged = true;
-                changes[name] = newValue;
+            // Save the changes
+            if(newValue instanceof Array && oldValue instanceof Array ) { //Check if multiparameter arrays are identical
+
+                if(newValue.length != oldValue.length) {
+                    setChange(name, newValue);
+                }
+
+                //Check all the values inside the array
+                for(var i = 0; i < newValue.length; ++i) {
+                    if(newValue[i] != oldValue[i]){
+                        setChange(name, newValue);
+                        break;
+                    }
+                }
+            } else if(newValue != oldValue) {
+                    setChange(name, newValue);
             }
 
             //Change the context
