@@ -120,6 +120,58 @@
         framework.dashboard.changeTo(dashboard);
     };
 
+    CommonWidget.prototype.extractMetrics = function extractMetrics(framework_data) {
+
+        var values = [];
+
+        for(var metricId in framework_data) {
+
+            for(var m = 0; m < framework_data[metricId].length; ++m) {
+
+                var metricData = framework_data[metricId][m];
+
+                if(typeof metricData === 'object' && metricData['values'] != null) {
+                    for(var k = 0; k < metricData['values'].length; k++) {
+                        values.push(metricData['values'][k]);
+                    }
+                }
+
+            }
+        }
+
+        return values;
+
+    };
+
+    CommonWidget.prototype.extractData = function extractData(framework_data) {
+
+        var values = [];
+
+        for(var metricId in framework_data) {
+
+            for(var m = 0; m < framework_data[metricId].length; ++m) {
+
+                var metricData = framework_data[metricId][m];
+
+                if(metricData instanceof Array) {
+                    for(var k = 0; k < metricData.length; k++) {
+                        values.push(metricData[k]);
+                    }
+                } else if(typeof metricData === 'object' && metricData['values'] == null) {
+                    values.push(metricData);
+                }
+
+            }
+        }
+
+        return values;
+
+    };
+
+    CommonWidget.prototype.extractAll = function extractAll(framework_data) {
+
+        return [].concat(this.extractData(framework_data), this.extractMetrics(framework_data));
+    };
 
     window.framework.widgets.CommonWidget = CommonWidget;
 

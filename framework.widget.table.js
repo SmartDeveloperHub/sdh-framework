@@ -475,23 +475,7 @@
      */
     var getNormalizedData = function getNormalizedData(framework_data) {
 
-        var values = [];
-        var labelVariable = /%\w+%/g; //Regex that matches all the "variables" of the label such as %mid%, %pid%...
-
-        for(var metricId in framework_data) {
-
-            for(var m = 0; m < framework_data[metricId].length; ++m) {
-
-                var metricData = framework_data[metricId][m];
-
-                for(var d = 0; d < metricData.length; ++d) {
-                    values.push(metricData[d]);
-                }
-
-            }
-        }
-
-        return values;
+        return this.extractAll(framework_data);
 
     };
 
