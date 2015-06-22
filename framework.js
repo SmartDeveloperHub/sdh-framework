@@ -158,8 +158,8 @@
             //TODO: I dont like this, but till now there is not any other way to get static data...
             var statInfo = [
                 // API static Information description
-                { "id" : "userinfo", "path" : "/users/{uid}", params: {'uid': {name: 'uid',in: 'query',required: true}}, "description" : "User Information" },
-                { "id" : "repoinfo", "path" : "/repository/{rid}", params: {'rid': {name: 'rid',in: 'query',required: true}}, "description" : "Repository Information" },
+                { "id" : "userinfo", "path" : "/users/{uid}", params: {'uid': {name: 'uid',in: 'path',required: true}}, "description" : "User Information" },
+                { "id" : "repoinfo", "path" : "/repository/{rid}", params: {'rid': {name: 'rid',in: 'path',required: true}}, "description" : "Repository Information" },
                 { "id" : "orginfo", "path" : "/", "description" : "Organization Information" },
                 { "id" : "userlist", "path" : "/users/", "description" : "Users List" },
                 { "id" : "repolist", "path" : "/repositories/", "description" : "Repository List" },
