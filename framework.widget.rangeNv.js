@@ -118,6 +118,7 @@
         this.data = null;
         this.chart = null;
         this.labels = {};
+        this.lastExtent = [];
         this.maxY = Number.MIN_VALUE;
         this.minY = Number.MAX_VALUE;
         this.maxT = -8640000000000000;
@@ -183,6 +184,7 @@
     };
 
     RangeNv.prototype.updateContext = function(d) {
+        this.lastExtent = d;
         framework.data.updateContext(this.ownContext, {from: moment(d[0]).format("YYYY-MM-DD"), to: moment(d[1]).format("YYYY-MM-DD")});
         setTimeInfo(d[0], d[1]);
     };
@@ -319,6 +321,10 @@
 
             var timer = null;
             chart.dispatch.on('brush', function(extent){
+                if(JSON.stringify(this.lastExtent) == JSON.stringify(extent.extent)){
+                    // Resize event causes a unwanted brush event in this chart
+                    return;
+                }
                 if (timer) {
                     clearTimeout(timer); //cancel the previous timer.
                     timer = null;
