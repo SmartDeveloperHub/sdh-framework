@@ -958,9 +958,9 @@
             }
 
             //Change the context
-            if(newValue != null && newValue != oldValue) {
+            if(newValue != null && newValue != oldValue && (!(newValue instanceof Array) || newValue.length > 0)) {
                 _resourcesContexts[contextId]['data'][name] = newValue;
-            } else if(newValue == null && oldValue != null) {
+            } else if((newValue == null && oldValue != null) || (newValue instanceof Array && newValue.length === 0)) {
                 delete _resourcesContexts[contextId]['data'][name];
             }
         }
