@@ -22,19 +22,7 @@
     #-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
 */
 
-define(['sdh-framework/framework.widget.common'], function() {
-
-    // CHECK D3
-    if(typeof d3 === 'undefined') {
-        console.error("rangeNv could not be loaded because d3 did not exist.");
-        return;
-    }
-
-    // CHECK NVD3
-    if(typeof nv === 'undefined') {
-        console.error("rangeNv could not be loaded because nvd3 did not exist.");
-        return;
-    }
+(function() {
 
     var normalizeConfig = function normalizeConfig(configuration) {
         if (configuration == null) {
@@ -108,6 +96,18 @@ define(['sdh-framework/framework.widget.common'], function() {
 
         if(!framework.isReady()) {
             console.error("LinesChart object could not be created because framework is not loaded.");
+            return;
+        }
+
+        // CHECK D3
+        if(typeof d3 === 'undefined') {
+            console.error("rangeNv could not be loaded because d3 did not exist.");
+            return;
+        }
+
+        // CHECK NVD3
+        if(typeof nv === 'undefined') {
+            console.error("rangeNv could not be loaded because nvd3 did not exist.");
             return;
         }
 
@@ -329,7 +329,6 @@ define(['sdh-framework/framework.widget.common'], function() {
             }.bind(this));
 
             nv.utils.windowResize(chart.update);
-
             if (!this.configuration.showFocus) {
                 $(".nv-focus").attr("class", "nv-focus hidden");
             }
@@ -349,4 +348,9 @@ define(['sdh-framework/framework.widget.common'], function() {
 
     window.framework.widgets.RangeNv = RangeNv;
 
-});
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( [], function () { return RangeNv; } );
+    }
+
+})();
