@@ -361,11 +361,19 @@
                 allData[resourceId] = [];
             }
 
-            //Add the request info to the data received from the api
-            data['request'] = {
-                params: params
+            //Add the framework info to the data received from the api
+            var resUID = resourceHash(resourceId, data);
+            var info = {
+                UID: resUID,
+                request: {
+                    params: params
+                }
             };
-            allData[resourceId].push(data);
+
+            allData[resourceId].push({
+                data: data,
+                info: info
+            });
 
             if(++completedRequests === requests.length) {
                 sendDataEventToCallback(allData, callback);
@@ -607,6 +615,35 @@
             }
         }
         return obj1;
+    };
+
+    /**
+     * Generates a hashcode given an string
+     * @param str
+     * @returns {number} 32 bit integer
+     */
+    var hashCode = function hashCode(str) {
+        var hash = 0, i, chr, len;
+        if (str.length == 0) return hash;
+        for (i = 0, len = str.length; i < len; i++) {
+            chr   = str.charCodeAt(i);
+            hash  = ((hash << 5) - hash) + chr;
+            hash |= 0; // Convert to 32bit integer
+        }
+        return hash;
+    };
+
+
+    var resourceHash = function resourceHash(resourceId, resourceData){
+
+        var str = resourceId;
+        var hasheable = "";
+        for(var i in _resourcesInfo[resourceId]['requiredParams']){
+            var param = _resourcesInfo[resourceId]['requiredParams'][i];
+            hasheable += param  + resourceData[param] + ";"
+        }
+
+        return resourceId + "#" + hashCode(hasheable).toString(16);
     };
 
     /**
