@@ -176,7 +176,9 @@
     CounterBox.prototype = new framework.widgets.CommonWidget(true);
 
     CounterBox.prototype.updateData = function(data) {
-        this.data = data[Object.keys(data)[0]][0];
+        var resourceId = Object.keys(data)[0];
+        var resourceUID = Object.keys(data[resourceId])[0];
+        this.data = data[resourceId][resourceUID]['data'];
 
         var options = {
             useEasing : this.configuration.changeeasing,

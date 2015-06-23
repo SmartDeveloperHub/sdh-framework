@@ -224,8 +224,8 @@
 
                 for(var m in framework_data[metricId]) {
 
-                    for(var i in framework_data[metricId][m]['values']) {
-                        values.push(framework_data[metricId][m]['values'][i]);
+                    for(var i in framework_data[metricId][m]['data']['values']) {
+                        values.push(framework_data[metricId][m]['data']['values'][i]);
 
                         if(values.length == 2) {
                             return values;

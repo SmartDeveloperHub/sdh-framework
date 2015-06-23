@@ -205,7 +205,7 @@
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
     //Function that returns the value to replace with the label variables
-    var replacer = function(metricId, metricData, str) {
+    var replacer = function(metricId, metricInfo, str) {
 
         //Remove the initial an trailing '%' of the string
         str = str.substring(1, str.length-1);
@@ -213,8 +213,8 @@
         //Check if it is a parameter an return its value
         if(str === "mid") {
             return metricId;
-        } else if(metricData['request']['params'][str] != null) {
-            return metricData['request']['params'][str];
+        } else if(metricInfo['request']['params'][str] != null) {
+            return metricInfo['request']['params'][str];
         }
 
         return "";
@@ -235,10 +235,11 @@
 
             for(var m in framework_data[metricId]){
 
-                var metricData = framework_data[metricId][m];
+                var metricData = framework_data[metricId][m]['data'];
+                var metricInfo = framework_data[metricId][m]['info'];
 
                 //Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricId, metricData);
+                var metricReplacer = replacer.bind(null, metricId, metricInfo);
 
                 //Generate the label by replacing the variables
                 var label = this.configuration.labelFormat.replace(labelVariable,metricReplacer);

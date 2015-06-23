@@ -128,7 +128,7 @@
 
             for(var m = 0; m < framework_data[metricId].length; ++m) {
 
-                var metricData = framework_data[metricId][m];
+                var metricData = framework_data[metricId][m]['data'];
 
                 if(typeof metricData === 'object' && metricData['values'] != null) {
                     for(var k = 0; k < metricData['values'].length; k++) {
@@ -151,7 +151,7 @@
 
             for(var m = 0; m < framework_data[metricId].length; ++m) {
 
-                var metricData = framework_data[metricId][m];
+                var metricData = framework_data[metricId][m]['data'];
 
                 if(metricData instanceof Array) {
                     for(var k = 0; k < metricData.length; k++) {

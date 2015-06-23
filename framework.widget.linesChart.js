@@ -163,7 +163,7 @@
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
     //Function that returns the value to replace with the label variables
-    var replacer = function(metricId, metricData, str) {
+    var replacer = function(metricId, metricInfo, str) {
 
         //Remove the initial an trailing '%' of the string
         str = str.substring(1, str.length-1);
@@ -171,8 +171,8 @@
         //Check if it is a parameter an return its value
         if(str === "mid") {
             return metricId;
-        } else if(metricData['request']['params'][str] != null) {
-            return metricData['request']['params'][str];
+        } else if(metricInfo['request']['params'][str] != null) {
+            return metricInfo['request']['params'][str];
         }
 
         return "";
@@ -190,13 +190,17 @@
         this.labels = {};
         //var colors = ['#ff7f0e','#2ca02c','#7777ff','#D53E4F','#9E0142'];
         //Data is represented as an array of {x,y} pairs.
-        for (metricid in framework_data) {
-            for (i=0; i < framework_data[metricid].length; i++) {
-                var timePoint = framework_data[metricid][i].interval.from - framework_data[metricid][i].step;
-                var yserie = framework_data[metricid][i].values;
+        for (var metricid in framework_data) {
+            for (var i in framework_data[metricid]) {
+
+                var metricData = framework_data[metricid][i]['data'];
+                var metricInfo = framework_data[metricid][i]['info'];
+
+                var timePoint = metricData.interval.from - metricData.step;
+                var yserie = metricData.values;
 
                 // Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricid, framework_data[metricid][i]);
+                var metricReplacer = replacer.bind(null, metricid, metricInfo);
 
                 var genLabel = function genLabel(i) {
                   var lab = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
@@ -215,7 +219,7 @@
 
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
-                    timePoint += framework_data[metricid][i].step;
+                    timePoint += metricData.step;
                     return {'x': new Date(new Date(timePoint).getTime()), 'y': dat};
                 });
                 series.push({

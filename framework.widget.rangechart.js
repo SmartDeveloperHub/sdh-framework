@@ -147,7 +147,9 @@
                 var data = event.data;
 
                 // TODO two series in the same graph
-                var metric = data[Object.keys(data)[0]][0];
+                var metricId = Object.keys(data)[0];
+                var metricUID = Object.keys(data[metricId])[0];
+                var metric = data[metricId][metricUID]['data'];
                 var timePoint = metric.interval.from - metric.step;
                 if (this.data == null) {
                     this.updateContext([metric.interval.from, metric.interval.to]);

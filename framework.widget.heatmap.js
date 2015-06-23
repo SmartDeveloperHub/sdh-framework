@@ -105,7 +105,8 @@
             this.painted = false;
         }
 
-        this.data = data[this.metricId][0];
+        var metricUID = Object.keys(this.metricId)[0];
+        this.data = data[this.metricId][metricUID]['data'];
         paint.call(this);
     };
 
