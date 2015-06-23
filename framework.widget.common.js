@@ -93,7 +93,6 @@
 
     var resizeHandler = function resizeHandler(e) {
         setLoadingSize.call(this);
-        console.log(e);
     };
 
     /*
