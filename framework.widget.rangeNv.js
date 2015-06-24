@@ -231,17 +231,17 @@
         this.labels = {};
         //var colors = ['#ff7f0e','#2ca02c','#7777ff','#D53E4F','#9E0142'];
         //Data is represented as an array of {x,y} pairs.
-        for (var metricid in framework_data) {
-            for (var i in framework_data[metricid]) {
+        for (var metricId in framework_data) {
+            for (var m in framework_data[metricId]) {
 
                 var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricid][i]['data'];
+                var metricData = framework_data[metricId][m]['data'];
 
                 var timePoint = metricData.interval.from - metricData.step;
                 var yserie = metricData.values;
 
                 // Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricid, metric);
+                var metricReplacer = replacer.bind(null, metricId, metric);
 
                 var genLabel = function genLabel(i) {
                   var lab = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
