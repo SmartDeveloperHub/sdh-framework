@@ -362,7 +362,7 @@
             }
 
             //Add the framework info to the data received from the api
-            var resUID = resourceHash(resourceId, data);
+            var resUID = resourceHash(resourceId, params);
             var info = {
                 UID: resUID,
                 request: {
@@ -634,13 +634,13 @@
     };
 
 
-    var resourceHash = function resourceHash(resourceId, resourceData){
+    var resourceHash = function resourceHash(resourceId, requestParams){
 
         var str = resourceId;
         var hasheable = "";
         for(var i in _resourcesInfo[resourceId]['requiredParams']){
-            var param = _resourcesInfo[resourceId]['requiredParams'][i];
-            hasheable += param  + resourceData[param] + ";"
+            var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
+            hasheable += param  + requestParams[param] + ";"
         }
 
         return resourceId + "#" + hashCode(hasheable).toString(16);
