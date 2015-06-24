@@ -137,10 +137,11 @@
         //Update data
         if(this.svg != null) {
             d3.select(this.svg.get(0)).datum(normalizedData);
+            this.chart.color(this.generateColors(framework_data));
             this.chart.update();
 
         } else { // Paint it for first time
-            paint.call(this, normalizedData);
+            paint.call(this, normalizedData, framework_data);
         }
 
     };
@@ -215,7 +216,7 @@
 
     };
 
-    var paint = function paint(data) {
+    var paint = function paint(data, framework_data) {
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
@@ -243,7 +244,8 @@
                     .showLabels(this.configuration.showLabels)
                     .donutRatio(this.configuration.donutRatio)
                     .duration(this.configuration.duration)
-                    .labelsOutside(this.configuration.labelsOutside);
+                    .labelsOutside(this.configuration.labelsOutside)
+                    .color(this.generateColors(framework_data));
 
                 d3.select(this.svg.get(0))
                     .datum(data) //TODO

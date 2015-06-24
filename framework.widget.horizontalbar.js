@@ -40,8 +40,8 @@
                 default: 240
             },
             color: {
-                type: 'string',
-                default: nv.utils.defaultColor()
+                type: 'object',
+                default: null
             },
             stacked: {
                 type: 'boolean',
@@ -99,13 +99,9 @@
      *   configuration: additional chart configuration:
      *      {
      *       ~ height: number - Height of the widget.
-     *       ~ color: array or function - Colors to use for the different data. If an array is given, it is converted to a function automatically.
+     *       ~ color: array - Array of colors to use for the different data.
      *              Example:
      *                  chart.color(["#FF0000","#00FF00","#0000FF"])
-     *                  chart.color(function (d, i) {
-     *                      var colors = d3.scale.category20().range().slice(10);
-     *                      return colors[i % colors.length-1];
-     *                  })
      *       ~ stacked: boolean - Whether to display the different data stacked or not.
      *       ~ groupSpacing: number - The padding between bar groups.
      *       ~ duration: number - Duration in ms to take when updating chart. For things like bar charts, each bar can
@@ -180,10 +176,11 @@
         //Update data
         if(this.chart != null) {
             d3.select(this.svg.get(0)).datum(normalizedData);
+            this.chart.color(this.generateColors(framework_data, this.configuration.color));
             this.chart.update();
 
         } else { // Paint it for first time
-            paint.call(this, normalizedData);
+            paint.call(this, normalizedData, framework_data);
         }
 
     };
@@ -273,14 +270,14 @@
 
     };
 
-    var paint = function paint(data) {
+    var paint = function paint(data, framework_data) {
 
         nv.addGraph(function() {
             var chart = nv.models.multiBarHorizontalChart()
                 .x(function(d) { return d.x; })
                 .y(function(d) { return d.y; })
                 .height(this.configuration.height)
-                .color(this.configuration.color)
+                .color(this.generateColors(framework_data, this.configuration.color))
                 .stacked(this.configuration.stacked)
                 .groupSpacing(this.configuration.groupSpacing)
                 .duration(this.configuration.duration)

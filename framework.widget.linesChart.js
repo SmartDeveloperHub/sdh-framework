@@ -137,10 +137,11 @@
         //Update data
         if(this.chart != null) {
             d3.select(this.svg.get(0)).datum(normalizedData);
+            this.chart.color(this.generateColors(framework_data));
             this.chart.update();
 
         } else { // Paint it for first time
-            paint.call(this, normalizedData);
+            paint.call(this, normalizedData, framework_data);
         }
 
     };
@@ -235,7 +236,7 @@
         return series;
     };
 
-    var paint = function paint(data) {
+    var paint = function paint(data, framework_data) {
 
         var width = this.element.get(0).getBoundingClientRect().width;
         var height = this.element.get(0).getBoundingClientRect().height;
@@ -251,6 +252,7 @@
                         .showYAxis(true)        //Show the y-axis
                         .showXAxis(true)        //Show the x-axis
                         .interpolate(this.configuration.interpolate) // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
+                        .color(this.generateColors(framework_data))
           ;
           this.chart = chart;
           chart.xAxis     //Chart x-axis settings
