@@ -36,6 +36,7 @@
         this.isloading = 0;
         this.callback = null;
         this._common = {};
+        this._common.previousColors = {};
         this._common.container = container;
         this._common.loadingContainer = document.createElement('div');
         this._common.loadingContainer.className ='loadingContainer';
@@ -170,6 +171,65 @@
     CommonWidget.prototype.extractAll = function extractAll(framework_data) {
 
         return [].concat(this.extractData(framework_data), this.extractMetrics(framework_data));
+    };
+
+    var inArray = function inArray(str, array) {
+        for(var c = 0; c < array.length; ++c) {
+            if(array[c] === str) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    CommonWidget.prototype.generateColors = function generateColors(framework_data, palette) {
+
+        var newPreviousColors = {};
+        palette = palette || d3.scale.category20().range();
+
+        var colors = [];
+        var usedColorIndexes = {};
+        for(var id in this._common.previousColors){
+            usedColorIndexes[this._common.previousColors[id]] = true;
+        }
+
+        var currentColorIndex = -1;
+
+        for(var metricId in framework_data) {
+
+            for (var m = 0; m < framework_data[metricId].length; ++m) {
+
+                var UID = framework_data[metricId][m]['info']['UID'];
+
+                if(this._common.previousColors[UID] != null && newPreviousColors[UID] == null) { //Use the previous color
+                    colors.push(palette[this._common.previousColors[UID] % palette.length]);
+                    newPreviousColors[UID] = this._common.previousColors[UID];
+
+                } else { //Try to assign an unused color
+
+                    while(true) {
+
+                        if(!usedColorIndexes[++currentColorIndex]) {
+                            colors.push(palette[currentColorIndex % palette.length]);
+                            newPreviousColors[UID] = currentColorIndex;
+                            break;
+                        }
+
+                    }
+
+                }
+
+
+            }
+
+        }
+
+        this._common.previousColors = newPreviousColors;
+
+        return colors;
+
+
     };
 
     window.framework.widgets.CommonWidget = CommonWidget;
