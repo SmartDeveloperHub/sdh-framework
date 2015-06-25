@@ -228,7 +228,7 @@
                                         in: parameters[i]['in'],
                                         required: true
                                     };
-                                } else {
+                                } else if(resourceInfo['optional'].indexOf(paramName) !== -1) {
                                     _resourcesInfo[resourceId]['optionalParams'][paramName] = {
                                         name: paramName,
                                         in: parameters[i]['in'],
