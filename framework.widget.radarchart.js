@@ -204,13 +204,11 @@
             this.element.append('<div class="blurable"><canvas></canvas></div>');
             this.container = this.element.children("div");
             this.canvas = this.container.children("canvas");
-            this.container.attr('minHeight', this.configuration.height);
             this.container.attr('height', this.configuration.height);
             this.canvas.attr('height', this.configuration.height);
 
 
             var ctx = this.canvas.get(0).getContext("2d");
-            this.canvas.attr('width', this.canvas.parent().width());
             Chart.defaults.global.responsive = false; //TODO: responsive works rare
 
             var chartConfig = {
