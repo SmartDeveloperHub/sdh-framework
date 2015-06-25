@@ -78,6 +78,10 @@
             yAxisTicks: {
                 type: 'number',
                 default: 5
+            },
+            total: {
+                type: 'object',
+                default: null
             }
 
         };
@@ -115,6 +119,8 @@
      *         surrounding their names with percentages. The metric name can also be accessed with %mid%. For example,
      *         the following is a valid labelFormat: "User: %uid%".
      *       ~ yAxisTicks: number - Number of ticks of the Y axis.
+     *       ~ total: object - Metric object to use as the total of the horizontal bar. I will make appear another
+     *         segment called 'Others' with the difference between the total value and the sum of the displayed segments.
      *      }
      */
     var HorizontalBar = function HorizontalBar(element, metrics, contextId, configuration) {
@@ -152,6 +158,10 @@
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
         this.svg.get(0).style.minHeight = configuration.height;
+
+        if(this.configuration.total != null) {
+            metrics.push(this.configuration.total);
+        }
 
         this.observeCallback = function(event){
 
@@ -273,6 +283,35 @@
 
 
             }
+        }
+
+        // If total is used, then we have to make some arrangements with the last value
+        if(this.configuration.total != null) {
+            var totalData = values.pop();
+
+            //Calculate the total all the values shown
+            for(var v = 0; v < totalData['values'].length; ++v) {
+
+                var total = totalData['values'][v]['y'];
+
+                // The sum f the displayed values
+                var shownSum = 0;
+                for(var d = 0; d < values.length; ++d) {
+                    shownSum += values[d]['values'][v]['y'];
+                }
+
+                //Override the value with the difference between the total and the sum of the shown
+                totalData['values'][v]['y'] = total - shownSum;
+                if(totalData['values'][v]['y'] < 0 ) {
+                    totalData['values'][v]['y'] = 20; //TODO: temporal while still have made up values
+                }
+
+            }
+
+            totalData.key = "Others";
+
+            //Now add it again
+            values.push(totalData);
         }
 
         return values;
