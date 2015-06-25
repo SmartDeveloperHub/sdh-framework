@@ -238,9 +238,10 @@
         }
 
         //Create dom configuration string
-        var dom = "t";
-        if(this.configuration.filterControl) dom += 'f';
+        var dom = "";
+        if(this.configuration.filterControl) dom += '<"table-search"f>';
         if(this.configuration.lengthControl) dom += 'l';
+        dom += "t";
         if(this.configuration.tableInfo) dom += 'i';
         if(this.configuration.paginationControl) dom += 'p';
 
@@ -286,7 +287,10 @@
         this.table = this.tableDom.DataTable({
             data: normalizedData,
             dom: dom,
-            columns: columns
+            columns: columns,
+            "oLanguage": {
+                "sSearch": ""
+            }
         });
 
         // If some rows must be selected from the beginning
