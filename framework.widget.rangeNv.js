@@ -287,16 +287,19 @@
                 .color(this.configuration.colors)
                 .duration(this.configuration.duration)
                 .showLegend(this.configuration.showLegend);
+                // only affect to focus .How can i force Y axis in context chart?
+                // ... i don't know ...
+                //.forceY([this.maxY + 10, this.minY]);
             this.chart = chart;
+
+            chart.margin({"top":10,"bottom":14});
 
             chart.xAxis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d));
-                })
-                .showMaxMin(false);
+                });
             chart.x2Axis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d))
-                })
-                .showMaxMin(false)
+                });
 
             chart.yAxis.tickFormat(function(d) {
                 if (d >= 1000 || d <= -1000) {
