@@ -115,17 +115,12 @@
         this.data = null;
         this.chart = null;
         this.labels = {};
+        this.lastExtent = [];
+        this.maxY = Number.MIN_VALUE;
+        this.minY = Number.MAX_VALUE;
+        this.maxT = -8640000000000000;
+        this.minT = 8640000000000000;
 
-
-
-        /*this.element.append('<div><button>toggle focus</button></div>');
-        this.element.find('button').get(0).addEventListener('click', function() {
-            if(this.chart == null) {
-                return;
-            }
-            this.chart.focusEnable(!this.chart.focusEnable());
-            this.chart.update();
-        }.bind(this))*/
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
@@ -158,6 +153,7 @@
     RangeNv.prototype.updateData = function(framework_data) {
 
         var normalizedData = getNormalizedData.call(this,framework_data);
+        setTimeInfo(this.minT, this.maxT);
 
         //Update data
         if(this.chart != null) {
@@ -185,6 +181,7 @@
     };
 
     RangeNv.prototype.updateContext = function(d) {
+        this.lastExtent = d;
         framework.data.updateContext(this.ownContext, {from: moment(d[0]).format("YYYY-MM-DD"), to: moment(d[1]).format("YYYY-MM-DD")});
         setTimeInfo(d[0], d[1]);
     };
@@ -234,6 +231,13 @@
                 var metric = framework_data[metricId][m];
                 var metricData = framework_data[metricId][m]['data'];
 
+                if(metric.interval.from < this.minT) {
+                    this.minT = metric.interval.from;
+                }
+                if(metric.interval.to > this.maxT) {
+                    this.maxT = metric.interval.to;
+                }
+
                 var timePoint = metricData.interval.from - metricData.step;
                 var yserie = metricData.values;
 
@@ -258,8 +262,14 @@
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
                     timePoint += metricData.step;
+                    if(dat > this.maxY) {
+                        this.maxY = dat;
+                    }
+                    if (dat < this.minY) {
+                        this.minY = dat;
+                    }
                     return {'x': new Date(timePoint), 'y': dat};
-                });
+                }.bind(this));
                 series.push({
                     values: dat,      //values - represents the array of {x,y} data points
                     key: label, //key  - the name of the series.
@@ -323,6 +333,10 @@
 
             var timer = null;
             chart.dispatch.on('brush', function(extent){
+                if(JSON.stringify(this.lastExtent) == JSON.stringify(extent.extent)){
+                    // Resize event causes a unwanted brush event in this chart
+                    return;
+                }
                 if (timer) {
                     clearTimeout(timer); //cancel the previous timer.
                     timer = null;
@@ -338,8 +352,12 @@
             }
             // axis color
             $(this.svg).find(".nv-axis").attr('style', 'fill:' + this.configuration.axisColor + ';')
-            // leyebd color
+            // leyend color
             $(this.svg).find(".nv-legend-text").attr('style', 'fill:' + this.configuration.axisColor + ';')
+
+            // bigger brush cover
+            $(this.svg).find(".nv-brushBackground rect").attr('height', 98);
+            $(this.svg).find(".nv-brushBackground rect").attr('transform', 'translate(0,-4)');
 
             return chart;
         }.bind(this));
