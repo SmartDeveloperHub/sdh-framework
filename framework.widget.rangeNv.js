@@ -229,13 +229,13 @@
             for (var m in framework_data[metricId]) {
 
                 var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricId][m]['data'];
+                var metricData = metric['data'];
 
-                if(metric.interval.from < this.minT) {
-                    this.minT = metric.interval.from;
+                if(metricData.interval.from < this.minT) {
+                    this.minT = metricData.interval.from;
                 }
-                if(metric.interval.to > this.maxT) {
-                    this.maxT = metric.interval.to;
+                if(metric.data.interval.to > this.maxT) {
+                    this.maxT = metricData.interval.to;
                 }
 
                 var timePoint = metricData.interval.from - metricData.step;
