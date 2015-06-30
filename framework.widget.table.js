@@ -367,7 +367,7 @@
         var cell = $(this).parent();
 
         var linkInfo = widget.table.cell(cell).data();
-        var rowData = widget.table.cell(cell).row().data();
+        var rowData = widget.table.row(cell.parent()).data();
 
         //Generate the env
         var env = null;
