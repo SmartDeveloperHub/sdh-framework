@@ -32,6 +32,7 @@
 
         this.isloading = 0;
         this.callback = null;
+        this.secureEndTimer = null;
         this._common = {};
         this._common.previousColors = {};
         this._common.container = container;
@@ -48,6 +49,7 @@
         this._common.loadingLayer = loadingLayer;
 
         this.restoreContainerHandler = function restoreContainerHandler(e) {
+            clearTimeout(this.secureEndTimer);
             this._common.loadingLayer.removeEventListener('transitionend', this.restoreContainerHandler);
             $(this._common.container).removeClass('blurMode');
             this._common.container.style.position = oldposstyle;
@@ -106,6 +108,10 @@
             setTimeout(function() {
                 $(this._common.loadingLayer).removeClass('on')
             }.bind(this), 100);
+            this.secureEndTimer = setTimeout(function() {
+                console.log("secureEndTimer");
+                this.restoreContainerHandler();
+            }.bind(this), 600);
         } else {
             console.log('discarding data...');
         }
