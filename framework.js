@@ -740,11 +740,25 @@
      * @param callback
      */
     var sendDataEventToCallback = function sendDataEventToCallback(data, callback) {
+
         if(typeof callback === "function") {
-            callback({
-                event: "data",
-                data: data
-            });
+
+            //Check if it still is being observed
+            var observed = false;
+            for (var i in _event_handlers) {
+                if (_event_handlers[i].userCallback === callback) {
+                    observed = true;
+                    break;
+                }
+            }
+
+            if(observed) {
+                callback({
+                    event: "data",
+                    data: data
+                });
+            }
+
         }
     };
 

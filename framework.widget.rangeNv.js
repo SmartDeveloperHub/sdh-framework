@@ -134,15 +134,7 @@
         this.svg.get(0).style.minHeight = configuration.height;
         this.svg.get(0).style.backgroundColor = configuration.background;
 
-        this.observeCallback = function(event){
-
-            if(event.event === 'loading') {
-                this.startLoading();
-            } else if(event.event === 'data') {
-                this.endLoading(this.updateData.bind(this, event.data));
-            }
-
-        }.bind(this);
+        this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId);
 

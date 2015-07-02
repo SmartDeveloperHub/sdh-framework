@@ -30,12 +30,14 @@
         //First of all, register this widget with the dashboard
         framework.dashboard.registerWidget(this);
 
-        this.isloading = 0;
-        this.callback = null;
-        this.secureEndTimer = null;
         this._common = {};
+        this._common.isloading = 0;
+        this._common.callback = null;
+        this._common.secureEndTimer = null;
         this._common.previousColors = {};
+        this._common.disposed = false;
         this._common.container = container;
+
         this._common.loadingContainer = document.createElement('div');
         this._common.loadingContainer.className ='loadingContainer';
         var loadingLayer = document.createElement('div');
@@ -49,13 +51,13 @@
         this._common.loadingLayer = loadingLayer;
 
         this.restoreContainerHandler = function restoreContainerHandler(e) {
-            clearTimeout(this.secureEndTimer);
+            clearTimeout(this._common.secureEndTimer);
             this._common.loadingLayer.removeEventListener('transitionend', this.restoreContainerHandler);
             $(this._common.container).removeClass('blurMode');
             this._common.container.style.position = oldposstyle;
             window.removeEventListener("resize", resizeHandler.bind(this));
-            if (typeof this.callback == 'function') {
-                this.callback();
+            if (typeof this._common.callback == 'function' && !this._common.disposed) {
+                this._common.callback();
             }
         }.bind(this);
     };
@@ -63,8 +65,8 @@
     var oldContainerClass, oldposstyle;
 
     CommonWidget.prototype.startLoading = function startLoading() {
-        this.isloading += 1;
-        if (this.isloading > 1) {
+        this._common.isloading += 1;
+        if (this._common.isloading > 1) {
             return;
         }
         if (!oldposstyle) {
@@ -101,14 +103,14 @@
     or the animating property's value is changed.
     */
     CommonWidget.prototype.endLoading = function endLoading(callback) {
-        this.isloading -= 1;
-        if(this.isloading == 0) {
-            this.callback = callback;
+        this._common.isloading -= 1;
+        if(this._common.isloading == 0) {
+            this._common.callback = callback;
             this._common.loadingLayer.addEventListener('transitionend', this.restoreContainerHandler);
             setTimeout(function() {
                 $(this._common.loadingLayer).removeClass('on')
             }.bind(this), 100);
-            this.secureEndTimer = setTimeout(function() {
+            this._common.secureEndTimer = setTimeout(function() {
                 console.log("secureEndTimer");
                 this.restoreContainerHandler();
             }.bind(this), 600);
@@ -232,8 +234,37 @@
 
         return colors;
 
+    };
+
+    /**
+     * Generic observe methods that should be used in the widget as it controls concurrency problems.
+     * When new data is received, the updateData method is called.
+     * @param event
+     */
+    CommonWidget.prototype.commonObserveCallback = function commonObserveCallback(event) {
+
+        if(this._common.disposed) {
+            return;
+        }
+
+        if(event.event === 'loading') {
+            this.startLoading();
+        } else if(event.event === 'data') {
+            this.endLoading(this.updateData.bind(this, event.data));
+        }
 
     };
+
+    /**
+     * Sets the widget as disposed.
+     * @param event
+     */
+    CommonWidget.prototype.dispose = function dispose() {
+        this._common.disposed = true;
+    };
+
+
+
 
     window.framework.widgets.CommonWidget = CommonWidget;
 

@@ -146,15 +146,7 @@
         // Create the chart only once, then only will be updated
         createChart.call(this);
 
-        this.observeCallback = function(event){
-
-            if(event.event === 'loading') {
-                this.startLoading();
-            } else if(event.event === 'data') {
-                this.endLoading(this.updateData.bind(this, event.data));
-            }
-
-        }.bind(this);
+        this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId);
 

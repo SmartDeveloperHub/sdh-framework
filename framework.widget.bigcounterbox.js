@@ -196,15 +196,7 @@
         // extending widget
         framework.widgets.CommonWidget.call(this, false, element);
 
-        this.observeCallback = function(event){
-            if(event.event === 'loading') {
-                this.startLoading();
-            } else if(event.event === 'data') {
-                this.eventData = event.data;
-                this.endLoading(this.updateData);
-            }
-
-        }.bind(this);
+        this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId, 1);
 
