@@ -345,8 +345,9 @@
      * Requests multiple resources
      * @param resources Normalized resource
      * @param callback
+     * @param unique Is this is a request that do not depend on any context, so it will be executed only once
      */
-    var multipleResourcesRequest = function multipleResourcesRequest(resources, callback) {
+    var multipleResourcesRequest = function multipleResourcesRequest(resources, callback, unique) {
 
         var completedRequests = 0;
         var allData = {};
@@ -373,7 +374,7 @@
             });
 
             if(++completedRequests === requests.length) {
-                sendDataEventToCallback(allData, callback);
+                sendDataEventToCallback(allData, callback, unique);
             }
         };
 
@@ -738,18 +739,22 @@
      * Send a data event to the given observer. This means that the data the framework was loading is now ready.
      * @param data New data.
      * @param callback
+     * @param unique Is this is a request that do not depend on any context, so it will be executed only once
      */
-    var sendDataEventToCallback = function sendDataEventToCallback(data, callback) {
+    var sendDataEventToCallback = function sendDataEventToCallback(data, callback, unique) {
 
         if(typeof callback === "function") {
 
-            //Check if it still is being observed
             var observed = false;
-            for (var i in _event_handlers) {
-                if (_event_handlers[i].userCallback === callback) {
-                    observed = true;
-                    break;
+            if(!unique) { //Check if it still is being observed
+                for (var i in _event_handlers) {
+                    if (_event_handlers[i].userCallback === callback) {
+                        observed = true;
+                        break;
+                    }
                 }
+            } else {
+                observed = true;
             }
 
             if(observed) {
@@ -874,7 +879,7 @@
 
             //Request all the resources if possible
             if(allResourcesCanBeRequested(resourcesWithContext)) {
-                multipleResourcesRequest(resourcesWithContext, callback);
+                multipleResourcesRequest(resourcesWithContext, callback, false);
             }
 
             //Create the CONTEXT event handler
@@ -906,7 +911,7 @@
                 var resourcesWithContext = combineResourcesWithContexts(resources, contextIds);
 
                 if(allResourcesCanBeRequested(resourcesWithContext)) {
-                    multipleResourcesRequest(resourcesWithContext, callback);
+                    multipleResourcesRequest(resourcesWithContext, callback, false);
                 }
             };
 
@@ -926,7 +931,7 @@
 
             //Request all the resources
             if(allResourcesCanBeRequested(resources)) {
-                multipleResourcesRequest(resources, callback);
+                multipleResourcesRequest(resources, callback, true);
             } else {
                 error("Some of the resources have not information enough for an 'observe' without context or does not exist.");
             }
