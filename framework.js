@@ -1089,7 +1089,7 @@
      * Gets the dashboard environment
      */
     _self.dashboard.getEnv = function getEnv() {
-        return _dashboardEnv || {};
+        return clone(_dashboardEnv) || {}; // TODO: optimize?
     };
 
 
