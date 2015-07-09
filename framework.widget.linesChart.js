@@ -25,6 +25,9 @@
         if (configuration == null) {
             configuration = {};
         }
+        if (typeof configuration.height != "number") {
+            configuration.height = 240;
+        }
         if (typeof configuration.xlabel != "string") {
             configuration.xlabel = 'X';
         }
@@ -103,7 +106,7 @@
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = '200px';
+        this.svg.get(0).style.minHeight = configuration.height + 'px';
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
