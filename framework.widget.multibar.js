@@ -38,7 +38,7 @@
             },
             color: {
                 type: 'string',
-                default: nv.utils.defaultColor()
+                default: null
             },
             stacked: {
                 type: 'boolean',
