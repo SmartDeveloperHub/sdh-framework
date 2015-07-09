@@ -80,23 +80,6 @@
 
     };
 
-    var setLoadingSize = function setLoadingSize() {
-        var wsize = this._common.container.getBoundingClientRect();
-        // center the spinner vertically because a responsive
-        // widget can change it height dynamically
-        this._common.loadingLayer.style.lineHeight = wsize.height + 'px';
-        this._common.loadingContainer.style.height = wsize.height + 'px';
-        this._common.loadingContainer.style.width = wsize.width + 'px';
-        if(this._common.loadingContainer.getBoundingClientRect().top == 0) {
-            this._common.loadingContainer.style.top = wsize.top + 'px';
-        }
-        this._common.loadingContainer.style.left = 'auto';
-    };
-
-    var resizeHandler = function resizeHandler(e) {
-        setLoadingSize.call(this);
-    };
-
     /*
     The transitionend event doesn't fire if the transition is aborted before
     the transition is completed because either the element is made display: none
@@ -117,12 +100,6 @@
         } else {
             console.log('discarding data...');
         }
-    };
-
-    CommonWidget.prototype.changeDashboard = function changeDashboard(dashboard) {
-
-        //Ask the framework to change the dashboard
-        framework.dashboard.changeTo(dashboard);
     };
 
     CommonWidget.prototype.extractMetrics = function extractMetrics(framework_data) {
@@ -250,6 +227,19 @@
         if(event.event === 'loading') {
             this.startLoading();
         } else if(event.event === 'data') {
+
+            //Check if there is any metric that needs to be filled with zeros
+            for(var resourceId in event.data) {
+                for(var i in event.data[resourceId]){
+                    var resource = event.data[resourceId][i];
+
+                    //Only metrics need to be checked
+                    if(isMetric(resource)) {
+                        zeroFillMetric(resource);
+                    }
+                }
+            }
+
             this.endLoading(this.updateData.bind(this, event.data));
         }
 
@@ -264,6 +254,101 @@
     };
 
 
+    // ---------------------------
+    // ------PRIVATE METHODS------
+    // ---------------------------
+
+    var setLoadingSize = function setLoadingSize() {
+        var wsize = this._common.container.getBoundingClientRect();
+        // center the spinner vertically because a responsive
+        // widget can change it height dynamically
+        this._common.loadingLayer.style.lineHeight = wsize.height + 'px';
+        this._common.loadingContainer.style.height = wsize.height + 'px';
+        this._common.loadingContainer.style.width = wsize.width + 'px';
+        if(this._common.loadingContainer.getBoundingClientRect().top == 0) {
+            this._common.loadingContainer.style.top = wsize.top + 'px';
+        }
+        this._common.loadingContainer.style.left = 'auto';
+    };
+
+    var resizeHandler = function resizeHandler(e) {
+        setLoadingSize.call(this);
+    };
+
+    var isNumber = function isNumber(n) {
+        return !isNaN(parseFloat(n)) && isFinite(n);
+    };
+
+    var isMetric = function isMetric(resource) {
+        var resourceData = resource.data;
+        return resourceData != null && resourceData.values instanceof Array && isNumber(resourceData.values[0]);
+    };
+
+    var zeroFillMetric = function zeroFillMetric(resource) {
+
+        var resourceInterval = resource['data']['interval'];
+        var requestedInterval = {
+            from: resource['info']['request']['params']['from'],
+            to: resource['info']['request']['params']['to']
+        };
+
+        var step = resource['data']['step'];
+        var values = resource['data']['values'];
+
+        //We need step to be a number
+        if(!isNumber(step)){
+            return;
+        }
+        step = Number(step);
+
+        // Check 'from'
+        if(resourceInterval['from'] != null && requestedInterval['from'] != null) {
+
+            //Make sure they are numbers
+            resourceInterval['from'] = Number(resourceInterval['from']);
+            requestedInterval['from'] = Number(requestedInterval['from']);
+
+            // We need to add zeros
+            if(requestedInterval['from'] < resourceInterval['from']) {
+                var diff = resourceInterval['from'] - requestedInterval['from'];
+                var nZeros = Math.floor(diff/step);
+
+                //Add the calculated number of zeros
+                for(var i = nZeros; i > 0; --i) {
+                    values.unshift(0);
+                }
+
+                //Update the new from
+                resourceInterval['from'] -= nZeros * step;
+            }
+
+        }
+
+        // Check 'to'
+        if(resourceInterval['to'] != null && requestedInterval['to'] != null) {
+
+            //Make sure they are numbers
+            resourceInterval['to'] = Number(resourceInterval['to']);
+            requestedInterval['to'] = Number(requestedInterval['to']);
+
+            // We need to add zeros
+            if(requestedInterval['to'] > resourceInterval['to']) {
+                var diff = requestedInterval['to'] - resourceInterval['to'];
+                var nZeros = Math.floor(diff/step);
+
+                //Add the calculated number of zeros
+                for(var i = nZeros; i > 0; --i) {
+                    values.push(0);
+                }
+
+                //Update the new from
+                resourceInterval['from'] += nZeros * step;
+            }
+
+        }
+
+
+    };
 
 
     window.framework.widgets.CommonWidget = CommonWidget;
