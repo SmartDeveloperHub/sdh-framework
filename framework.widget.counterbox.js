@@ -77,6 +77,14 @@
         if (typeof configuration.decimal !== "number") {
             configuration.decimal = 2;
         }
+
+        if (typeof configuration.suffix !== "string") {
+            configuration.suffix = "";
+        }
+
+        if (typeof configuration.prefix !== "string") {
+            configuration.prefix = "";
+        }
         return configuration;
     };
 
@@ -174,8 +182,8 @@
             useGrouping : true,
             separator : '.',
             decimal : this.decimal,
-            prefix : '' ,
-            suffix : ''
+            prefix : this.configuration.prefix ,
+            suffix : this.configuration.suffix
         };
 
         var cntr = new countUp(this.labn, this.currentValue, this.data.values[0], this.configuration.decimal, this.configuration.changetime, options);
