@@ -183,6 +183,8 @@
 
         this.element = $(element); //Store as jquery object
         this.data = null;
+        this.tableDom = null;
+        this.table = null;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -305,14 +307,18 @@
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
-        //Remove event listeners
-        this.tableDom.off();
+        if(this.tableDom != null) {
+            //Remove event listeners
+            this.tableDom.off();
 
-        //Destroy DataTable
-        this.table.destroy();
+            //Destroy DataTable
+            this.table.destroy();
 
-        //Clear DOM
-        this.tableDom.empty();
+            //Clear DOM
+            this.tableDom.empty();
+        }
+
+        //Remove all DOM the elements added to element
         this.element.empty();
 
         this.tableDom = null;
