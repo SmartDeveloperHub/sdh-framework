@@ -35,6 +35,7 @@
 }
 .com-widget.com-counter {
      display: block;
+     min-width: 215px;
  }
 .com-widget.com-counter .com-icon,
 .com-widget.com-counter .com-label,
