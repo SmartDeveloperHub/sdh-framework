@@ -143,6 +143,12 @@
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
+        //Remove resize event listener
+        if(this.resizeEventHandler != null) {
+            $(window).off("resize", this.resizeEventHandler);
+            this.resizeEventHandler = null;
+        }
+
         //Clear DOM
         $(this.svg).empty();
         this.element.empty();
@@ -245,24 +251,24 @@
         var ylabel = this.configuration.ylabel;
 
         nv.addGraph(function() {
-          var chart = nv.models.lineChart()
-                        .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
-                        .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-                        .duration(350)  //how fast do you want the lines to transition?
-                        .showLegend(this.configuration.showLegend)       //Show the legend, allowing users to turn on/off line series.
-                        .showYAxis(true)        //Show the y-axis
-                        .showXAxis(true)        //Show the x-axis
-                        .interpolate(this.configuration.interpolate) // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
-                        .color(this.generateColors(framework_data))
-          ;
-          this.chart = chart;
-          chart.xAxis     //Chart x-axis settings
+            var chart = nv.models.lineChart()
+                    .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
+                    .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+                    .duration(350)  //how fast do you want the lines to transition?
+                    .showLegend(this.configuration.showLegend)       //Show the legend, allowing users to turn on/off line series.
+                    .showYAxis(true)        //Show the y-axis
+                    .showXAxis(true)        //Show the x-axis
+                    .interpolate(this.configuration.interpolate) // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
+                    .color(this.generateColors(framework_data))
+                ;
+            this.chart = chart;
+            chart.xAxis     //Chart x-axis settings
                 .axisLabel(this.configuration.xlabel)
                 .tickFormat(function(d) {
                     return d3.time.format('%x')(new Date(d));
                 });
 
-          chart.yAxis     //Chart y-axis settings
+            chart.yAxis     //Chart y-axis settings
                 .axisLabel(this.configuration.ylabel)
                 .tickFormat(function(tickVal) {
                     if (tickVal >= 1000 || tickVal <= -1000) {
@@ -273,12 +279,14 @@
                 })
 
 
-          d3.select(this.svg.get(0))   //Select the <svg> element you want to render the chart in.   
-              .datum(data)          //Populate the <svg> elemen
-              .call(chart);         //Finally, render the chart!
+            d3.select(this.svg.get(0))   //Select the <svg> element you want to render the chart in.
+                .datum(data)          //Populate the <svg> elemen
+                .call(chart);         //Finally, render the chart!
 
-          //Update the chart when window resizes.
-          nv.utils.windowResize(function() { chart.update() });
+            //Update the chart when window resizes.
+            this.resizeEventHandler = function() { chart.update() };
+            $(window).resize(this.resizeEventHandler);
+
           return chart;
         }.bind(this));
 

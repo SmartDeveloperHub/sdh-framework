@@ -163,6 +163,12 @@
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
+        //Remove resize event listener
+        if(this.resizeEventHandler != null) {
+            $(window).off("resize", this.resizeEventHandler);
+            this.resizeEventHandler = null;
+        }
+
         //Clear DOM
         $(this.svg).empty();
         this.element.empty();
@@ -338,7 +344,10 @@
                 }.bind(this), 400);
             }.bind(this));
 
-            nv.utils.windowResize(chart.update);
+            //Update the chart when window resizes.
+            this.resizeEventHandler = function() { chart.update() };
+            $(window).resize(this.resizeEventHandler);
+
             if (!this.configuration.showFocus) {
                 $(".nv-focus").attr("class", "nv-focus hidden");
             }
