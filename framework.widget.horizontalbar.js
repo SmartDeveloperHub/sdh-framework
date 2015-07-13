@@ -195,7 +195,7 @@
 
         this.svg = null;
         this.chart = null;
-console.log("Horizontal bar is disposed");
+
     };
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -

@@ -94,7 +94,6 @@
                 $(this._common.loadingLayer).removeClass('on')
             }.bind(this), 100);
             this._common.secureEndTimer = setTimeout(function() {
-                console.log("secureEndTimer");
                 this.restoreContainerHandler();
             }.bind(this), 600);
         } else {
