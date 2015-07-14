@@ -352,13 +352,13 @@
                 $(".nv-focus").attr("class", "nv-focus hidden");
             }
             // axis color
-            $(this.svg).find(".nv-axis").attr('style', 'fill:' + this.configuration.axisColor + ';')
+            $(this.svg).find("[class~=nv-axisG]").attr('style', 'fill:' + this.configuration.axisColor + ';')
             // leyend color
-            $(this.svg).find(".nv-legend-text").attr('style', 'fill:' + this.configuration.axisColor + ';')
+            $(this.svg).find("[class~=nv-legend-text]").attr('style', 'fill:' + this.configuration.axisColor + ';')
 
             // bigger brush cover
-            $(this.svg).find(".nv-brushBackground rect").attr('height', 98);
-            $(this.svg).find(".nv-brushBackground rect").attr('transform', 'translate(0,-4)');
+            $(this.svg).find("[class~=nv-brushBackground] rect").attr('height', 98);
+            $(this.svg).find("[class~=nv-brushBackground] rect").attr('transform', 'translate(0,-4)');
 
             return chart;
         }.bind(this));
