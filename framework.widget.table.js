@@ -64,6 +64,10 @@
                 type: 'number',
                 default: 1
             },
+            minRowsSelected: {
+                type: 'number',
+                default: 0
+            },
             initialSelectedRows: {
                 type: 'number',
                 default: 0
@@ -99,7 +103,8 @@
      *       ~ tableInfo: boolean - Whether to show extra info about the table or not.
      *       ~ selectable: boolean - If true, the rows of this table can be selected. When selected, the contexts are
      *          are updated with the data updateContexts indicates.
-     *       ~ maxRowsSelected: number - Maximum number of rows that can be selected at the same time.
+     *       ~ maxRowsSelected: number - Maximum number of rows that can be selected at the same time. Default: 1.
+     *       ~ minRowsSelected: number - Minimum number of rows that must be selected at the same time. Default: 0.
      *       ~ initialSelectedRows: number - Number of rows that must be selected at the beginning. Default: 0.
      *       ~ updateContexts: array - Array of objects that configure how to update the contexts. It must contain an id with
      *          the id of the context and a filter array with the data to send through the context update.
@@ -387,7 +392,11 @@
         var widget = e.data;
 
         if ( $(this).hasClass('selected') ) { //It is already selected
-            $(this).removeClass('selected');
+
+            //Select it if the maximum of selected rows has not been achieved
+            if(widget.table.$('tr.selected').length > widget.configuration.minRowsSelected) {
+                $(this).removeClass('selected');
+            }
 
         } else { //Not selected
 
