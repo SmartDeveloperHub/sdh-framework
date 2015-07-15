@@ -37,6 +37,7 @@
         this._common.previousColors = {};
         this._common.disposed = false;
         this._common.container = container;
+        this._common.resizeHandler = null;
 
         this._common.loadingContainer = document.createElement('div');
         this._common.loadingContainer.className ='loadingContainer';
@@ -55,7 +56,8 @@
             this._common.loadingLayer.removeEventListener('transitionend', this.restoreContainerHandler);
             $(this._common.container).removeClass('blurMode');
             this._common.container.style.position = oldposstyle;
-            window.removeEventListener("resize", resizeHandler.bind(this));
+            window.removeEventListener("resize", this._common.resizeHandler);
+            this._common.resizeHandler = null;
             if (typeof this._common.callback == 'function' && !this._common.disposed) {
                 this._common.callback();
             }
@@ -74,7 +76,8 @@
         }
         this._common.container.style.position = 'relative';
         setLoadingSize.call(this);
-        window.addEventListener("resize", resizeHandler.bind(this));
+        this._common.resizeHandler = resizeHandler.bind(this);
+        window.addEventListener("resize", this._common.resizeHandler);
         $(this._common.container).addClass('blurMode');
         $(this._common.loadingLayer).addClass('on');
 
