@@ -216,7 +216,7 @@
             //Create the html for the table
             this.element.append('<table class="blurable table table-striped table-bordered"><thead><tr></tr></thead><tbody></tbody></table>');
             this.tableDom = this.element.children("table");
-            this.tableDom.get(0).style.minHeight = this.configuration.height;
+            this.tableDom.get(0).style.maxHeight = this.configuration.height + "px";
 
             //Add click listener for links
             this.tableDom.on( 'click', '.dashboardLink', this, dashboardLinkClickHandler);

@@ -104,15 +104,15 @@
         this.chart = null;
         this.labels = {};
 
-        this.element.append('<svg class="blurable"></svg>');
-        this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = configuration.height + 'px';
-
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
         this.configuration = normalizeConfig(configuration);
+
+        this.element.append('<svg class="blurable"></svg>');
+        this.svg = this.element.children("svg");
+        this.svg.get(0).style.minHeight = this.configuration.height + "px";
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
@@ -246,12 +246,12 @@
     var paint = function paint(data, framework_data) {
 
         var width = this.element.get(0).getBoundingClientRect().width;
-        var height = this.element.get(0).getBoundingClientRect().height;
         var xlabel = this.configuration.xlabel;
         var ylabel = this.configuration.ylabel;
 
         nv.addGraph(function() {
             var chart = nv.models.lineChart()
+                    .height(this.configuration.height)
                     .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
                     .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
                     .duration(350)  //how fast do you want the lines to transition?

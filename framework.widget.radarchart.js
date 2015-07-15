@@ -196,7 +196,7 @@
             this.element.append('<div class="blurable"><canvas></canvas></div>');
             this.container = this.element.children("div");
             this.canvas = this.container.children("canvas");
-            this.container.attr('height', this.configuration.height);
+            this.container.get(0).style.minHeight = this.configuration.height + "px";
             this.canvas.attr('height', this.configuration.height);
 
 

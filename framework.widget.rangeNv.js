@@ -131,8 +131,8 @@
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = configuration.height;
-        this.svg.get(0).style.backgroundColor = configuration.background;
+        this.svg.get(0).style.minHeight = this.configuration.height + "px";;
+        this.svg.get(0).style.backgroundColor = this.configuration.background;
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
