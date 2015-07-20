@@ -46,8 +46,14 @@
         if (typeof configuration.labelFormat != "string") {
             configuration.labelFormat = "%mid%";
         }
+        if (typeof configuration.margin != "object") {
+            configuration.margin = {left: 100, right: 70};
+        }
         if (typeof configuration.area != "boolean") {
             configuration.area = false;
+        }
+        if (typeof configuration.colors != "object") {
+            configuration.colors = undefined;
         }
         if (!(typeof configuration.interpolate == 'string' || typeof configuration.interpolate == 'function')) {
             configuration.interpolate = 'linear';
@@ -75,6 +81,7 @@
      *       ~ interpolate: string/function - sets the interpolation mode to the specified string or function
      *         e.g: 'monotone' or 'step'. Default: 'linear'
      *         more information: https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
+     *       ~ margin: object - {'right': number, 'left': number, 'top': number, 'bottom': number} (all optionals)
      *      }
      */
     var LinesChart = function LinesChart(element, metrics, contextId, configuration) {
@@ -129,7 +136,7 @@
         //Update data
         if(this.chart != null) {
             d3.select(this.svg.get(0)).datum(normalizedData);
-            this.chart.color(this.generateColors(framework_data));
+            this.chart.color(this.generateColors(framework_data, this.configuration.colors));
             this.chart.update();
 
         } else { // Paint it for first time
@@ -252,14 +259,14 @@
         nv.addGraph(function() {
             var chart = nv.models.lineChart()
                     .height(this.configuration.height)
-                    .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
+                    .margin(this.configuration.margin)  //Adjust chart margins to give the x-axis some breathing room.
                     .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
                     .duration(350)  //how fast do you want the lines to transition?
                     .showLegend(this.configuration.showLegend)       //Show the legend, allowing users to turn on/off line series.
                     .showYAxis(true)        //Show the y-axis
                     .showXAxis(true)        //Show the x-axis
                     .interpolate(this.configuration.interpolate) // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
-                    .color(this.generateColors(framework_data))
+                    .color(this.generateColors(framework_data, this.configuration.colors))
                 ;
             this.chart = chart;
             chart.xAxis     //Chart x-axis settings
