@@ -74,8 +74,8 @@
             configuration.testcolor = "#000";
         }
 
-        if (typeof configuration.decimal !== "number") {
-            configuration.decimal = 2;
+        if (typeof configuration.decimals !== "number") {
+            configuration.decimals = 2;
         }
 
         if (typeof configuration.suffix !== "string") {
@@ -181,7 +181,8 @@
             useEasing : this.configuration.changeeasing,
             useGrouping : true,
             separator : '.',
-            decimal : this.decimal,
+            decimals : this.decimals,
+            decimal : ',',
             prefix : this.configuration.prefix ,
             suffix : this.configuration.suffix
         };
