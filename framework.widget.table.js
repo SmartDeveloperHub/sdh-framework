@@ -138,7 +138,8 @@
      *          In case of a property, it is the name of the property of the data retrieved from the framework that
      *          must be displayed in that column.
      *          In case of a link, it displays a link to change to other dashboard. A link is an object with multiple
-     *          properties: a 'href' with the name of the dashboard to go to, an 'icon' (class of the icon to display)
+     *          properties: a 'href' with the name of the dashboard to go to, an 'icon' (class of the icon to display),
+     *          an 'img' whose value indicates the property that contains the url of the image to be displayed
      *          or a 'label' (text) to display, and an 'env' that configures the environment info to send to the
      *          new dashboard. The 'env' property is an array of objects that contains a 'property' and an optional 'as'.
      *          Format:
@@ -149,7 +150,7 @@
      *           {
      *              label: "Show",
      *               link: {
-     *                   icon: <String>, //or label: <String>
+     *                   icon: <String>, //or label: <String> or img: <String>
      *                   href: <String>,
      *                   env: [
      *                       {
@@ -214,7 +215,7 @@
         if(this.tableDom == null) {
 
             //Create the html for the table
-            this.element.append('<table class="blurable table table-striped table-bordered"><thead><tr></tr></thead><tbody></tbody></table>');
+            this.element.append('<table class="blurable table"><thead><tr></tr></thead><tbody></tbody></table>');
             this.tableDom = this.element.children("table");
             this.tableDom.get(0).style.maxHeight = this.configuration.height + "px";
 
@@ -255,8 +256,9 @@
                 column = { data: columnConfig['property'] };
 
             } else if(columnConfig['link'] != null && columnConfig['link']['href'] != null) { //Is a link
+                var _data = columnConfig['link'];
                 column = {
-                    data: function(){ return columnConfig['link']; },
+                    data: function(){ return _data; },
                     orderable: false,
                     searchable: false,
                     render: columnIconRenderer
@@ -348,7 +350,9 @@
 
             if (linkInfo['icon'] != null) { //It is an icon
                 return '<div class="dashboardLink ' + linkInfo['icon'] + '"></div>';
-            } else { //Just a label
+            } else if (linkInfo['img'] != null) { //It is an image
+                return '<div class="dashboardLink"><img src="' + rowData[linkInfo['img']] + '"></div>';
+            }else { //Just a label
                 return '<div class="dashboardLink">' + linkInfo['label'] + '</div>';
             }
 
