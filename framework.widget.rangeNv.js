@@ -360,6 +360,9 @@
             $(this.svg).find("[class~=nv-brushBackground] rect").attr('height', 98);
             $(this.svg).find("[class~=nv-brushBackground] rect").attr('transform', 'translate(0,-4)');
 
+            //Call update to update the chart and threfore the context
+            chart.update();
+
             return chart;
         }.bind(this));
 
