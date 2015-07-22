@@ -93,10 +93,11 @@
         }
 
         $.getJSON( _serverUrl + path, queryParams, callback).fail( function(d, textStatus, e) {
-            error("getJSON failed, status: " + textStatus + ", error: "+e);
+            error("Framework getJSON request failed\nStatus: " + textStatus + " \nError: "+ (e ? e : '-') + "\nRequested url: '"+
+            path+"'\nParameters: " + JSON.stringify(queryParams));
 
             //Retry the request
-            if (maxRetries > 0) {
+            if (maxRetries > 0 && textStatus === "timeout") {
                 requestJSON(path, queryParams, callback, --maxRetries);
             }
 
