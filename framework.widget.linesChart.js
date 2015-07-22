@@ -58,6 +58,10 @@
         if (!(typeof configuration.interpolate == 'string' || typeof configuration.interpolate == 'function')) {
             configuration.interpolate = 'linear';
         }
+        // Demo
+        if (typeof configuration._demo != "boolean") {
+            configuration.demo = false;
+        }
 
         return configuration;
     };
@@ -228,9 +232,19 @@
                   this.labels[lab] = null;
                   return lab;
                 };
-
+                // Demo
                 // Generate the label by replacing the variables
-                var label = genLabel.call(this, 0);
+                //var label = genLabel.call(this, 0);
+                var label;
+                if (this.configuration._demo) {
+                    label = "commits";
+                    if (metric.info.request.params.aggr == "avg") {
+                        label += " by day";
+                    }
+                } else {
+                    // Generate the label by replacing the variables
+                    label = genLabel.call(this, 0);
+                }
 
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
