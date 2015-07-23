@@ -145,6 +145,7 @@
         this.element = $(element); //Store as jquery object
         this.data = null;
         this.chart = null;
+        this.aproximatedDates = false;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -249,6 +250,10 @@
                 var metric = framework_data[metricId][m];
                 var metricData = metric['data'];
 
+                if(metric['info']['request']['params']['max'] > 0) {
+                    this.aproximatedDates = true;
+                }
+
                 //Create a replacer for this metric
                 var metricReplacer = replacer.bind(null, metricId, metric);
 
@@ -329,6 +334,12 @@
                 .showXAxis(this.configuration.showXAxis)
                 .showYAxis(this.configuration.showYAxis);
             this.chart = chart;
+
+            if(this.aproximatedDates) {
+                chart.tooltip.headerFormatter(function(d) {
+                    return '~' + d3.time.format('%x')(new Date(d));
+                });
+            }
 
             chart.xAxis.tickFormat(function(d) {
                 return d3.time.format('%x')(new Date(d));
