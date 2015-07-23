@@ -37,7 +37,7 @@
                 default: 240
             },
             color: {
-                type: 'string',
+                type: 'object',
                 default: null
             },
             stacked: {
