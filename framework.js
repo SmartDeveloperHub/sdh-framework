@@ -973,6 +973,18 @@
 
     };
 
+    _self.data.clear = function() {
+
+        //Stop all the observes
+        _self.data.stopAllObserves();
+
+        //Clear the resources contexts storage
+        for(var key in _resourcesContexts) {
+            delete _resourcesContexts[key];
+        }
+
+    };
+
     /**
      * Updates the context with the given data.
      * @param contextId String
