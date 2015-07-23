@@ -75,6 +75,14 @@
             updateContexts: {
                 type: 'object',
                 default: null
+            },
+            keepSelectedByProperty: {
+                type: 'string',
+                default: ""
+            },
+            orderByColumn: {
+                type: 'object',
+                default: []
             }
 
         };
@@ -106,6 +114,9 @@
      *       ~ maxRowsSelected: number - Maximum number of rows that can be selected at the same time. Default: 1.
      *       ~ minRowsSelected: number - Minimum number of rows that must be selected at the same time. Default: 0.
      *       ~ initialSelectedRows: number - Number of rows that must be selected at the beginning. Default: 0.
+     *       ~ orderByColumn: array - Must be an array of arrays, each inner array comprised of two elements: Column
+     *          index to order upon and direction so order to apply (asc or desc).
+     *       ~ keepSelectedByProperty: string - Property to use to remember the selected rows.
      *       ~ updateContexts: array - Array of objects that configure how to update the contexts. It must contain an id with
      *          the id of the context and a filter array with the data to send through the context update.
      *          Each filter must contain a 'property' property with the name of the property of the data retrieved from
@@ -191,6 +202,7 @@
         this.data = null;
         this.tableDom = null;
         this.table = null;
+        this.selected = [];
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -212,7 +224,11 @@
      */
     Table.prototype.updateData = function(framework_data) {
 
+        var creating = false; //Is it the creation of the dable
+
         if(this.tableDom == null) {
+
+            creating = true;
 
             //Create the html for the table
             this.element.append('<table class="blurable table"><thead><tr></tr></thead><tbody></tbody></table>');
@@ -285,20 +301,45 @@
         }
 
         //DataTable object
-        this.table = this.tableDom.DataTable({
+        var conf = {
             data: normalizedData,
             dom: dom,
             columns: columns,
             "oLanguage": {
                 "sSearch": ""
             }
-        });
+        };
+        if(this.configuration.orderByColumn instanceof Array) {
+            conf['order'] = this.configuration.orderByColumn;
+        }
+        this.table = this.tableDom.DataTable(conf);
+
+        //Previously selected rows
+        if(this.configuration.selectable && this.configuration.keepSelectedByProperty !== "") {
+
+            this.table.$('tr').each(function(rowIndex, row) {
+
+                var rowdata = this.table.row($(row)).data();
+                var selectByData = rowdata[this.configuration.keepSelectedByProperty];
+
+                //If it was previously selected, select it
+                if(this.selected.indexOf(selectByData) !== -1) {
+                    $(row).addClass('selected');
+                }
+
+            }.bind(this));
+        }
 
         // If some rows must be selected from the beginning
-        if(this.configuration.selectable && this.configuration.initialSelectedRows > 0) {
+        if(creating && this.configuration.selectable && this.configuration.initialSelectedRows > 0) {
 
             //Select the first n rows
-            this.table.$('tr').slice(0, this.configuration.initialSelectedRows).addClass('selected');
+            this.table.$('tr:not(.selected)').slice(0, this.configuration.initialSelectedRows).each(function(rowIndex, row) {
+                $(row).addClass('selected');
+                if(this.configuration.keepSelectedByProperty !== "") {
+                    this.selected.push(this.table.row($(row)).data()[this.configuration.keepSelectedByProperty]);
+                }
+            }.bind(this));
 
             //Update the contexts with the new selected rows
             updateContexts.call(this);
@@ -393,13 +434,28 @@
      */
     var rowClickHandler = function rowClickHandler(e) {
         e.stopImmediatePropagation();
+
         var widget = e.data;
+        var rowdata = widget.table.row($(this)).data();
+        var selectByData = null;
+
+        if(widget.configuration.keepSelectedByProperty !== "") {
+            selectByData = rowdata[widget.configuration.keepSelectedByProperty];
+        }
 
         if ( $(this).hasClass('selected') ) { //It is already selected
 
             //Select it if the maximum of selected rows has not been achieved
             if(widget.table.$('tr.selected').length > widget.configuration.minRowsSelected) {
                 $(this).removeClass('selected');
+
+                //Remove from the keep selected array
+                if(selectByData != null) {
+                    var index = widget.selected.indexOf(selectByData);
+                    if(index >= 0) {
+                        widget.selected.splice(index, 1);
+                    }
+                }
             }
 
         } else { //Not selected
@@ -407,6 +463,11 @@
             //Select it if the maximum of selected rows has not been achieved
             if(widget.configuration.maxRowsSelected > widget.table.$('tr.selected').length) {
                 $(this).addClass('selected');
+
+                //Add to the keep selected array
+                if(selectByData != null) {
+                    widget.selected.push(selectByData);
+                }
             }
 
         }
