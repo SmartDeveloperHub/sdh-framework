@@ -949,9 +949,8 @@
             if(_event_handlers[i].userCallback === callback) {
                 for (var c in _event_handlers[i]['contexts']) {
                     $(_eventBox).off("CONTEXT" + _event_handlers[i]['contexts'][c], _event_handlers[i]['contextHandler']);
-                    _event_handlers.splice(i, 1);
-                    break;
                 }
+                _event_handlers.splice(i, 1);
             }
         }
     };
