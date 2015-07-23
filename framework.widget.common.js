@@ -34,7 +34,6 @@
         this._common.isloading = 0;
         this._common.callback = null;
         this._common.secureEndTimer = null;
-        this._common.previousColors = {};
         this._common.disposed = false;
         this._common.container = container;
         this._common.resizeHandler = null;
@@ -65,6 +64,14 @@
     };
 
     var oldContainerClass, oldposstyle;
+
+    // Set the global and set it to be reset on every change of dashboard
+    CommonWidget.prototype.previousColors = {};
+    framework.ready(function() {
+        framework.dashboard.addEventListener('change', function () {
+            CommonWidget.prototype.previousColors = {};
+        });
+    });
 
     CommonWidget.prototype.startLoading = function startLoading() {
         this._common.isloading += 1;
@@ -174,8 +181,8 @@
 
         var colors = [];
         var usedColorIndexes = {};
-        for(var id in this._common.previousColors){
-            usedColorIndexes[this._common.previousColors[id]] = true;
+        for(var id in CommonWidget.prototype.previousColors){
+            usedColorIndexes[CommonWidget.prototype.previousColors[id]] = true;
         }
 
         var currentColorIndex = -1;
@@ -186,17 +193,18 @@
 
                 var UID = framework_data[metricId][m]['info']['UID'];
 
-                if(this._common.previousColors[UID] != null && newPreviousColors[UID] == null) { //Use the previous color
-                    colors.push(palette[this._common.previousColors[UID] % palette.length]);
-                    newPreviousColors[UID] = this._common.previousColors[UID];
+                if(CommonWidget.prototype.previousColors[UID] != null && newPreviousColors[UID] == null) { //Use the previous color
+                    colors.push(palette[CommonWidget.prototype.previousColors[UID] % palette.length]);
+                    //newPreviousColors[UID] = CommonWidget.prototype.previousColors[UID];
 
                 } else { //Try to assign an unused color
 
                     while(true) {
 
                         if(!usedColorIndexes[++currentColorIndex]) {
+                            CommonWidget.prototype.previousColors[UID] = currentColorIndex;
                             colors.push(palette[currentColorIndex % palette.length]);
-                            newPreviousColors[UID] = currentColorIndex;
+                            //newPreviousColors[UID] = currentColorIndex;
                             break;
                         }
 
@@ -209,7 +217,7 @@
 
         }
 
-        this._common.previousColors = newPreviousColors;
+        //CommonWidget.prototype.previousColors = newPreviousColors;
 
         return colors;
 
