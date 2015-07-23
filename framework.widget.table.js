@@ -341,9 +341,10 @@
                 }
             }.bind(this));
 
-            //Update the contexts with the new selected rows
-            updateContexts.call(this);
         }
+
+        //Update the contexts with the new selected rows
+        updateContexts.call(this);
 
     };
 
