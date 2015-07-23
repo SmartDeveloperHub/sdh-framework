@@ -55,6 +55,9 @@
         if (typeof configuration.labelsOutside != "boolean") {
             configuration.labelsOutside = true;
         }
+        if (typeof configuration.maxDecimals != "number") {
+            configuration.maxDecimals = 2;
+        }
 
         return configuration;
     };
@@ -230,8 +233,21 @@
                         return d.label;
                     })
                     .y(function(d) {
+
+                        //Truncate decimals
+                        if(this.configuration.maxDecimals >= 0) {
+                            var pow =  Math.pow(10, this.configuration.maxDecimals);
+                            d.value = Math.floor(d.value * pow) / pow;
+                        }
+
+                        if (d.value >= 1000 || d.value <= -1000) {
+                            return Math.abs(d.value/1000) + " K";
+                        } else {
+                            return Math.abs(d.value);
+                        }
+
                         return d.value;
-                    })
+                    }.bind(this))
                     .donut(this.configuration.donut)
                     .width(width)
                     .height(height)

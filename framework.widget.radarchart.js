@@ -83,6 +83,10 @@
             pointHighlightStroke: {
                 type: 'string',
                 default: "rgba(22,22,220,1)"
+            },
+            maxDecimals: {
+                type: 'number',
+                default: 2
             }
 
 
@@ -244,6 +248,12 @@
             for(var m in framework_data[metricId]){
 
                 var metricData = framework_data[metricId][m]['data'];
+
+                //Truncate decimals
+                if(this.configuration.maxDecimals >= 0) {
+                    var pow =  Math.pow(10, this.configuration.maxDecimals);
+                    metricData['values'][0] = Math.floor(metricData['values'][0] * pow) / pow;
+                }
 
                 values.push(metricData['values'][0]);
             }

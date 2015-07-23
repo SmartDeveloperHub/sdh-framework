@@ -35,6 +35,9 @@
         if (typeof configuration.brushedHandler != "function") {
             configuration.brushedHandler = null;
         }
+        if (typeof configuration.maxDecimals != "number") {
+            configuration.maxDecimals = 2;
+        }
         return configuration;
     };
     // TODO TEST THIS WIDGET!!!
@@ -254,12 +257,19 @@
         xAxis.tickFormat(d3.time.format('%x'));
         xAxis2.tickFormat(d3.time.format('%x'));
         yAxis.tickFormat(function(d) {
+
+            //Truncate decimals
+            if(this.configuration.maxDecimals >= 0) {
+                var pow =  Math.pow(10, this.configuration.maxDecimals);
+                d = Math.floor(d * pow) / pow;
+            }
+
             if (d >= 1000 || d <= -1000) {
                 return Math.abs(d/1000) + " K";
             } else {
                 return Math.abs(d);
             }
-        });
+        }.bind(this));
     };
 
     var coverArea, areaAdd, areaAdd2, svg, focus, context, myTooltip, addPoints, remPoints;

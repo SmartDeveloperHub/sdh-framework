@@ -71,6 +71,10 @@
             labelFormat: {
                 type: 'string',
                 default: '%mid%'
+            },
+            maxDecimals: {
+                type: 'number',
+                default: 2
             }
 
         };
@@ -301,12 +305,19 @@
                 .showMaxMin(false);
 
             chart.yAxis.tickFormat(function(d) {
+
+                //Truncate decimals
+                if(this.configuration.maxDecimals >= 0) {
+                    var pow =  Math.pow(10, this.configuration.maxDecimals);
+                    d = Math.floor(d * pow) / pow;
+                }
+
                 if (d >= 1000 || d <= -1000) {
                     return Math.abs(d/1000) + " K";
                 } else {
                     return Math.abs(d);
                 }
-            });
+            }.bind(this));
 
             d3.select(this.svg.get(0))
                 .datum(data)

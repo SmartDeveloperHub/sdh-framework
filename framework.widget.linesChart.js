@@ -58,6 +58,10 @@
         if (!(typeof configuration.interpolate == 'string' || typeof configuration.interpolate == 'function')) {
             configuration.interpolate = 'linear';
         }
+        if (typeof configuration.maxDecimals != "number") {
+            configuration.maxDecimals = 2;
+        }
+
         // Demo
         if (typeof configuration._demo != "boolean") {
             configuration.demo = false;
@@ -303,12 +307,19 @@
             chart.yAxis     //Chart y-axis settings
                 .axisLabel(this.configuration.ylabel)
                 .tickFormat(function(tickVal) {
+
+                    //Truncate decimals
+                    if(this.configuration.maxDecimals >= 0) {
+                        var pow =  Math.pow(10, this.configuration.maxDecimals);
+                        tickVal = Math.floor(tickVal * pow) / pow;
+                    }
+
                     if (tickVal >= 1000 || tickVal <= -1000) {
                         return tickVal/1000 + " K";
                     } else {
                         return tickVal;
                     }
-                })
+                }.bind(this));
 
 
             d3.select(this.svg.get(0))   //Select the <svg> element you want to render the chart in.

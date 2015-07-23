@@ -65,7 +65,11 @@
         }
         if (typeof configuration.showLegend != "boolean") {
             configuration.showLegend = true;
-        }return configuration;
+        }
+        if (typeof configuration.maxDecimals != "number") {
+            configuration.maxDecimals = 2;
+        }
+        return configuration;
     };
 
     /* rangeNv constructor
@@ -314,20 +318,34 @@
                 });
 
             chart.yAxis.tickFormat(function(d) {
+
+                //Truncate decimals
+                if(this.configuration.maxDecimals >= 0) {
+                    var pow =  Math.pow(10, this.configuration.maxDecimals);
+                    d = Math.floor(d * pow) / pow;
+                }
+
                 if (d >= 1000 || d <= -1000) {
                     return Math.abs(d/1000) + " K";
                 } else {
                     return Math.abs(d);
                 }
-            });
+            }.bind(this));
 
             chart.y2Axis.tickFormat(function(d) {
+
+                //Truncate decimals
+                if(this.configuration.maxDecimals >= 0) {
+                    var pow =  Math.pow(10, this.configuration.maxDecimals);
+                    d = Math.floor(d * pow) / pow;
+                }
+
                 if (d >= 1000 || d <= -1000) {
                     return Math.abs(d/1000) + " K";
                 } else {
                     return Math.abs(d);
                 }
-            });
+            }.bind(this));
 
             d3.select(this.svg.get(0))
                 .datum(data)
