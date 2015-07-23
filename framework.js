@@ -57,6 +57,11 @@
 
     var _dashboardEnv = {};
 
+    // This contains the listeners for each of the events of the dashboard
+    var _dashboardEventListeners = {
+        'change' : []
+    };
+
     var _isReady = false;
 
     var FRAMEWORK_NAME = "SDHWebFramework";
@@ -1091,6 +1096,13 @@
 
                 //Dashboard controller is now ready to change the dashboard, so we need to change the env
                 _dashboardEnv = ( typeof env === 'object' ? env : {} );
+
+                //Execute change listeners
+                for(var i = 0; i < _dashboardEventListeners['change'].length; ++i) {
+                    if(typeof _dashboardEventListeners['change'][i] === 'function') {
+                        _dashboardEventListeners['change'][i]();
+                    }
+                }
             });
         } else {
             error("Dashboard controller has no changeTo method.");
@@ -1102,6 +1114,37 @@
      */
     _self.dashboard.getEnv = function getEnv() {
         return clone(_dashboardEnv) || {}; // TODO: optimize?
+    };
+
+    /**
+     * Add events to the dashboard. Event available:
+     * - change: executed when the dashboard is changed. This is also fired with the initial dashboard.
+     * @param event
+     * @param callback
+     */
+    _self.dashboard.addEventListener = function(event, callback) {
+
+        if(event === 'change' && typeof callback === 'function') {
+            _dashboardEventListeners['change'].push(callback);
+        }
+
+    };
+
+    /**
+     * Removes an event from the dashboard.
+     * @param event
+     * @param callback
+     */
+    _self.dashboard.removeEventListener = function(event, callback) {
+
+        if(event === 'change') {
+            for(var i = _dashboardEventListeners['change'].length - 1; i >= 0; --i) {
+                if(_dashboardEventListeners['change'][i] === callback) {
+                    _dashboardEventListeners['change'].splice(i,1);
+                }
+            }
+        }
+
     };
 
 
