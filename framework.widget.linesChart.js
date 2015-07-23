@@ -237,9 +237,9 @@
                 //var label = genLabel.call(this, 0);
                 var label;
                 if (this.configuration._demo) {
-                    label = "commits";
+                    label = "Commits";
                     if (metric.info.request.params.aggr == "avg") {
-                        label += " by day";
+                        label = "Average commits";
                     }
                 } else {
                     // Generate the label by replacing the variables
