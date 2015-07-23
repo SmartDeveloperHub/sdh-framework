@@ -88,6 +88,8 @@
      *         surrounding their names with percentages. The metric name can also be accessed with %mid%. For example,
      *         the following is a valid labelFormat: "User: %uid%".
      *      }
+     *  Events:
+     *      ~ CONTEXT_UPDATED: triggered when the owncontext is updated.
      */
     var RangeNv = function RangeNv(element, metrics, contextId, configuration) {
 
@@ -182,6 +184,8 @@
         this.lastExtent = d;
         framework.data.updateContext(this.ownContext, {from: moment(d[0]).format("YYYY-MM-DD"), to: moment(d[1]).format("YYYY-MM-DD")});
         setTimeInfo(d[0], d[1]);
+        $(this).trigger("CONTEXT_UPDATED");
+
     };
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
