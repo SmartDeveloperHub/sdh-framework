@@ -639,12 +639,16 @@
 
 
     var resourceHash = function resourceHash(resourceId, requestParams){
-
+        //TODO: loadResourcesInfo should set the list  of hasheable parameters
         var str = resourceId;
         var hasheable = "";
         for(var i in _resourcesInfo[resourceId]['requiredParams']){
             var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
             hasheable += param  + requestParams[param] + ";"
+        }
+
+        if(requestParams['aggr'] != null) {
+            hasheable += 'aggr'  + requestParams['aggr'] + ";"
         }
 
         return resourceId + "#" + hashCode(hasheable).toString(16);
