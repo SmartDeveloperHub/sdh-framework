@@ -306,7 +306,8 @@
             dom: dom,
             columns: columns,
             "oLanguage": {
-                "sSearch": ""
+                "sSearch": "",
+                "sSearchPlaceholder": "Search..."
             }
         };
         if(this.configuration.orderByColumn instanceof Array) {
