@@ -83,6 +83,10 @@
             orderByColumn: {
                 type: 'object',
                 default: []
+            },
+            showHeader: {
+                type: 'boolean',
+                default: true
             }
 
         };
@@ -249,8 +253,13 @@
         var head = this.tableDom.find("thead tr");
         head.empty();
 
-        for(var i in this.configuration.columns) {
-            head.append("<th>" + this.configuration.columns[i]['label'] + "</th>")
+        //Fill the header columns
+        if(this.configuration.showHeader) {
+            for(var i in this.configuration.columns) {
+                head.append("<th>" + this.configuration.columns[i]['label'] + "</th>")
+            }
+        } else {
+            this.tableDom.find("thead").hide();
         }
 
         //Create dom configuration string
