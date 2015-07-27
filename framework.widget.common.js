@@ -174,15 +174,29 @@
         return false;
     };
 
+    /**
+     * Generates colors for the chart given the data received from the framework and a palette. This method must be
+     * used to keep the same colors for the same resources among widget updates.
+     * @param framework_data Data received from the framework
+     * @param palette Palette of colors to use. It can be an array of colors or an object hash map. In case of a
+     * hash map, the key refers to the id of the resource and the value refers to the color that it must have. This case
+     * can be used to force colors instead of selecting them randomly from a palette as in the case of the array.
+     * @returns {Array} Array of colors keeping the order of the resources in the data from the framework.
+     */
     CommonWidget.prototype.generateColors = function generateColors(framework_data, palette) {
 
         var newPreviousColors = {};
         palette = palette || d3.scale.category20().range();
 
         var colors = [];
+        var forcedColors = false;
         var usedColorIndexes = {};
         for(var id in CommonWidget.prototype.previousColors){
             usedColorIndexes[CommonWidget.prototype.previousColors[id]] = true;
+        }
+
+        if(!(palette instanceof Array) && palette instanceof Object) {
+            forcedColors = true;
         }
 
         var currentColorIndex = -1;
@@ -191,33 +205,34 @@
 
             for (var m = 0; m < framework_data[metricId].length; ++m) {
 
-                var UID = framework_data[metricId][m]['info']['UID'];
+                if(forcedColors) { //Colors assigned 'by hand' depending of the resource
+                    colors.push(palette[metricId]);
 
-                if(CommonWidget.prototype.previousColors[UID] != null && newPreviousColors[UID] == null) { //Use the previous color
-                    colors.push(palette[CommonWidget.prototype.previousColors[UID] % palette.length]);
-                    //newPreviousColors[UID] = CommonWidget.prototype.previousColors[UID];
+                } else { //Colors assigned from a palette
 
-                } else { //Try to assign an unused color
+                    var UID = framework_data[metricId][m]['info']['UID'];
 
-                    while(true) {
+                    if(CommonWidget.prototype.previousColors[UID] != null && newPreviousColors[UID] == null) { //Use the previous color
+                        colors.push(palette[CommonWidget.prototype.previousColors[UID] % palette.length]);
 
-                        if(!usedColorIndexes[++currentColorIndex]) {
-                            CommonWidget.prototype.previousColors[UID] = currentColorIndex;
-                            colors.push(palette[currentColorIndex % palette.length]);
-                            //newPreviousColors[UID] = currentColorIndex;
-                            break;
+                    } else { //Try to assign an unused color
+
+                        while(true) {
+
+                            if(!usedColorIndexes[++currentColorIndex]) {
+                                CommonWidget.prototype.previousColors[UID] = currentColorIndex;
+                                colors.push(palette[currentColorIndex % palette.length]);
+                                break;
+                            }
+
                         }
 
                     }
-
                 }
-
 
             }
 
         }
-
-        //CommonWidget.prototype.previousColors = newPreviousColors;
 
         return colors;
 
