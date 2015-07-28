@@ -82,3 +82,20 @@ Just create a new file based on the following template.
 
 })();
 ```
+## Public methods
+The framework is accessible through a global variable (registered in the window Javascript variable) named *framework*. Threrefore, if you want to use some method of the framework, you just have to write *framework.methodname*. This is a list of the available public methods:
+- frameworkReady: Add a callback that will be executed when the framework is ready.
+- isFrameworkReady: Checks if the framework is ready returning true in that case.
+- data.observe: Observes a list of resources depending on a list of contexts.
+- data.updateContext: Updates a context with the given data.
+- data.stopObserve: Cancels observing for an specific callback.
+- data.stopAllObserves: Cancels all the active observes.
+- data.clear: Stops all the observes and disposes all the contexts.
+- dashboard.setDashboardController: Sets the dashboard controller for the framework.
+- dashboard.registerWidget: Registers a new widget in the current dashboard.
+- dashboard.changeTo: Changes the current dashboard.
+- dashboard.getEnv: Gets the dashboard environment.
+- dashboard.addEventListener: Add event listeners to the dashboard. Currently there is only the 'change' event.
+- dashboard.removeEventListener: Removes an event listener from the dashboard.
+
+*For more information about their parameters and return values, see the documentation inside the framework.js source file.*
