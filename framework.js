@@ -1114,17 +1114,20 @@
      * Changes the current dashboard
      * @param newDashboard Id of the new dashboard to visualize.
      * @param env Environment object. This contains all the information of the environment that the new dashboard will need.
-     * @param view View selection info. This optional parameter allows to have different views for a dashboard.
+     * @param category View selection info. This optional parameter allows to have different views for a dashboard
+     *          depending on the category. It is an object with 'category' and 'value'.
      */
-    _self.dashboard.changeTo = function changeTo(newDashboard, env, view) {
+    _self.dashboard.changeTo = function changeTo(newDashboard, env, category) {
 
         if(_dashboardController != null && _dashboardController.changeTo != null) {
 
+            env = ( typeof env === 'object' ? env : {} );
+
             //Ask the dashboard controller to change the dashboard
-            _dashboardController.changeTo(newDashboard, view, function() {
+            _dashboardController.changeTo(newDashboard, env, category, function() {
 
                 //Dashboard controller is now ready to change the dashboard, so we need to change the env
-                _dashboardEnv = ( typeof env === 'object' ? env : {} );
+                _dashboardEnv = env;
 
                 //Execute change listeners
                 for(var i = 0; i < _dashboardEventListeners['change'].length; ++i) {
