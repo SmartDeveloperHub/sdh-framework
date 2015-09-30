@@ -278,6 +278,37 @@
         this._common.disposed = true;
     };
 
+    CommonWidget.prototype.replacer = function(resourceId, resource, str) {
+
+        //Remove the initial an trailing '%' of the string
+        str = str.substring(1, str.length-1);
+
+        //Check if it is a parameter an return its value
+        if(str === "resourceId") { //Special command to indicate the name of the resource
+            return resourceId;
+
+        } else { // Obtain its value through the object given the path
+
+            var _$ = resource;
+
+            return eval(str);
+
+        }
+
+    };
+
+    //TODO:
+    CommonWidget.prototype.replace = function(string, data, resourceId) {
+
+        var codeExpression = /¬([^¬]|_%)+¬/g;
+
+        //Create a replacer for this metric
+        var metricReplacer = this.replacer.bind(null, (resourceId || "???"), data);
+
+        //Generate the label by replacing the variables
+        return string.replace(codeExpression,metricReplacer);
+    };
+
 
     // ---------------------------
     // ------PRIVATE METHODS------
