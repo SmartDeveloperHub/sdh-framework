@@ -64,7 +64,7 @@
 
         // Demo
         if (typeof configuration._demo != "boolean") {
-            configuration.demo = false;
+            configuration._demo = false;
         }
 
         return configuration;
