@@ -290,6 +290,48 @@
         return string.replace(codeExpression,metricReplacer);
     };
 
+    /**
+     * Normalizes the configuration of a widget checking the types of the configuration parameters.
+     * @param defaultConfig Default configuration. The configuration must be an object with entries like:
+     *     height: {
+     *           type: ['type', Instance], //the method checks with typeof and instanceof
+     *           default: <Default_value>
+     *      },
+     * @param configuration Widget configuration.
+     * @returns {*}
+     */
+    CommonWidget.prototype.normalizeConfig = function normalizeConfig(defaultConfig, configuration) {
+
+        if (configuration == null) {
+            configuration = {};
+        }
+
+        for(var confName in defaultConfig) {
+
+            var conf = defaultConfig[confName];
+            var isValidValue = false;
+
+            //Check if it is of one of the accepted types
+            for(var x = conf['type'].length - 1; x >= 0; x--) {
+                var type = conf['type'][x];
+                if(typeof configuration[confName] === type || (typeof configuration[confName] === 'object' && configuration[confName] instanceof type)) {
+                    isValidValue = true;
+                    break;
+                }
+            }
+
+            //If not valid, change its value with the default
+            if(!isValidValue) {
+                configuration[confName] = conf['default'];
+            }
+
+        }
+
+        return configuration;
+
+
+    };
+
 
     // ---------------------------
     // ------PRIVATE METHODS------
