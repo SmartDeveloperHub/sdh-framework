@@ -278,32 +278,13 @@
         this._common.disposed = true;
     };
 
-    CommonWidget.prototype.replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var _$ = resource;
-
-            return eval(str);
-
-        }
-
-    };
-
     //TODO:
-    CommonWidget.prototype.replace = function(string, data, resourceId) {
+    CommonWidget.prototype.replace = function(string, data, extraData) {
 
         var codeExpression = /¬([^¬]|_%)+¬/g;
 
-        //Create a replacer for this metric
-        var metricReplacer = this.replacer.bind(null, (resourceId || "???"), data);
+        //Create a replacer for this data
+        var metricReplacer = replacer.bind(null, data, extraData);
 
         //Generate the label by replacing the variables
         return string.replace(codeExpression,metricReplacer);
@@ -405,6 +386,86 @@
 
 
     };
+
+    /**
+     * Handle each of the occurrences of the replace method. It evaluates the string in a sandboxed environment.
+     * Note: a return if concatenated to the code to be evaluated, so only expressions can be used.
+     * @param data Data that can be accessed with _D in the code to be evaluated.
+     * @param extra Extra data that can be accessed with _E in the code to be evaluated.
+     * @param str String with the format ¬Code_to_evaluate¬
+     * @returns {*}
+     */
+    var replacer = function(data, extra, str) {
+
+        //Remove the initial an trailing delimiters
+        str = str.substring(1, str.length-1);
+
+        var code = 'return ' + str;
+
+        var locals = {
+            window: {
+            },
+            document: {
+            },
+            Math: window.Math,
+            Number: window.Number,
+            NaN: window.NaN,
+            Infinity: window.Infinity,
+            Boolean: window.Boolean,
+            Function: window.Function,
+            Array: window.Array,
+            String: window.String,
+            _D: data,
+            _E: extra
+        };
+
+        var that = Object.create(null); // create our own this object for the user code
+
+
+        try {
+            var sandbox = createSandbox(code, that, locals); // create a sandbox
+            return sandbox(); // call the user code in the sandbox
+        } catch(e) {
+            console.error(e);
+            return null;
+        }
+
+
+    };
+
+    //TODO: improve how to define the elements of window that you want to conserve
+    function createSandbox(code, that, locals) {
+        code = '"use strict";' + code;
+        var params = []; // the names of local variables
+        var args = []; // the local variables
+
+        var keys = Object.getOwnPropertyNames( window ),
+            value;
+
+        for( var i = 0; i < keys.length; ++i ) {
+            if(typeof locals[keys[i]] === 'undefined') {
+                locals[keys[i]] = null;
+            }
+        }
+
+        delete locals['eval'];
+        delete locals['arguments'];
+
+
+        for (var param in locals) {
+            if (locals.hasOwnProperty(param)) {
+                args.push(locals[param]);
+                params.push(param);
+            }
+        }
+
+        var context = Array.prototype.concat.call(that, params, code); // create the parameter list for the sandbox
+        //console.log(context);
+        var sandbox = new (Function.prototype.bind.apply(Function, context)); // create the sandbox function
+        context = Array.prototype.concat.call(that, args); // create the argument list for the sandbox
+
+        return Function.prototype.bind.apply(sandbox, context); // bind the local variables to the sandbox
+    }
 
 
     window.framework.widgets.CommonWidget = CommonWidget;
