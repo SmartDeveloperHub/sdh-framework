@@ -245,8 +245,9 @@
             "pas_pas": randomIntFromInterval(1,300),
             "pas_brk": randomIntFromInterval(1,300),
             "brk_fix": randomIntFromInterval(1,300),
+            "brk_fai": randomIntFromInterval(1,300),
             "fix_pas": randomIntFromInterval(1,300),
-            "fix_fai": randomIntFromInterval(1,300),
+            "fix_brk": randomIntFromInterval(1,300),
             "fai_fai": randomIntFromInterval(1,300),
             "fai_fix": randomIntFromInterval(1,300)
         };
@@ -279,8 +280,8 @@
         var graph = new joint.dia.Graph();
         var paper = new joint.dia.Paper({
             el: this.element,
-            width: 530,
-            height: 318,
+            width: 630,
+            height: 348,
             gridSize: 10,
             perpendicularLinks: true,
             model: graph
@@ -326,14 +327,14 @@
                 'fill': 'green',
                 'font-size': 12
             }
-        }).position(220, 130).set('tokens', 'Fixed');
+        }).position(400, 60).set('tokens', 'Fixed');
 
         var failedBall = genericBall.clone().attr({
             '.alot > text': {
                 'fill': 'red',
                 'font-size': 12
             }
-        }).position(400, 60).set('tokens', 'Failed');
+        }).position(400, 225).set('tokens', 'Failed');
 
         this.linksById = {};
 
@@ -398,6 +399,16 @@
                 };
             }
             this.linksById[type] = newLink;
+
+            // Ñapping edges
+            if (type == "brk_fix") {
+                newLink.set("vertices", [{ x: 255, y: 155 }]);
+            } else if (type == "fix_brk") {
+                newLink.set("vertices", [{ x: 280, y: 200 }]);
+            } else if (type == "fai_fai") {
+                newLink.set("vertices", [{ x: 502, y: 317 }]);
+            }
+
             return newLink;
         }.bind(this);
 
@@ -407,8 +418,9 @@
             link(passedBall, passedBall, "pas_pas", ["manhattan", "smooth"], 'green'),
             link(passedBall, brokenBall, "pas_brk", null, 'red'),
             link(brokenBall, fixedBall, "brk_fix", null, 'green'),
+            link(brokenBall, failedBall, "brk_fai", null, 'red'),
             link(fixedBall, passedBall, "fix_pas", null, 'green'),
-            link(fixedBall, failedBall, "fix_fai", ["manhattan", "smooth"], 'red', 0),
+            link(fixedBall, brokenBall, "fix_brk", ["smooth"], 'red', 0),
             link(failedBall, failedBall, "fai_fai", ["manhattan", "smooth"], 'red'),
             link(failedBall, fixedBall, "fai_fix", null, 'green', -0.1)
         ]);
