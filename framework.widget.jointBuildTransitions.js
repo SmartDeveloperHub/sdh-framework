@@ -174,30 +174,6 @@
 
     };
 
-    //Function that returns the value to replace with the label variables
-    var replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var path = str.split(".");
-            var subObject = resource;
-
-            for(var p = 0; p < path.length; ++p) {
-                if((subObject = subObject[path[p]]) == null)
-                    return "";
-            }
-
-            return subObject.toString();
-        }
-
-    };
     var currentValues = {
             "pas_pas": 0,
             "pas_brk": 0,
@@ -242,14 +218,14 @@
             }
         }*/
         currentValues = {
-            "pas_pas": randomIntFromInterval(1,300),
-            "pas_brk": randomIntFromInterval(1,300),
-            "brk_fix": randomIntFromInterval(1,300),
-            "brk_fai": randomIntFromInterval(1,300),
-            "fix_pas": randomIntFromInterval(1,300),
-            "fix_brk": randomIntFromInterval(1,300),
-            "fai_fai": randomIntFromInterval(1,300),
-            "fai_fix": randomIntFromInterval(1,300)
+            "pas_pas": randomIntFromInterval(1000,10000),
+            "pas_brk": randomIntFromInterval(1000,10000),
+            "brk_fix": randomIntFromInterval(1000,10000),
+            "brk_fai": randomIntFromInterval(1000,10000),
+            "fix_pas": randomIntFromInterval(1000,10000),
+            "fix_brk": randomIntFromInterval(1000,10000),
+            "fai_fai": randomIntFromInterval(1000,10000),
+            "fai_fix": randomIntFromInterval(1000,10000)
         };
         for (var key in this.linksById) {
             this.linksById[key].label(0, {
@@ -259,6 +235,34 @@
                 }
             })
         }
+        // Update Tooltips
+        var allLabels = this.element.find('.link').find('.label').find('tspan');
+        allLabels.qtip(
+            {
+                id: 'sampletooltip',
+                content: {
+                    text: 'Hi. I am a sample tooltip!',
+                    title: 'Sample tooltip'
+                },
+                show: {
+                    event: 'mouseenter'
+                },
+                hide: {
+                    event: 'mouseleave unfocus'
+                },
+                position: {
+                    my: 'top center',
+                    at: 'bottom center'
+                },
+                style: {
+                    classes: 'qtip-bootstrap',
+                    tip: {
+                        width: 16,
+                        height: 6
+                    }
+                }
+            }
+        );
     };
 
     /**
@@ -278,13 +282,15 @@
     var paint = function paint(normalizedData, framework_data) {
         //require(['joint'], function(joint) {
         var graph = new joint.dia.Graph();
+
         var paper = new joint.dia.Paper({
             el: this.element,
             width: 630,
             height: 348,
             gridSize: 10,
             perpendicularLinks: true,
-            model: graph
+            model: graph,
+            interactive: false
         });
 
         var pn = joint.shapes.pn;
@@ -373,21 +379,6 @@
                     }
                 ]
             });
-            /*newLink.label(0, {
-                position: position,
-                attrs: {
-                    rect: { fill: 'white' },
-                    text: {
-                        'fill': color,
-                        'text': "--",
-                        'font-family': 'Courier New',
-                        'font-size': 20,
-                        'font-weight': 'bold',
-                        'ref-x': 0.5,
-                        'ref-y': 0.5
-                    }
-                }
-            });*/
             //newLink.set('manhattan', true);
             //newLink.set('smooth', true);
             //newLink.set('orthogonal', true);
@@ -425,6 +416,35 @@
             link(failedBall, fixedBall, "fai_fix", null, 'green', -0.1)
         ]);
 
+        // TODO add custom events and remov cell:mouseover joinjs event
+        
+        var allBalls = this.element.find('.Place');
+        allBalls.qtip(
+            {
+                id: 'sampletooltip',
+                content: {
+                    text: 'Hi. I am a sample tooltip!',
+                    title: 'Sample tooltip'
+                },
+                show: {
+                    event: 'mouseenter'
+                },
+                hide: {
+                    event: 'mouseleave unfocus'
+                },
+                position: {
+                    my: 'top center',
+                    at: 'bottom center'
+                },
+                style: {
+                    classes: 'qtip-bootstrap',
+                    tip: {
+                        width: 16,
+                        height: 6
+                    }
+                }
+            }
+        );
 
         function fireTransition(t, sec) {
 
