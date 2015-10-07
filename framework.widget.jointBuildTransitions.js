@@ -218,31 +218,46 @@
             }
         }*/
         currentValues = {
-            "pas_pas": randomIntFromInterval(1000,10000),
+            "contingencyLink": 0,
             "pas_brk": randomIntFromInterval(1000,10000),
             "brk_fix": randomIntFromInterval(1000,10000),
+            "pas_pas": randomIntFromInterval(1000,10000),
             "brk_fai": randomIntFromInterval(1000,10000),
             "fix_pas": randomIntFromInterval(1000,10000),
             "fix_brk": randomIntFromInterval(1000,10000),
             "fai_fai": randomIntFromInterval(1000,10000),
             "fai_fix": randomIntFromInterval(1000,10000)
         };
+        var realTitles = {
+            "contingencyLink": {tit: "", className: "red"},
+            "pas_brk": {tit: "Passed Broken", className: "red"},
+            "brk_fix": {tit: "Broken Fixed", className: "green"},
+            "brk_fai": {tit: "Broken Failed", className: "red"},
+            "fix_pas": {tit: "Fixed Passed", className: "green"},
+            "fix_brk": {tit: "Fixed Broken", className: "red"},
+            "fai_fai": {tit: "Failed Failed", className: "red"},
+            "fai_fix": {tit: "Failed Fixed", className: "green"},
+            "pas_pas": {tit: "Passed Passed", className: "green"}
+        };
         for (var key in this.linksById) {
             this.linksById[key].label(0, {
                 position: .5,
                 attrs: {
-                    text: { text: currentValues[key] }
+                    text: { text: currentValues[key], class: key}
                 }
-            })
-        }
-        // Update Tooltips
-        var allLabels = this.element.find('.link').find('.label').find('tspan');
-        allLabels.qtip(
+            });
+            //Tooltip
+            var tspan = this.element.find('.link').find('.label').find('.' + key).find('tspan');
+            $(tspan).qtip(
             {
-                id: 'sampletooltip',
+                id: realTitles[key],
                 content: {
-                    text: 'Hi. I am a sample tooltip!',
-                    title: 'Sample tooltip'
+                    text: function(val, title, classN) {
+                        return "<strong class='tooltipCounter " + classN + "'>" + val + "</strong> " + title + " executions";
+                    }.bind(this, currentValues[key], realTitles[key].tit, realTitles[key].className),
+                    title: function(title, classN) {
+                        return "<strong class='tooltipTitle " + classN + "'>" + title + "</strong>";
+                    }.bind(this, realTitles[key].tit, realTitles[key].className)
                 },
                 show: {
                     event: 'mouseenter'
@@ -263,6 +278,8 @@
                 }
             }
         );
+        }
+
     };
 
     /**
@@ -272,6 +289,37 @@
      */
     var getNormalizedData = function getNormalizedData(framework_data) {
         return framework_data;
+    };
+
+    var getBallTolltip = function(className, title, description) {
+        return {
+            id: title,
+            content: {
+                text: function(classN, desc) {
+                    return "<span class='ballDescription " + classN + "'>" + desc + "</span>";
+                }.bind(this, className, description),
+                title: function(title, classN) {
+                    return "<strong class='tooltipTitle " + classN + "'>" + title + "</strong>";
+                }.bind(this, title, className)
+            },
+            show: {
+                event: 'mouseenter'
+            },
+            hide: {
+                event: 'mouseleave unfocus'
+            },
+            position: {
+                my: 'top center',
+                at: 'bottom center'
+            },
+            style: {
+                classes: 'qtip-bootstrap',
+                tip: {
+                    width: 16,
+                    height: 6
+                }
+            }
+        };
     };
 
     /**
@@ -285,7 +333,7 @@
 
         var paper = new joint.dia.Paper({
             el: this.element,
-            width: 630,
+            width: 540,
             height: 348,
             gridSize: 10,
             perpendicularLinks: true,
@@ -350,16 +398,35 @@
             } else {
                 console.log(position);
             }
+            var connectSettings = {
+                'fill': 'none',
+                'stroke-linejoin': 'none',
+                'stroke-width': '2',
+                'stroke': '#4b4a67'
+            };
+            var marker_target = {
+                fill: '#004C8B',
+                d: 'M 10 0 L 0 5 L 10 10 z'
+            }
+
+            if (type == 'contingencyLink') {
+                connectSettings = {
+                    'fill': 'none',
+                    'stroke-linejoin': 'none',
+                    'stroke-width': '0',
+                    'stroke': 'transparent'
+                }
+                marker_target = {
+                    fill: '#004C8B',
+                    d: ''
+                }
+            }
             var newLink = new pn.Link({
                 source: { id: a.id, selector: '.root'},
                 target: { id: b.id, selector: '.root' },
                 attrs: {
-                    '.connection': {
-                        'fill': 'none',
-                        'stroke-linejoin': 'round',
-                        'stroke-width': '2',
-                        'stroke': '#4b4a67'
-                    }
+                    '.connection': connectSettings,
+                    '.marker-target': marker_target
                 },
                 labels: [
                     {
@@ -368,7 +435,7 @@
                             rect: { fill: 'white' },
                             text: {
                                 'fill': color,
-                                'text': "--",
+                                'text': "",
                                 'font-family': 'Courier New',
                                 'font-size': 20,
                                 'font-weight': 'bold',
@@ -401,50 +468,34 @@
             }
 
             return newLink;
-        }.bind(this);
+        }.bind(this); // Link
 
         graph.addCell([ passedBall, brokenBall, fixedBall, failedBall]);
 
         graph.addCell([
+            link(fixedBall, fixedBall, "contingencyLink", null, 'transparent'),
+            link(failedBall, failedBall, "fai_fai", ["manhattan", "smooth"], 'red'),
             link(passedBall, passedBall, "pas_pas", ["manhattan", "smooth"], 'green'),
             link(passedBall, brokenBall, "pas_brk", null, 'red'),
             link(brokenBall, fixedBall, "brk_fix", null, 'green'),
             link(brokenBall, failedBall, "brk_fai", null, 'red'),
             link(fixedBall, passedBall, "fix_pas", null, 'green'),
             link(fixedBall, brokenBall, "fix_brk", ["smooth"], 'red', 0),
-            link(failedBall, failedBall, "fai_fai", ["manhattan", "smooth"], 'red'),
             link(failedBall, fixedBall, "fai_fix", null, 'green', -0.1)
         ]);
 
-        // TODO add custom events and remov cell:mouseover joinjs event
-        
-        var allBalls = this.element.find('.Place');
-        allBalls.qtip(
-            {
-                id: 'sampletooltip',
-                content: {
-                    text: 'Hi. I am a sample tooltip!',
-                    title: 'Sample tooltip'
-                },
-                show: {
-                    event: 'mouseenter'
-                },
-                hide: {
-                    event: 'mouseleave unfocus'
-                },
-                position: {
-                    my: 'top center',
-                    at: 'bottom center'
-                },
-                style: {
-                    classes: 'qtip-bootstrap',
-                    tip: {
-                        width: 16,
-                        height: 6
-                    }
-                }
-            }
-        );
+        // Add ball tooltips
+        var fixedViewId = paper.findViewByModel(fixedBall).el.id;
+        $('#'+fixedViewId).qtip(getBallTolltip.call(this, 'green', 'Fixed', 'This element represent Fixed execution state'))
+
+        var passedViewId = paper.findViewByModel(passedBall).el.id;
+        $('#'+passedViewId).qtip(getBallTolltip.call(this, 'green', 'Passed', 'This element represent Passed execution state'))
+
+        var brokenViewId = paper.findViewByModel(brokenBall).el.id;
+        $('#'+brokenViewId).qtip(getBallTolltip.call(this, 'red', 'Broken', 'This element represent Broken execution state'))
+
+        var failedViewId = paper.findViewByModel(failedBall).el.id;
+        $('#'+failedViewId).qtip(getBallTolltip.call(this, 'red', 'Failed', 'This element represent Failed execution state'))
 
         function fireTransition(t, sec) {
 
@@ -456,11 +507,16 @@
                 var target = graph.getCell(allbound[i].get('target').id);
                 var sourceid = source.attributes.tokens;
                 var targetid = target.attributes.tokens;
+                // contingency
+                if (targetid == "Fixed" || sourceid == "Fixed") {
+                    continue;
+                }
                 if (targetid == "Failed" || targetid == "Broken") {
                     color = "red";
                 } else {
                     color = "green";
                 }
+
                 elemcolors.push({target : target, source : source, color: color});
             }
 
@@ -492,6 +548,14 @@
         var simulationId = simulate();
 
         updateValues.call(this, normalizedData);
+
+        //Update the chart when window resizes.
+        this.resizeEventHandler = function(e) {
+            console.log("TODO resize");
+            
+        };
+        $(window).resize(this.resizeEventHandler);
+
         //}).bind(this);
     };
 

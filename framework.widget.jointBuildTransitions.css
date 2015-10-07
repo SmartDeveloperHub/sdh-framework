@@ -38,7 +38,7 @@
 }
 
 #jointChart .element:hover .rotatable .scalable .tokens.alot tspan {
-    font-size: 16px;
+    font-size: 14px;
 }
 
 #jointChart .label tspan {
@@ -59,4 +59,25 @@
 
 #jointChart .root, #jointChart .element {
     cursor: default;
+}
+
+.tooltipCounter {
+    color: red;
+}
+
+.tooltipTitle {
+    font-weight: bold;
+    color: #CCCCCC;
+}
+
+.tooltipCounter.red, .tooltipTitle.red {
+    color: #E62B2B;
+}
+
+.tooltipCounter.green, .tooltipTitle.green {
+    color: #1FA93C;
+}
+
+.contingencyLink {
+    display: none;
 }
