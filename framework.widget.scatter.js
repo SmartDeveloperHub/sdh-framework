@@ -117,6 +117,10 @@
         tooltip: {
             type: ['string', 'function'],
             default: null
+        },
+        image: {
+            type: ['string'],
+            default: null
         }
 
     };
@@ -306,11 +310,13 @@
             if(typeof this.configuration.tooltip === 'string') {
 
                 this.chart.tooltip.contentGenerator(function(pointData) {
-                    return this.replace(this.configuration.tooltip, pointData);
+                    return this.replace(this.configuration.tooltip, pointData.point);
                 }.bind(this));
 
             } else if(typeof this.configuration.tooltip === 'function') {
-                this.chart.tooltip.contentGenerator(this.configuration.tooltip);
+                this.chart.tooltip.contentGenerator(function(pointData) {
+                    return this.configuration.tooltip(pointData.point);
+                }.bind(this));
             }
 
 
@@ -328,6 +334,44 @@
             d3.select(this.svg.get(0))
                 .datum(data)
                 .call(this.chart);
+
+            if(this.configuration.image != null) {
+
+                var imgObtainer = this.replace.bind(this, this.configuration.image);
+
+                d3.select(this.svg.get(0)).selectAll("path.nv-point").each(function(pointData) {
+
+                    var imgUrl = imgObtainer(pointData[0]);
+                    var patternId = imgUrl.replace(/\W+/g, '');
+                    var thisd3 = d3.select(this);
+
+                    if(d3.select("#" + patternId)[0][0] === null) {
+
+                        d3.select(this.parentNode)
+                            .append("defs")
+                            .append('filter')
+                            .attr('id', patternId)
+                            .attr('x', '0%')
+                            .attr('y', '0%')
+                            .attr('width', '100%')
+                            .attr('height', '100%')
+                            .append("feImage")
+                            .attr("xlink:href", imgUrl);
+                    }
+
+                    thisd3.attr('filter', 'url(#' + patternId + ')');
+
+                    d3.select(this.parentNode)
+                        .append('path')
+                        .attr('d', thisd3.attr('d'))
+                        .attr('transform', thisd3.attr('transform'))
+                        .style('fill', 'rgba(0,0,0,0)')
+                        .style('stroke-width', '5px');
+
+                });
+            }
+
+
 
             nv.utils.windowResize(this.chart.update);
 
