@@ -538,14 +538,14 @@
             _.each(transitions, function(t) { fireTransition(t, 1); });
             return setInterval(function() {
                 _.each(transitions, function(t) { fireTransition(t, 1); });
-            }, 2000);
+            }, 10000);
         }
 
         function stopSimulation(simulationId) {
             clearInterval(simulationId);
         }
 
-        var simulationId = simulate();
+        //var simulationId = simulate();
 
         updateValues.call(this, normalizedData);
 
