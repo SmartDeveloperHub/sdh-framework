@@ -151,7 +151,8 @@
      *       ~ labelFormat: string - Format string for the labels. Metric parameters can be used as variables by
      *         surrounding their names with the symbol '¬'. Metrics data can be accessed with _D. For example,
      *         the following is a valid labelFormat: "Repository: ¬_D.repocommits.info.rid.name¬".
-     *       ~ TODO: complete documentation
+     *       ~ image: string - Executable string having in _D the point information. It should provide the url of the
+     *         image to display inside the circle.
      *      }
      */
     var Scatter = function Scatter(element, metrics, contextId, configuration) {
@@ -339,38 +340,60 @@
 
                 var imgObtainer = this.replace.bind(this, this.configuration.image);
 
-                d3.select(this.svg.get(0)).selectAll("path.nv-point").each(function(pointData) {
+                /**
+                 * This method handles all the stuff related to the images that are added to the circle. It iterates
+                 * over all the "points" (all the paths) and checks if they have a g element inside. If it has a element
+                 * that means that it just have to be updated, so the parent g transform attribute is copied to this g
+                 * element. Otherwise, the clipPath and image elements are created.
+                 */
+                var handleImagesInSvg = function () {
 
-                    var imgUrl = imgObtainer(pointData[0]);
-                    var patternId = imgUrl.replace(/\W+/g, '');
-                    var thisd3 = d3.select(this);
+                    d3.select(this.svg.get(0)).selectAll("path.nv-point").each(function(pointData, i) {
 
-                    if(d3.select("#" + patternId)[0][0] === null) {
+                        var thisd3 = d3.select(this);
+                        var parentd3 = d3.select(this.parentNode);
+                        var g = parentd3.select('g');
 
-                        d3.select(this.parentNode)
-                            .append("defs")
-                            .append('filter')
-                            .attr('id', patternId)
-                            .attr('x', '0%')
-                            .attr('y', '0%')
-                            .attr('width', '100%')
-                            .attr('height', '100%')
-                            .append("feImage")
-                            .attr("xlink:href", imgUrl);
-                    }
+                        if(g[0][0] == null) {
 
-                    thisd3.attr('filter', 'url(#' + patternId + ')');
+                            var point = pointData[0];
+                            var pointDiameter = this.getBoundingClientRect().width * 0.8;
+                            var imgUrl = imgObtainer(point);
+                            var patternId = i + imgUrl.replace(/\W+/g, '');
 
-                    d3.select(this.parentNode)
-                        .append('path')
-                        .attr('d', thisd3.attr('d'))
-                        .attr('transform', thisd3.attr('transform'))
-                        .style('fill', 'rgba(0,0,0,0)')
-                        .style('stroke-width', '5px');
+                            g = parentd3.append("g");
 
-                });
+                            g.append("clipPath")
+                                .attr('id', patternId)
+                                .append("circle")
+                                .attr("class", "clip-path")
+                                .attr("r", pointDiameter / 2);
+
+                            g.append("svg:image")
+                                .attr("class", "circle")
+                                .attr("xlink:href", imgUrl)
+                                .attr("clip-path","url(#" + patternId + ")")
+                                .attr("x", -pointDiameter/2)
+                                .attr("y", -pointDiameter/2)
+                                .attr("width", pointDiameter)
+                                .attr("height", pointDiameter);
+                        }
+
+                        g.attr('transform', thisd3.attr("transform"));
+
+                    });
+
+                }.bind(this);
+
+                this.chart.dispatch.on('renderEnd', handleImagesInSvg);
+
+                var prev_update = this.chart.update;
+                this.chart.update = function() {
+                    handleImagesInSvg();
+                    prev_update.apply(this, arguments);
+                };
+
             }
-
 
 
             nv.utils.windowResize(this.chart.update);
