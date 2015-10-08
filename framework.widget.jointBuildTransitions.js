@@ -508,7 +508,7 @@
                 var sourceid = source.attributes.tokens;
                 var targetid = target.attributes.tokens;
                 // contingency
-                if (targetid == "Fixed" || sourceid == "Fixed") {
+                if (targetid == "Fixed" && sourceid == "Fixed") {
                     continue;
                 }
                 if (targetid == "Failed" || targetid == "Broken") {
