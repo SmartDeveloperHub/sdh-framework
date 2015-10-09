@@ -34,10 +34,6 @@
             type: ['function'],
             default: null
         },
-        shape: {
-            type: ['function'],
-            default: null
-        },
         x: {
             type: ['function'],
             default: null
@@ -121,7 +117,20 @@
         image: {
             type: ['string'],
             default: null
+        },
+        imageMargin: {
+            type: ['number'],
+            default: 10
+        },
+        minDiameter: {
+            type: ['number'],
+            default: 50
+        },
+        maxDiameter: {
+            type: ['number'],
+            default: 150
         }
+
 
     };
 
@@ -133,9 +142,11 @@
      *      {
      *       ~ height: number - Height of the widget.
      *       ~ color: function - Function to decide the color of the point.
-     *       ~ size: function - Function to decide the size of the point.
-     *       ~ shape: function - Function to decide the shape of the point. Can be: circle, cross, diamond, square,
-     *          triangle-down, triangle-dup.
+     *       ~ size: function - Function to decide the size of the point.It should be a number [0,1] corresponding to
+     *         the linear distribution [minDIameter, maxDiameter] so that 0 -> minDiameter and
+     *         0.5 -> (minDiameter + maxDiameter) / 2...
+     *       ~ minDiameter: number - Minimum diameter of the circle.
+     *       ~ maxDiameter: number - Maximum diameter of the circle.
      *       ~ x: function - Function to decide the value of the point in the x axis.
      *       ~ y: function - Function to decide the value of the point in the y axis.
      *       ~ groupBy: string - Name of the parameter used to group the requested metrics. For example, 'pid'.
@@ -153,6 +164,7 @@
      *         the following is a valid labelFormat: "Repository: ¬_D.repocommits.info.rid.name¬".
      *       ~ image: string - Executable string having in _D the point information. It should provide the url of the
      *         image to display inside the circle.
+     *       ~ imageMargin: number - Margin of the image inside the circle.
      *      }
      */
     var Scatter = function Scatter(element, metrics, contextId, configuration) {
@@ -207,7 +219,6 @@
             this.chart.update();
 
         } else { // Paint it for first time
-            console.log(normalizedData);
             paint.call(this, normalizedData, framework_data);
         }
 
@@ -267,13 +278,20 @@
             //Generate the label by replacing the variables
             var label = this.replace(this.configuration.labelFormat, metricsGroup);
 
+            //Calculate the size which is the area. Indeed the formula is 100 * area = PI * radius²
+            var minDiameter = this.configuration.minDiameter;
+            var maxDiameter = this.configuration.maxDiameter;
+            var diameterScale = d3.scale.linear().domain([0,1]).range([minDiameter, maxDiameter]);
+            var diameter = diameterScale(this.configuration.size(metricsGroup));
+            var area = Math.pow(diameter/2, 2) * Math.PI / 100;
+
             var groupEntry = {
                 key: label,
                 color: this.configuration.color(metricsGroup),
                 values: [
                     {
-                        size: this.configuration.size(metricsGroup),
-                        shape: this.configuration.shape(metricsGroup),
+                        size: area,
+                        shape: 'circle',
                         x: this.configuration.x(metricsGroup),
                         y: this.configuration.y(metricsGroup),
                         data: metricsGroup
@@ -299,6 +317,7 @@
                 .duration(300)
                 .height(this.configuration.height)
                 .pointDomain(this.configuration.pointDomain)
+                .pointRange([this.configuration.minDiameter, this.configuration.maxDiameter])
                 .useVoronoi(true)
                 .color(function(d) {
                     return d.color;
@@ -348,6 +367,10 @@
                  */
                 var handleImagesInSvg = function () {
 
+                    var amountOfMargin = this.configuration.imageMargin * 2;
+                    var minImageDiameter = this.configuration.minDiameter - amountOfMargin;
+                    var maxImageDiameter = this.configuration.maxDiameter - amountOfMargin;
+
                     d3.select(this.svg.get(0)).selectAll("path.nv-point").each(function(pointData, i) {
 
                         var thisd3 = d3.select(this);
@@ -357,7 +380,7 @@
                         if(g[0][0] == null) {
 
                             var point = pointData[0];
-                            var pointDiameter = this.getBoundingClientRect().width * 0.8;
+                            var pointDiameter = Math.min(Math.max(this.getBoundingClientRect().width - amountOfMargin, minImageDiameter), maxImageDiameter);
                             var imgUrl = imgObtainer(point);
                             var patternId = i + imgUrl.replace(/\W+/g, '');
 
