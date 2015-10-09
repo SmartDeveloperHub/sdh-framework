@@ -47,7 +47,7 @@
 
         // CHECK cytoscape
         if(typeof cytoscape === 'undefined') {
-            console.error("CytoChart could not be loaded because d3 did not exist.");
+            console.error("CytoChart could not be loaded.");
             return;
         }
 
