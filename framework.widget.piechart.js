@@ -240,12 +240,6 @@
                             d.value = Math.floor(d.value * pow) / pow;
                         }
 
-                        if (d.value >= 1000 || d.value <= -1000) {
-                            return Math.abs(d.value/1000) + " K";
-                        } else {
-                            return Math.abs(d.value);
-                        }
-
                         return d.value;
                     }.bind(this))
                     .donut(this.configuration.donut)
