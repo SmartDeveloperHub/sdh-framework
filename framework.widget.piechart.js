@@ -58,6 +58,9 @@
         if (typeof configuration.maxDecimals != "number") {
             configuration.maxDecimals = 2;
         }
+        if (typeof configuration.height != "number") {
+            configuration.height = 240;
+        }
 
         return configuration;
     };
@@ -221,12 +224,10 @@
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
+        this.svg.get(0).style.minHeight = this.configuration.height + "px";
 
         nv.addGraph({
             generate: function() {
-
-                var width = this.element.get(0).getBoundingClientRect().width,
-                    height = this.element.get(0).getBoundingClientRect().height;
 
                 this.chart = nv.models.pieChart()
                     .x(function(d) {
@@ -243,8 +244,7 @@
                         return d.value;
                     }.bind(this))
                     .donut(this.configuration.donut)
-                    .width(width)
-                    .height(height)
+                    .height(this.configuration.height)
                     .padAngle(this.configuration.padAngle)
                     .cornerRadius(this.configuration.cornerRadius)
                     .growOnHover(this.configuration.growOnHover)
@@ -260,22 +260,10 @@
                     .transition().duration(0)
                     .call(this.chart);
 
+                nv.utils.windowResize(this.chart.update);
+
                 return this.chart;
 
-            }.bind(this),
-            callback: function(graph) {
-                nv.utils.windowResize(function() {
-                    var width = this.element.get(0).getBoundingClientRect().width;
-                    var height = this.element.get(0).getBoundingClientRect().height;
-                    graph.width(width).height(height);
-
-                    d3.select(this.svg.get(0))
-                        .attr('width', width)
-                        .attr('height', height)
-                        .transition().duration(0)
-                        .call(graph);
-
-                }.bind(this));
             }.bind(this)
         });
 
