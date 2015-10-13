@@ -21,48 +21,55 @@
 
 (function() {
 
-    var normalizeConfig = function normalizeConfig(configuration) {
-        if (configuration == null) {
-            configuration = {};
+    var defaultConfig = {
+        height: {
+            type: ['number'],
+            default: 240
+        },
+        donut: {
+            type: ['boolean'],
+            default: false
+        },
+        growOnHover: {
+            type: ['boolean'],
+            default: false
+        },
+        cornerRadius: {
+            type: ['number'],
+            default: 4
+        },
+        padAngle: {
+            type: ['number'],
+            default: 0.05
+        },
+        showLegend: {
+            type: ['boolean'],
+            default: true
+        },
+        showLabels: {
+            type: ['boolean'],
+            default: true
+        },
+        donutRatio: {
+            type: ['number'],
+            default: 0.5
+        },
+        duration: {
+            type: ['number'],
+            default: 250
+        },
+        labelFormat: {
+            type: ['string'],
+            default: "%resourceId%"
+        },
+        labelsOutside: {
+            type: ['boolean'],
+            default: true
+        },
+        maxDecimals: {
+            type: ['number'],
+            default: 2
         }
-        if (typeof configuration.donut != "boolean") {
-            configuration.donut = false;
-        }
-        if (typeof configuration.growOnHover != "boolean") {
-            configuration.growOnHover = false;
-        }
-        if (typeof configuration.cornerRadius != "number") {
-            configuration.cornerRadius = 4;
-        }
-        if (typeof configuration.padAngle != "number") {
-            configuration.padAngle = 0.05;
-        }
-        if (typeof configuration.showLegend != "boolean") {
-            configuration.showLegend = true;
-        }
-        if (typeof configuration.showLabels != "boolean") {
-            configuration.showLabels = true;
-        }
-        if (typeof configuration.donutRatio != "number") {
-            configuration.donutRatio = 0.5;
-        }
-        if (typeof configuration.duration != "number") {
-            configuration.duration = 250;
-        }
-        if (typeof configuration.labelFormat != "string") {
-            configuration.labelFormat = "%mid%";
-        }
-        if (typeof configuration.labelsOutside != "boolean") {
-            configuration.labelsOutside = true;
-        }
-        if (typeof configuration.maxDecimals != "number") {
-            configuration.maxDecimals = 2;
-        }
-        if (typeof configuration.height != "number") {
-            configuration.height = 240;
-        }
-
-        return configuration;
     };
 
     /* PieChart constructor
@@ -115,7 +122,7 @@
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
-        this.configuration = normalizeConfig(configuration);
+        this.configuration = this.normalizeConfig(defaultConfig, configuration);
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
