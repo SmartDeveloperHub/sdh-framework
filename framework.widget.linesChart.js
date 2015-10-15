@@ -61,7 +61,12 @@
         if (typeof configuration.maxDecimals != "number") {
             configuration.maxDecimals = 2;
         }
-
+        if (typeof configuration.showPoints != "boolean") {
+            configuration.showPoints = false;
+        }
+        if (typeof configuration.showLines != "boolean") {
+            configuration.showLines = true;
+        }
         // Demo
         if (typeof configuration._demo != "boolean") {
             configuration._demo = false;
@@ -90,6 +95,8 @@
      *         e.g: 'monotone' or 'step'. Default: 'linear'
      *         more information: https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
      *       ~ margin: object - {'right': number, 'left': number, 'top': number, 'bottom': number} (all optionals)
+     *       ~ showPoints: boolean - Whether to display points or not. Default:false
+     *       ~ showLines: boolean - Whether to display lines or not. Default:true
      *      }
      */
     var LinesChart = function LinesChart(element, metrics, contextId, configuration) {
@@ -126,14 +133,24 @@
         // Configuration
         this.configuration = normalizeConfig(configuration);
 
-        this.element.append('<svg class="blurable"></svg>');
+        var extraClass = '';
+        if (this.configuration.showPoints && this.configuration.showLines) {
+            extraClass = "showPoints";
+        }
+        if(!this.configuration.showLines && !this.configuration.showPoints) {
+            extraClass = "hideLines"
+        }
+        if(!this.configuration.showLines && this.configuration.showPoints) {
+            extraClass = "hideLines showPoints"
+        }
+        this.element.append('<svg class="lineChart blurable ' + extraClass + '"></svg>');
         this.svg = this.element.children("svg");
+
         this.svg.get(0).style.minHeight = this.configuration.height + "px";
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId);
-
     };
 
     LinesChart.prototype = new framework.widgets.CommonWidget(true);
