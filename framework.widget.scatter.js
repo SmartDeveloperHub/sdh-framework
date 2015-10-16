@@ -216,7 +216,12 @@
         //Update data
         if(this.chart != null) {
             d3.select(this.svg.get(0)).datum(normalizedData);
-            this.chart.update();
+            if(this.chartUpdate != null) {
+                this.chartUpdate();
+            } else {
+                this.chart.update();
+            }
+
 
         } else { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
@@ -314,7 +319,6 @@
             this.chart = nv.models.scatterChart()
                 .showDistX(this.configuration.showDistX)    //showDist, when true, will display those little distribution lines on the axis.
                 .showDistY(this.configuration.showDistY)
-                .duration(300)
                 .height(this.configuration.height)
                 .pointDomain(this.configuration.pointDomain)
                 .pointRange([this.configuration.minDiameter, this.configuration.maxDiameter])
@@ -365,7 +369,7 @@
                  * that means that it just have to be updated, so the parent g transform attribute is copied to this g
                  * element. Otherwise, the clipPath and image elements are created.
                  */
-                var handleImagesInSvg = function () {
+                var handleImagesInSvg = function (isRenderEvent) {
 
                     var amountOfMargin = this.configuration.imageMargin * 2;
                     var minImageDiameter = this.configuration.minDiameter - amountOfMargin;
@@ -376,11 +380,11 @@
                         var thisd3 = d3.select(this);
                         var parentd3 = d3.select(this.parentNode);
                         var g = parentd3.select('g');
+                        var pointDiameter = Math.min(Math.max(this.getBoundingClientRect().width - amountOfMargin, minImageDiameter), maxImageDiameter);
 
                         if(g[0][0] == null) {
 
                             var point = pointData[0];
-                            var pointDiameter = Math.min(Math.max(this.getBoundingClientRect().width - amountOfMargin, minImageDiameter), maxImageDiameter);
                             var imgUrl = imgObtainer(point);
                             var patternId = i + imgUrl.replace(/\W+/g, '');
 
@@ -399,7 +403,23 @@
                                 .attr("x", -pointDiameter/2)
                                 .attr("y", -pointDiameter/2)
                                 .attr("width", pointDiameter)
-                                .attr("height", pointDiameter);
+                                .attr("height", pointDiameter)
+                                .transition()
+                                    .delay(150)
+                                    .attr('opacity', 1);
+
+                        } else { //Update dimensions
+
+                            g.select("clipPath circle")
+                                .attr("r", pointDiameter / 2);
+                            g.select("image")
+                                .attr("x", -pointDiameter/2)
+                                .attr("y", -pointDiameter/2)
+                                .attr("width", pointDiameter)
+                                .attr("height", pointDiameter)
+                                .transition()
+                                    .attr('opacity', 1);
+
                         }
 
                         g.attr('transform', thisd3.attr("transform"));
@@ -408,18 +428,27 @@
 
                 }.bind(this);
 
-                this.chart.dispatch.on('renderEnd', handleImagesInSvg);
+                var hideImagesInSvg = function() {
+                    d3.select(this.svg.get(0)).selectAll("path.nv-point").each(function() {
+
+                        d3.select(this.parentNode).select('g image').attr('opacity', 0);
+
+                    });
+                }.bind(this);
+
+                
+                this.chart.dispatch.on('renderEnd', handleImagesInSvg.bind(this, true));
 
                 var prev_update = this.chart.update;
-                this.chart.update = function() {
-                    handleImagesInSvg();
+                this.chartUpdate = function() {
+                    hideImagesInSvg();
                     prev_update.apply(this, arguments);
                 };
 
             }
 
 
-            nv.utils.windowResize(this.chart.update);
+            nv.utils.windowResize(this.chartUpdate);
 
             return this.chart;
         }.bind(this));
