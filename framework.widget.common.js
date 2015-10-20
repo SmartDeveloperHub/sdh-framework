@@ -514,7 +514,7 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['css!sdh-framework/framework.widget.common'], function () { return CommonWidget; } );
+        define( [], function () { return CommonWidget; } );
     }
 
 })();
