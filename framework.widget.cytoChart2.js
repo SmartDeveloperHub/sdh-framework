@@ -23,11 +23,26 @@
 
     var cy;
 
-    var normalizeConfig = function normalizeConfig(configuration) {
-        if (configuration == null) {
-            configuration = {};
+    var defaultConfig = {
+        nodes: {
+            type: ['object'],
+            default: []
+        },
+        edges: {
+            type: ['object'],
+            default: []
+        },
+        mainNode: {
+            type: ['string'],
+            default: null // TODO
+            /*
+            if(configuration.nodes.length > 0) {
+                configuration.mainNode = configuration.nodes[0].id;
+            } else {
+                configuration.mainNode = null;
+            }
+            */
         }
-        return configuration;
     };
 
     /* CytoChart2 constructor
@@ -36,6 +51,9 @@
      *   contextId: optional.
      *   configuration: additional chart configuration:
      *      {
+     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', metric:"metricId" },...]
+     *      ~ edge: array - Edges to paint [{ source: 'nodeId1', target: 'nodeId2' }]
+     *      ~ mainNode: string - The nodeId for the main Node (static size)
      *      }
      */
     var CytoChart2 = function CytoChart2(element, metrics, contextId, configuration) {
@@ -64,7 +82,8 @@
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
-        this.configuration = normalizeConfig(configuration);
+        this.config = this.normalizeConfig(defaultConfig, configuration);
+
 
         //this.element.append('<div id="cy"></div>');
 
@@ -108,34 +127,6 @@
 
     };
 
-
-    // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
-
-    //Function that returns the value to replace with the label variables
-    var replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var path = str.split(".");
-            var subObject = resource;
-
-            for(var p = 0; p < path.length; ++p) {
-                if((subObject = subObject[path[p]]) == null)
-                    return "";
-            }
-
-            return subObject.toString();
-        }
-
-    };
-
     /**
      * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
      * @param framework_data
@@ -161,45 +152,13 @@
                 var timePoint = metricData.interval.from - metricData.step;
                 var yserie = metricData.values;
 
-                // Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricId, metric);
-
-                var genLabel = function genLabel(i) {
-                  var lab = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
-                  if (i > 0) {
-                    lab = lab + '(' + i + ')';
-                  }
-                  if (lab in this.labels) {
-                    lab = genLabel.call(this, ++i);
-                  }
-                  this.labels[lab] = null;
-                  return lab;
-                };
-                // Demo
-                // Generate the label by replacing the variables
-                //var label = genLabel.call(this, 0);
-                var label;
-                if (this.configuration._demo) {
-                    label = "Commits";
-                    if (metric.info.request.params.aggr == "avg") {
-                        label = "Average commits";
-                    }
-                } else {
-                    // Generate the label by replacing the variables
-                    label = genLabel.call(this, 0);
-                }
-
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
                     timePoint += metricData.step;
                     return {'x': new Date(new Date(timePoint).getTime()), 'y': dat};
                 });
-                series.push({
-                    values: dat,      //values - represents the array of {x,y} data points
-                    key: label, //key  - the name of the series.
-                    //color: colors[series.length],  //color - optional: choose your own line color.
-                    area: this.configuration.area
-                });
+                //var label = genLabel.call(this, 0);
+                series[metricId] = yserie[0];
             }
         }
 
@@ -252,109 +211,66 @@
                 style: edgeStyle
             }
         ];
+
+        var theNodes = [];
+        var theEdges = [];
+        var theNod;
+
         // Add style info for each node
-        /*  cytoStyle.push({
-                selector: '#bird',
-                style: {
-                        'background-image': 'https://farm8.staticflickr.com/7272/7633179468_3e19e45a0c_b.jpg'
-                    }
-            })
-        */
-        var styleInfo = [
-            {
-                selector: '#bird',
-                style: {
-                        'background-image': 'https://farm8.staticflickr.com/7272/7633179468_3e19e45a0c_b.jpg'
-                    }
-            },
-            {
-                selector: '#cat',
-                style: {
-                        'background-image': 'https://farm2.staticflickr.com/1261/1413379559_412a540d29_b.jpg'
-                    }
-            },
-            {
-                selector: '#ladybug',
-                style: {
-                        'background-image': 'https://farm4.staticflickr.com/3063/2751740612_af11fb090b_b.jpg'
-                    }
-            },
-            {
-                selector: '#aphid',
-                style: {
-                        'background-image': 'https://farm9.staticflickr.com/8316/8003798443_32d01257c8_b.jpg'
-                    }
-            },
-            {
-                selector: '#rose',
-                style: {
-                        'background-image': 'https://farm6.staticflickr.com/5109/5817854163_eaccd688f5_b.jpg'
-                    }
-            },
-            {
-                selector: '#grasshopper',
-                style: {
-                        'background-image': 'https://farm7.staticflickr.com/6098/6224655456_f4c3c98589_b.jpg'
-                    }
-            },
-            {
-                selector: '#plant',
-                style: {
-                        'background-image': 'https://farm1.staticflickr.com/231/524893064_f49a4d1d10_z.jpg'
-                    }
-            },
-            {
-                selector: '#wheat',
-                style: {
-                        'background-image': 'https://farm3.staticflickr.com/2660/3715569167_7e978e8319_b.jpg'
-                    }
-            },
-            {
-                selector: '#aphid2',
-                style: {
-                        'background-image': 'https://farm9.staticflickr.com/8316/8003798443_32d01257c8_b.jpg'
-                    }
-            },
-            {
-                selector: '#rose2',
-                style: {
-                        'background-image': 'https://farm6.staticflickr.com/5109/5817854163_eaccd688f5_b.jpg'
-                    }
-            },
-            {
-                selector: '#grasshopper2',
-                style: {
-                        'background-image': 'https://farm7.staticflickr.com/6098/6224655456_f4c3c98589_b.jpg'
-                    }
-            },
-            {
-                selector: '#plant2',
-                style: {
-                        'background-image': 'https://farm1.staticflickr.com/231/524893064_f49a4d1d10_z.jpg'
-                    }
-            },
-            {
-                selector: '#wheat2',
-                style: {
-                        'background-image': 'https://farm3.staticflickr.com/2660/3715569167_7e978e8319_b.jpg'
-                    }
+        for (var i= 0; i < this.config.nodes.length; i++) {
+            theNod = this.config.nodes[i];
+            if(theNod.id == this.config.mainNode) {
+                continue
             }
-        ];
+        }
+        
+        for (var i= 0; i < this.config.nodes.length; i++) {
+            theNod = this.config.nodes[i];
+            var theValue = data[theNod.metric];
+            // TODO test
+            if(theValue > 99) {
+                theValue = (Math.random() * 1000) % 100;
+            }
+            if(theValue < 20) {
+                theValue = 25;
+            }
+            var size = {};
+            if (theNod.id == this.config.mainNode) {
+                size['w'] = 100;
+                size['h'] = 100;
+            } else {
+                console.log("theNod.metric value-> "+ data[theNod.metric]);
+                size['w'] = theValue;
+                size['h'] = theValue;
+            }
+            // node
+            theNodes.push({
+                data: {
+                    id: theNod.id,
+                    faveShape: theNod.shape,
+                    w: size.w,
+                    h: size.h,
+                }
+            });
+            // style
+            cytoStyle.push({
+                selector: '#' + theNod.id,
+                style: {
+                    'background-image': theNod.avatar
+                }
+            });
+        }
+        var theEdge;
+        for (var i= 0; i < this.config.edges.length; i++) {
+            theEdge = this.config.edges[i]
+            theEdges.push({
+                data: {
+                    source: theEdge.source,
+                    target: theEdge.target,
+                }
+            });
 
-        var theNodes = [
-            { data: { id: 'cat', 'faveShape': 'ellipse', 'w': '100', 'h': '100'} },
-            { data: { id: 'bird', 'faveShape': 'ellipse', 'w': '60', 'h': '60'} },
-            { data: { id: 'grasshopper','faveShape': 'ellipse', 'w': '30', 'h': '30'} },
-            { data: { id: 'plant', 'faveShape': 'ellipse', 'w': '75', 'h': '75'} },
-            { data: { id: 'wheat', 'faveShape': 'ellipse', 'w': '50', 'h': '50'} }
-        ];
-
-        var theEdges = [
-            { data: { source: 'cat', target: 'bird' } },
-            { data: { source: 'cat', target: 'grasshopper' } },
-            { data: { source: 'cat', target: 'plant' } },
-            { data: { source: 'cat', target: 'wheat' } }
-        ];
+        }
 
         var cytoElements = {
             nodes: theNodes,
@@ -362,8 +278,7 @@
         };
 
         this.element.cytoscape({
-          container: this.element.get(0),
-          
+            container: this.element.get(0),
             style: cytoStyle,
             elements: cytoElements, 
             layout: layoutConfig,

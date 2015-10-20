@@ -21,12 +21,6 @@
 
 /* Pruebas */
 
-#cytograph1, #cytograph2, #cytograph3 {
-    height: 300px;
-    min-width: 325px;
-
-}
-
 #cy {
     height: 100%;
 }
