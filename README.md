@@ -43,7 +43,7 @@ Just create a new file based on the following template.
     *   contexts: list of contexts
     *   configuration: you can use his optional parameter to assing a custom widget configuration.
     */
-    var MySampleWidget = function MySampleWidget(element, resources, contextId, configuration) {
+    var MySampleWidget = function MySampleWidget(element, resources, contexts, configuration) {
 
         //TODO: your code here
 
