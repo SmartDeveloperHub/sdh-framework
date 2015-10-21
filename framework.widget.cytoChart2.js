@@ -31,17 +31,9 @@
         edges: {
             type: ['object'],
             default: []
-        },
-        mainNode: {
+        }, mainNode: {
             type: ['string'],
-            default: null // TODO
-            /*
-            if(configuration.nodes.length > 0) {
-                configuration.mainNode = configuration.nodes[0].id;
-            } else {
-                configuration.mainNode = null;
-            }
-            */
+            default: null
         }
     };
 
@@ -83,9 +75,11 @@
 
         // Configuration
         this.config = this.normalizeConfig(defaultConfig, configuration);
-
-
-        //this.element.append('<div id="cy"></div>');
+        if(this.config.nodes.length > 0) {
+            this.config.mainNode = this.config.nodes[0].id;
+        } else {
+            this.config.mainNode = null;
+        }
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
