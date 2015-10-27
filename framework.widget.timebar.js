@@ -152,6 +152,7 @@
         this.element.append('<div class="timebar-container">' +
                 '<svg class="legend nvd3"></svg>' +
                 '<div class="progress" style="height: ' + this.configuration.height + 'px"></div>' +
+                '<svg class="axis nvd3" style="overflow: visible"></svg>' +
             '</div>');
         var progress = this.element.find(".progress");
 
@@ -198,6 +199,28 @@
                 .call(legend);
 
         }
+
+        // Create axis
+        var axisSvg = this.element.find("svg.axis");
+        axisSvg.css('height', '25px');
+
+        var availableWidth = this.element.width();
+
+       /* xAxis
+            .scale(x)
+            //._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
+            ._ticks(3)
+            .tickSize( -availableHeight , 0);
+*/
+        var axis = nv.models.axis()
+            .scale(d3.time.scale().domain([data.interval.from, data.interval.to]).range([0, this.element.width()]))
+            .width(this.element.width())
+            ._ticks(3)
+            .tickFormat(d3.time.format('%x'))
+            .tickSize( -60 , 0);
+
+        d3.select(axisSvg.get(0))
+            .call(axis);
 
 
         var width = 100 / data.values.length;
