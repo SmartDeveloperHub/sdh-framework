@@ -111,6 +111,7 @@
      *   contextId: optional.
      *   configuration: additional chart configuration:
      *      {
+     *       ~ height: 240, // The gauge height.
      *       ~ minValue: 0, // The gauge minimum value.
      *       ~ maxValue: 100, // The gauge maximum value.
      *       ~ circleThickness:number - The outer circle thickness as a percentage of it's radius.
