@@ -153,6 +153,9 @@
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
+        //Remove resize event listener
+        $(window).off("resize", this.chart.update);
+
         //Clear DOM
         $(this.svg).empty();
         this.element.empty();
@@ -267,7 +270,7 @@
                     .transition().duration(0)
                     .call(this.chart);
 
-                nv.utils.windowResize(this.chart.update);
+                $(window).resize(this.chart.update);
 
                 return this.chart;
 

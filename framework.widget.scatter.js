@@ -190,6 +190,7 @@
         this.svg = null;
         this.data = null;
         this.chart = null;
+        this.chartUpdate = null;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -233,6 +234,12 @@
 
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
+
+        //Remove resize event listener
+        if(this.chartUpdate != null) {
+            $(window).off("resize", this.chartUpdate);
+            this.chartUpdate = null;
+        }
 
         //Clear DOM
         $(this.svg).empty();
@@ -437,7 +444,7 @@
                 }.bind(this);
 
                 
-                this.chart.dispatch.on('renderEnd', handleImagesInSvg.bind(this, true));
+                this.chart.dispatch.on('renderEnd', handleImagesInSvg.bind(this, true)); //TODO: remove event
 
                 var prev_update = this.chart.update;
                 this.chartUpdate = function() {
@@ -448,7 +455,7 @@
             }
 
 
-            nv.utils.windowResize(this.chartUpdate);
+            $(window).resize(this.chartUpdate);
 
             return this.chart;
         }.bind(this));

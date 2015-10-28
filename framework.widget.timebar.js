@@ -87,7 +87,11 @@
         // Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
-        this.element.remove(".progress");
+        if(this.chartUpdate != null) {
+            $(window).off("resize", this.chartUpdate);
+        }
+
+        this.element.remove(".timebar-container");
 
     };
 
@@ -186,12 +190,18 @@
                 .rightAlign(true)
                 .width(this.element.width());
 
-            //Update width on window resize
-            nv.utils.windowResize(function() {
+            if(this.chartUpdate != null) {
+                $(window).off("resize", this.chartUpdate);
+            }
+
+            this.chartUpdate = function() {
                 legend.width(this.element.width());
                 d3.select(legendSvg.get(0))
                     .call(legend);
-            }.bind(this));
+            }.bind(this);
+
+            //Update width on window resize
+            $(window).resize(this.chartUpdate);
 
             d3.select(legendSvg.get(0))
                 .datum(keys)
