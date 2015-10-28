@@ -28,7 +28,7 @@
      */
 
     //Variable where public methods and variables will be stored
-    var _self = { data: {}, widgets: {}, dashboard: {} };
+    var _self = { data: {}, widgets: {}, dashboard: {}, utils: {} };
 
     //Path to the SDH-API server without the trailing slash
     var _serverUrl;
@@ -390,7 +390,7 @@
             }
 
             //Add the framework info to the data received from the api
-            var resUID = resourceHash(resourceId, params);
+            var resUID = _self.utils.resourceHash(resourceId, params);
             var info = {
                 UID: resUID,
                 request: {
@@ -661,23 +661,6 @@
         return hash;
     };
 
-
-    var resourceHash = function resourceHash(resourceId, requestParams){
-        //TODO: loadResourcesInfo should set the list  of hasheable parameters
-        var str = resourceId;
-        var hasheable = "";
-        for(var i in _resourcesInfo[resourceId]['requiredParams']){
-            var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
-            hasheable += param  + requestParams[param] + ";"
-        }
-
-        if(requestParams['aggr'] != null) {
-            hasheable += 'aggr'  + requestParams['aggr'] + ";"
-        }
-
-        return resourceId + "#" + hashCode(hasheable).toString(16);
-    };
-
     /**
      * Combines an incomplete resource with a context in order to create a complete resource to make a request with.
      * @param resources
@@ -818,7 +801,6 @@
        -- FRAMEWORK PUBLIC METHODS ---
        -------------------------------
      */
-
     /**
      *
      * @param resources Array with resources. Each resource can be an String or an Object. The object must have the following
@@ -1179,7 +1161,21 @@
 
     };
 
+    _self.utils.resourceHash = function resourceHash(resourceId, requestParams){
+        //TODO: loadResourcesInfo should set the list  of hasheable parameters
+        var str = resourceId;
+        var hasheable = "";
+        for(var i in _resourcesInfo[resourceId]['requiredParams']){
+            var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
+            hasheable += param  + requestParams[param] + ";"
+        }
 
+        if(requestParams['aggr'] != null) {
+            hasheable += 'aggr'  + requestParams['aggr'] + ";"
+        }
+
+        return resourceId + "#" + hashCode(hasheable).toString(16);
+    };
     /*
      --------------------------------
      --- FRAMEWORK INITIALIZATION ---
@@ -1251,6 +1247,7 @@
 
                 window.framework.data = _self.data;
                 window.framework.dashboard = _self.dashboard;
+                window.framework.utils = _self.utils;
 
                 _isReady = true;
                 $(_eventBox).trigger("FRAMEWORK_READY");
@@ -1260,6 +1257,7 @@
                 data: {},
                 widgets: {},
                 dashboard: {},
+                utils: {},
                 ready: frameworkReady, /* Method to add a callback that will be executed when the framework is ready */
                 isReady: isFrameworkReady
             };
