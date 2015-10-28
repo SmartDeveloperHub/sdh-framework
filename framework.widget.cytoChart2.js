@@ -310,7 +310,7 @@
             setTimeout(function() {
                 var normalizedData = getNormalizedData.call(this,this.lastData);
                 paint.call(this, normalizedData, framework_data);
-            }, 3000);
+            }.bind(this), 3000);
             // ñaping
                 //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
         }.bind(this);
