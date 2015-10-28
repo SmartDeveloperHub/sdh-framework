@@ -105,7 +105,6 @@
         };
         */
 
-
         /*var values = [0];
         var changeDiff = 0.01;
         var change = changeDiff;
@@ -152,7 +151,7 @@
         this.element.append('<div class="timebar-container">' +
                 '<svg class="legend nvd3"></svg>' +
                 '<div class="progress" style="height: ' + this.configuration.height + 'px"></div>' +
-                '<svg class="axis nvd3" style="overflow: visible"></svg>' +
+                '<svg class="axis nvd3"></svg>' +
             '</div>');
         var progress = this.element.find(".progress");
 
@@ -206,18 +205,11 @@
 
         var availableWidth = this.element.width();
 
-       /* xAxis
-            .scale(x)
-            //._ticks( nv.utils.calcTicksX(availableWidth/100, data) )
-            ._ticks(3)
-            .tickSize( -availableHeight , 0);
-*/
         var axis = nv.models.axis()
+            .height(25)
             .scale(d3.time.scale().domain([data.interval.from, data.interval.to]).range([0, this.element.width()]))
             .width(this.element.width())
-            ._ticks(3)
-            .tickFormat(d3.time.format('%x'))
-            .tickSize( -60 , 0);
+            .tickFormat(d3.time.format('%x'));
 
         d3.select(axisSvg.get(0))
             .call(axis);
@@ -242,22 +234,6 @@
             addBarToProgressBar(progress, width, color, content);
 
         }
-
-        //Add labels
-        var container = this.element.find(".timebar-container");
-        var timeFormat = d3.time.format("%Y-%m-%d");
-        var xAxis = $('<div class="timebar-x-axis"></div>')
-            .append($('<span>' + timeFormat(new Date(data.interval.from)) + '</span>')
-                .css('position', 'absolute')
-                .css('margin', '5px')
-                .css('left', 0)
-        )
-            .append($('<span>' + timeFormat(new Date(data.interval.to)) + '</span>')
-                .css('position', 'absolute')
-                .css('margin', '5px')
-                .css('right', 0)
-        );
-        container.append(xAxis);
 
 
     };
