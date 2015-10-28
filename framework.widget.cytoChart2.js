@@ -31,9 +31,9 @@
         edges: {
             type: ['object'],
             default: []
-        }, mainNode: {
-            type: ['string'],
-            default: null
+        }, staticSize: {
+            type: ['number'],
+            default: 100
         }
     };
 
@@ -43,9 +43,9 @@
      *   contextId: optional.
      *   configuration: additional chart configuration:
      *      {
-     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', metric:"metricId" },...]
+     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', volume:"metrichashId" or "_static_" },...]
      *      ~ edge: array - Edges to paint [{ source: 'nodeId1', target: 'nodeId2' }]
-     *      ~ mainNode: string - The nodeId for the main Node (static size)
+     *      ~ staticSize: number - static size for _static_ nodes
      *      }
      */
     var CytoChart2 = function CytoChart2(element, metrics, contextId, configuration) {
@@ -75,11 +75,9 @@
 
         // Configuration
         this.config = this.normalizeConfig(defaultConfig, configuration);
-        if(this.config.nodes.length > 0) {
-            this.config.mainNode = this.config.nodes[0].id;
-        } else {
-            this.config.mainNode = null;
-        }
+
+        this.element.append('<div class="cytoContainer blurable"></div>');
+        this.cytoContainer = this.element.find('.cytoContainer');
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
@@ -91,10 +89,11 @@
     CytoChart2.prototype.updateData = function(framework_data) {
 
         var normalizedData = getNormalizedData.call(this,framework_data);
+        this.lastData = framework_data;
 
         //Update data
         if(this.chart != null) {
-            // Update
+            repaint.call(this, normalizedData, framework_data);
         } else { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
         }
@@ -113,10 +112,10 @@
         }
 
         //Clear DOM
-        $(this.svg).empty();
+        $(this.cytoContainer).empty();
         this.element.empty();
 
-        this.svg = null;
+        this.cytoContainer = null;
         this.chart = null;
 
     };
@@ -139,10 +138,6 @@
                 var metric = framework_data[metricId][m];
                 var metricData = framework_data[metricId][m]['data'];
 
-                if(metric['info']['request']['params']['max'] > 0) {
-                    this.aproximatedDates = true;
-                }
-
                 var timePoint = metricData.interval.from - metricData.step;
                 var yserie = metricData.values;
 
@@ -152,12 +147,17 @@
                     return {'x': new Date(new Date(timePoint).getTime()), 'y': dat};
                 });
                 //var label = genLabel.call(this, 0);
-                series[metricId] = yserie[0];
+                series[metric.info.UID] = yserie[0];
             }
         }
 
         //Line chart data should be sent as an array of series objects.
         return series;
+    };
+
+    var repaint = function repaint(data, framework_data) {
+        $(this.cytoContainer).empty();
+        paint.call(this, data, framework_data);
     };
 
     var paint = function paint(data, framework_data) {
@@ -213,27 +213,19 @@
         // Add style info for each node
         for (var i= 0; i < this.config.nodes.length; i++) {
             theNod = this.config.nodes[i];
-            if(theNod.id == this.config.mainNode) {
-                continue
-            }
-        }
-        
-        for (var i= 0; i < this.config.nodes.length; i++) {
-            theNod = this.config.nodes[i];
-            var theValue = data[theNod.metric];
-            // TODO test
-            if(theValue > 99) {
-                theValue = (Math.random() * 1000) % 100;
-            }
-            if(theValue < 20) {
-                theValue = 25;
-            }
             var size = {};
-            if (theNod.id == this.config.mainNode) {
-                size['w'] = 100;
-                size['h'] = 100;
+            if (theNod.volume == '_static_') {
+                size['w'] = this.config.staticSize;
+                size['h'] = this.config.staticSize;
             } else {
-                console.log("theNod.metric value-> "+ data[theNod.metric]);
+                var theValue = data[theNod.volume];
+                // TODO test
+                if(theValue > 99) {
+                    theValue = 99;
+                }
+                if(theValue < 20) {
+                    theValue = 25;
+                }
                 size['w'] = theValue;
                 size['h'] = theValue;
             }
@@ -271,15 +263,16 @@
             edges: theEdges
         };
 
-        this.element.cytoscape({
-            container: this.element.get(0),
+        this.cytoContainer.cytoscape({
+            container: this.cytoContainer.get(0),
             style: cytoStyle,
             elements: cytoElements, 
             layout: layoutConfig,
             boxSelectionEnabled: false
         }); // cy init
 
-        cy = this.element.cytoscape('get');
+        cy = this.cytoContainer.cytoscape('get');
+        this.chart = cy;
         //cy.center();
         //cy.fit( cy.$('#j, #e') );
         cy.userPanningEnabled( false );
@@ -311,8 +304,16 @@
 
         //Update the chart when window resizes.
         this.resizeEventHandler = function(e) {
-            cy.resize();
-        };
+            // dont run
+                //this.chart.resize(); 
+            // slow and heavy
+            setTimeout(function() {
+                var normalizedData = getNormalizedData.call(this,this.lastData);
+                paint.call(this, normalizedData, framework_data);
+            }, 3000);
+            // ñaping
+                //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
+        }.bind(this);
         $(window).resize(this.resizeEventHandler);
 
     };
