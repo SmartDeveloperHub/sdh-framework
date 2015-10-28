@@ -445,6 +445,8 @@
         var code = 'return ' + str;
 
         var locals = {
+
+            /* Basic functionallity */
             window: {
             },
             document: {
@@ -457,6 +459,11 @@
             Function: window.Function,
             Array: window.Array,
             String: window.String,
+
+            /* Libraries */
+            moment: window.moment,
+
+            /* Widet data */
             _D: data,
             _E: extra
         };
