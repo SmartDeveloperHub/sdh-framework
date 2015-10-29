@@ -98,7 +98,6 @@
 
     var getNormalizedData = function getNormalizedData(framework_data) {
 
-        /* //TODO: uncomment for real data
         var resourceId = Object.keys(framework_data)[0];
         var resourceUID = Object.keys(framework_data[resourceId])[0];
         var resource = framework_data[resourceId][resourceUID];
@@ -107,7 +106,7 @@
             values: resource['data']['values'],
             interval: resource['data']['interval']
         };
-        */
+
 
         /*var values = [0];
         var changeDiff = 0.01;
@@ -136,6 +135,7 @@
             }
         };*/
 
+        /*
         return {
             values: [0.2, 0.2, 0.2, 1, 0.5, 0.5, 0.7, 0.7, 0.7],
             interval: {
@@ -143,6 +143,7 @@
                 to: 1445427267726
             }
         };
+        */
 
     };
 
