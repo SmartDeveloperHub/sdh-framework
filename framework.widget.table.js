@@ -87,6 +87,10 @@
             showHeader: {
                 type: 'boolean',
                 default: true
+            },
+            swapOnMaxim: {
+                type: 'boolean',
+                default: false
             }
 
         };
@@ -120,7 +124,8 @@
      *       ~ initialSelectedRows: number - Number of rows that must be selected at the beginning. Default: 0.
      *       ~ orderByColumn: array - Must be an array of arrays, each inner array comprised of two elements: Column
      *          index to order upon and direction so order to apply (asc or desc).
-     *       ~ keepSelectedByProperty: string - Property to use to remember the selected rows.
+     *       ~ alwaysOneSelected: boolean - Whether to set only one always selected item, changing element with simple click.
+     *       ~ keepSelectedByProperty: string - Property used to remember the selected rows.
      *       ~ updateContexts: array - Array of objects that configure how to update the contexts. It must contain an id with
      *          the id of the context and a filter array with the data to send through the context update.
      *          Each filter must contain a 'property' property with the name of the property of the data retrieved from
@@ -207,6 +212,7 @@
         this.tableDom = null;
         this.table = null;
         this.selected = [];
+        this.currentSelected = null;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -346,6 +352,7 @@
             //Select the first n rows
             this.table.$('tr:not(.selected)').slice(0, this.configuration.initialSelectedRows).each(function(rowIndex, row) {
                 $(row).addClass('selected');
+                this.currentSelected = row; // for alwaysOneSelected
                 if(this.configuration.keepSelectedByProperty !== "") {
                     this.selected.push(this.table.row($(row)).data()[this.configuration.keepSelectedByProperty]);
                 }
@@ -470,17 +477,25 @@
             }
 
         } else { //Not selected
-
+            if (widget.configuration.alwaysOneSelected) {
+                //Remove from the keep selected array
+                $(widget.currentSelected).removeClass('selected');
+                if(selectByData != null) {
+                    var index = widget.selected.indexOf(selectByData);
+                    if(index >= 0) {
+                        widget.selected.splice(index, 1);
+                    }
+                }
+            }
             //Select it if the maximum of selected rows has not been achieved
             if(widget.configuration.maxRowsSelected > widget.table.$('tr.selected').length) {
                 $(this).addClass('selected');
-
+                widget.currentSelected = this;
                 //Add to the keep selected array
                 if(selectByData != null) {
                     widget.selected.push(selectByData);
                 }
             }
-
         }
 
         // Update contexts with the selected rows
