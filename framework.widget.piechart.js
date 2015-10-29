@@ -168,31 +168,6 @@
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
-    //Function that returns the value to replace with the label variables
-    var replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var path = str.split(".");
-            var subObject = resource;
-
-            for(var p = 0; p < path.length; ++p) {
-                if((subObject = subObject[path[p]]) == null)
-                    return "";
-            }
-
-            return subObject.toString();
-        }
-
-    };
-
     /**
      * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
      * @param framework_data
@@ -210,11 +185,8 @@
                 var metric = framework_data[metricId][m];
                 var metricData = framework_data[metricId][m]['data'];
 
-                //Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricId, metric);
-
                 //Generate the label by replacing the variables
-                var label = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
+                var label = this.replace(this.configuration.labelFormat, metric, {resource: metricId, i: m});
 
                 for(var i in metricData['values']) {
 
