@@ -183,8 +183,9 @@
         this.data = data[resourceId][resourceUID]['data'];
 
         if(this.chart == null) {
-            loadLiquidFillGauge(this.svg.get(0), this.data.values[0], this.configuration);
+            this.chart = loadLiquidFillGauge(this.svg.get(0), this.data.values[0], this.configuration);
         } else {
+            // Repaint
             this.chart.update(this.data.values[0]);
         }
 
