@@ -21,72 +21,59 @@
 
 (function() {
 
-    /**
-     *
-     * @param configuration
-     * @returns {*}
-     */
-    var normalizeConfig = function normalizeConfig(configuration) {
-        if (configuration == null) {
-            configuration = {};
-        }
-
-        var defaultConfig = {
-            height: {
-                type: 'number',
-                default: 240
-            },
-            color: {
-                type: 'object',
-                default: null
-            },
-            stacked: {
-                type: 'boolean',
-                default: false
-            },
-            groupSpacing: {
-                type: 'number',
-                default: 0.1
-            },
-            duration: {
-                type: 'number',
-                default: 250
-            },
-            showControls: {
-                type: 'boolean',
-                default: true
-            },
-            showLegend: {
-                type: 'boolean',
-                default: true
-            },
-            showXAxis: {
-                type: 'boolean',
-                default: true
-            },
-            showYAxis: {
-                type: 'boolean',
-                default: true
-            },
-            labelFormat: {
-                type: 'string',
-                default: '%mid%'
-            },
-            maxDecimals: {
-                type: 'number',
-                default: 2
-            }
-
-        };
-
-        for(var confName in defaultConfig) {
-            var conf = defaultConfig[confName];
-            if (typeof configuration[confName] != conf['type']) {
-                configuration[confName] = conf['default'];
+    var defaultConfig = {
+        height: {
+            type: ['number'],
+            default: 240
+        },
+        color: {
+            type: ['object'],
+            default: null
+        },
+        stacked: {
+            type: 'boolean',
+            default: false
+        },
+        groupSpacing: {
+            type: ['number'],
+            default: 0.1
+        },
+        duration: {
+            type: ['number'],
+            default: 250
+        },
+        showControls: {
+            type: ['boolean'],
+            default: true
+        },
+        showLegend: {
+            type: ['boolean'],
+            default: true
+        },
+        showXAxis: {
+            type: ['boolean'],
+            default: true
+        },
+        showYAxis: {
+            type: ['boolean'],
+            default: true
+        },
+        labelFormat: {
+            type: ['string'],
+            default: '%mid%'
+        },
+        maxDecimals: {
+            type: ['number'],
+            default: 2
+        },
+        x: {
+            type: ['function'],
+            default: function(metric, i) {
+                //Get this metric date extent
+                var dateExtent = [new Date(metric['data']['interval']['from']), new Date(metric['data']['interval']['to'])];
+                return dateExtent[0].getTime() + i * metric['data']['step'];
             }
         }
-
-        return configuration;
     };
 
     /* rangeNv constructor
@@ -144,7 +131,7 @@
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
-        this.configuration = normalizeConfig(configuration);
+        this.configuration = this.normalizeConfig(defaultConfig, configuration);
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
@@ -196,32 +183,6 @@
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
-    //Function that returns the value to replace with the label variables
-    var replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var path = str.split(".");
-            var subObject = resource;
-
-            for(var p = 0; p < path.length; ++p) {
-                if((subObject = subObject[path[p]]) == null)
-                    return "";
-            }
-
-            return subObject.toString();
-        }
-
-    };
-
-
     /**
      * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
      * @param framework_data
@@ -243,14 +204,9 @@
                     this.aproximatedDates = true;
                 }
 
-                //Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricId, metric);
-
                 //Generate the label by replacing the variables
-                var label = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
+                var label = this.replace(this.configuration.labelFormat, metric);
 
-                //Get this metric date extent
-                var dateExtent = [new Date(metricData['interval']['from']), new Date(metricData['interval']['to'])];
 
                 var mData = {
                     key: label,
@@ -259,10 +215,17 @@
 
                 for(var i = 0, len = metricData['values'].length; i < len; ++i) {
 
-                    var curDate = dateExtent[0].getTime() + i * metricData['step'];
+                    var xValue;
+
+                    if(typeof this.configuration.x === 'function') {
+                        xValue = this.configuration.x(metric, metricId, i);
+                    } else {
+                        xValue = this.replace(this.configuration.x, metric, {resource: metricId, 'i': i});
+                    }
+
 
                     mData.values.push({
-                        x: curDate,
+                        x: xValue,
                         y: metricData['values'][i]
                     });
 
@@ -295,14 +258,21 @@
 
             if(this.aproximatedDates) {
                 chart.tooltip.headerFormatter(function(d) {
-                    return '~' + d3.time.format('%x')(new Date(d));
+                    if(typeof d === 'string') {
+                        return d;
+                    } else {
+                        return '~' + d3.time.format('%x')(new Date(d));
+                    }
                 });
             }
-
             chart.xAxis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d));
-                })
-                .showMaxMin(false);
+                if (typeof d == 'string') {
+                    return d;
+                } else {
+                    return d3.time.format('%x')(new Date(d));
+                }
+            })
+            .showMaxMin(false);
 
             chart.yAxis.tickFormat(function(d) {
 
