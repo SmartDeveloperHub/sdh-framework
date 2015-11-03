@@ -31,7 +31,7 @@
             default: null
         },
         stacked: {
-            type: 'boolean',
+            type: ['boolean'],
             default: false
         },
         groupSpacing: {
@@ -207,11 +207,22 @@
                 //Generate the label by replacing the variables
                 var label = this.replace(this.configuration.labelFormat, metric);
 
+                var mData = null;
+                var newDataGroup = true;
+                for(var i = 0; i < values.length; i++) {
+                    if(values[i].key === label) {
+                        mData = values[i];
+                        newDataGroup = false;
+                        break;
+                    }
+                }
 
-                var mData = {
-                    key: label,
-                    values: []
-                };
+                if(newDataGroup) {
+                    mData = {
+                        key: label,
+                        values: []
+                    };
+                }
 
                 for(var i = 0, len = metricData['values'].length; i < len; ++i) {
 
@@ -231,7 +242,9 @@
 
                 }
 
-                values.push(mData);
+                if(newDataGroup) {
+                    values.push(mData);
+                }
 
 
             }
