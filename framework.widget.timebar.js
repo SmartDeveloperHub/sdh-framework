@@ -37,6 +37,10 @@
         legend: {
             type: [Array],
             default: []
+        },
+        showMaxMin: {
+            type: ['boolean'],
+            default: false
         }
     };
 
@@ -107,44 +111,6 @@
             interval: resource['data']['interval']
         };
 
-
-        /*var values = [0];
-        var changeDiff = 0.01;
-        var change = changeDiff;
-        for(var i = 1; i < 1000; i++) {
-
-            if(change === 0 && Math.random() > 0.95) {
-                if(values[i-1] === 0) {
-                    change = changeDiff;
-                } else {
-                    change = -changeDiff;
-                }
-            }
-
-            values[i] = Math.max(0, Math.min(values[i-1] + change, 1));
-            if(values[i] === 0 || values[i] === 1) {
-                change = 0;
-            }
-        }
-
-        return {
-            values: values,
-            interval: {
-                from: 1445327267726,
-                to: 1445427267726
-            }
-        };*/
-
-        /*
-        return {
-            values: [0.2, 0.2, 0.2, 1, 0.5, 0.5, 0.7, 0.7, 0.7],
-            interval: {
-                from: 1445327267726,
-                to: 1445427267726
-            }
-        };
-        */
-
     };
 
     var paint = function(data, framework_data) {
@@ -154,7 +120,6 @@
 
         // Add new bar
         this.element.append('<div class="timebar-container">' +
-                '<svg class="legend nvd3"></svg>' +
                 '<div class="progress" style="height: ' + this.configuration.height + 'px"></div>' +
                 '<svg class="axis nvd3"></svg>' +
             '</div>');
@@ -175,38 +140,20 @@
         // Create legend
         if(this.configuration.legend != null && this.configuration.legend.length > 1) {
 
-            var legendSvg = this.element.find("svg.legend");
-            legendSvg.css('height', '25px');
+            var legend = $('<div></div>')
+                .addClass('timebar-legend');
 
-            // Calculate the color for each of the labels in the legend
-            var colors = [];
-            var keys = [];
-            for(var i = 0; i < this.configuration.legend.length; i++) {
-                colors.push(colorFunction( i / (this.configuration.legend.length - 1)));
-                keys.push({ key: this.configuration.legend[i] });
-            }
+            legend.append('<span class="legend-label">'+ this.configuration.legend[0] +'</span>');
 
-            var legend = nv.models.legend()
-                .color(colors)
-                .rightAlign(true)
-                .width(this.element.width());
+            var legendGradient = $('<div></div>')
+                .css('background', 'linear-gradient(to left, '+colorFunction(0)+' , '+colorFunction(0.5)+' ,'+colorFunction(1)+')')
+                .addClass('legend-gradient');
 
-            if(this.chartUpdate != null) {
-                $(window).off("resize", this.chartUpdate);
-            }
+            legend.append(legendGradient);
 
-            this.chartUpdate = function() {
-                legend.width(this.element.width());
-                d3.select(legendSvg.get(0))
-                    .call(legend);
-            }.bind(this);
+            legend.append('<span class="legend-label">'+ this.configuration.legend[1] +'</span>');
 
-            //Update width on window resize
-            $(window).resize(this.chartUpdate);
-
-            d3.select(legendSvg.get(0))
-                .datum(keys)
-                .call(legend);
+            this.element.find(".timebar-container").prepend(legend);
 
         }
 
@@ -217,6 +164,7 @@
         var availableWidth = this.element.width();
 
         var axis = nv.models.axis()
+            .showMaxMin(this.configuration.showMaxMin)
             .height(25)
             .scale(d3.time.scale().domain([data.interval.from, data.interval.to]).range([0, this.element.width()]))
             .width(this.element.width())
