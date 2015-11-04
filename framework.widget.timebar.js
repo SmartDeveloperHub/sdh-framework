@@ -108,7 +108,8 @@
 
         return {
             values: resource['data']['values'],
-            interval: resource['data']['interval']
+            interval: resource['data']['interval'],
+            step: resource['data']['step']
         };
 
     };
@@ -172,16 +173,20 @@
 
         d3.select(axisSvg.get(0))
             .call(axis);
-
-
+        
         var width = 100 / data.values.length;
-        var timeIncremental = (data.interval.to - data.interval.from) / data.values.length;
 
         // Create all the chunks of the bar
         for(var i = 0; i < data.values.length; ++i) {
             var color = colorFunction(data.values[i]);
-            var time = data.interval.from + i * timeIncremental;
             var content = null;
+
+            //We need to distribute the time of the step among all the "segments" of data so that the first
+            // value's date corresponds to the "from" date of the interval and the last value's date corresponds
+            // to the "to" date of the interval minus 1 second.
+            var distributedStep = i * (data.step - 1) / (data.values.length - 1);
+
+            var time = data.interval.from + i * data.step + distributedStep;
 
             //Configure how the tooltip looks.
             if(typeof this.configuration.tooltip === 'string') {
