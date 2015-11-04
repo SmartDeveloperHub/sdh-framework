@@ -244,7 +244,6 @@
                     this.maxT = metricData.interval.to;
                 }
 
-                var timePoint = metricData.interval.from - metricData.step;
                 var yserie = metricData.values;
 
                 // Create a replacer for this metric
@@ -267,14 +266,20 @@
 
                 // Metric dataset
                 var dat = yserie.map(function(dat, index) {
-                    timePoint += metricData.step;
+
                     if(dat > this.maxY) {
                         this.maxY = dat;
                     }
                     if (dat < this.minY) {
                         this.minY = dat;
                     }
-                    return {'x': new Date(timePoint), 'y': dat};
+
+                    //We need to distribute the time of the step among all the "segments" of data so that the first
+                    // value's date corresponds to the "from" date of the interval and the last value's date corresponds
+                    // to the "to" date of the interval minus 1 second.
+                    var distributedStep = index * (metricData.step - 1) / (metricData.values.length - 1);
+
+                    return {'x': new Date(metricData.interval.from + index * metricData.step + distributedStep), 'y': dat};
                 }.bind(this));
                 series.push({
                     values: dat,      //values - represents the array of {x,y} data points
