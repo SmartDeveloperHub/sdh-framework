@@ -420,8 +420,8 @@
                     values.push(0);
                 }
 
-                //Update the new from
-                resourceInterval['from'] += nZeros * step;
+                //Update the new to
+                resourceInterval['to'] += nZeros * step;
             }
 
         }
