@@ -1009,7 +1009,7 @@
     _self.data.updateContext = function updateContext(contextId, contextData) {
 
         if('string' !== typeof contextId) {
-            error("Method 'updateRange' requires a string for contextId param.");
+            error("Method 'updateContext' requires a string for contextId param.");
             return;
         }
 
@@ -1057,7 +1057,7 @@
 
             //Change the context
             if(newValue != null && newValue != oldValue && (!(newValue instanceof Array) || newValue.length > 0)) {
-                _resourcesContexts[contextId]['data'][name] = newValue;
+                _resourcesContexts[contextId]['data'][name] = clone(newValue);
             } else if((newValue == null && oldValue != null) || (newValue instanceof Array && newValue.length === 0)) {
                 delete _resourcesContexts[contextId]['data'][name];
             }
@@ -1069,6 +1069,67 @@
             $(_eventBox).trigger("CONTEXT" + contextId, [_resourcesContexts[contextId].updateCounter, changes, contextId]);
         }
 
+
+    };
+
+    /**
+     * Observe changes in a context.
+     * @param contextId Id of the context to observe.
+     * @param callback Function that receives the new data of the context, the list of changes produced and the contextId.
+     */
+    _self.data.observeContext = function observeContext(contextId, callback) {
+
+        if('string' !== typeof contextId) {
+            error("Method 'observeContext' requires a string for contextId param.");
+            return;
+        }
+
+        if(_resourcesContexts[contextId] == null) {
+            initializeContext(contextId);
+        }
+
+
+        var contextEventHandler = function(event, contextCounter, contextChanges, contextId) {
+
+            //If it is not the last context event launched, ignore the data because there is another more recent
+            // event being executed
+            if(contextCounter != _resourcesContexts[contextId]['updateCounter']) {
+                return;
+            }
+
+            callback(clone(_resourcesContexts[contextId].data), contextChanges, contextId);
+
+
+        };
+
+        _event_handlers.push({
+            userCallback: callback,
+            contexts: [ contextId ],
+            contextHandler: contextEventHandler
+        });
+
+        // Create the CONTEXT event listener
+        $(_eventBox).on("CONTEXT" + contextId, contextEventHandler);
+
+    };
+
+    /**
+     * Gets the data stored in a given context.
+     * @param contextId Id of the context
+     * @returns {*}
+     */
+    _self.data.getContextData = function getContextData(contextId) {
+
+        if('string' !== typeof contextId) {
+            error("Method 'observeContext' requires a string for contextId param.");
+            return;
+        }
+
+        if(_resourcesContexts[contextId] != null) {
+            return clone(_resourcesContexts[contextId].data);
+        } else {
+            return null;
+        }
 
     };
 
