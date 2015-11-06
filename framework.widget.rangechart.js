@@ -254,8 +254,8 @@
         xAxis2 = d3.svg.axis().scale(x2).orient("bottom");
         yAxis = d3.svg.axis().scale(y).orient("left");
 
-        xAxis.tickFormat(d3.time.format('%x'));
-        xAxis2.tickFormat(d3.time.format('%x'));
+        xAxis.tickFormat(this.format.date);
+        xAxis2.tickFormat(this.format.date);
         yAxis.tickFormat(function(d) {
 
             //Truncate decimals

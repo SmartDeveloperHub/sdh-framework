@@ -316,11 +316,11 @@
             chart.margin({"top":10,"bottom":14});
 
             chart.xAxis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d));
-                });
+                return this.format.date(new Date(d));
+            }.bind(this));
             chart.x2Axis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d))
-                });
+                return this.format.date(new Date(d))
+            }.bind(this));
 
             chart.yAxis.tickFormat(function(d) {
 

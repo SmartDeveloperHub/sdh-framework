@@ -341,13 +341,13 @@
 
             if(this.aproximatedDates) {
                 chart.tooltip.headerFormatter(function(d) {
-                    return '~' + d3.time.format('%x')(new Date(d));
+                    return '~' + d;
                 });
             }
 
             chart.xAxis.tickFormat(function(d) {
-                return d3.time.format('%x')(new Date(d));
-                })
+                return this.format.date('%x')(new Date(d));
+            }.bind(this))
                 .showMaxMin(false);
 
             chart.yAxis.tickFormat(function(d) {

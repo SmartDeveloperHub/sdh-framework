@@ -322,8 +322,8 @@
             chart.xAxis     //Chart x-axis settings
                 .axisLabel(this.configuration.xlabel)
                 .tickFormat(function(d) {
-                    return d3.time.format('%x')(new Date(d));
-                });
+                    return this.format.date(new Date(d));
+                }.bind(this));
 
             chart.yAxis     //Chart y-axis settings
                 .axisLabel(this.configuration.ylabel)

@@ -284,7 +284,7 @@
         var codeExpression = /¬([^¬]|_%)+¬/g;
 
         //Create a replacer for this data
-        var metricReplacer = replacer.bind(null, data, extraData);
+        var metricReplacer = replacer.bind(this, data, extraData);
 
         //Generate the label by replacing the variables
         return string.replace(codeExpression,metricReplacer);
@@ -330,6 +330,26 @@
         return configuration;
 
 
+    };
+
+    CommonWidget.prototype.format = {};
+
+    CommonWidget.prototype.format.date = function (date) {
+
+        if(!(date instanceof Date)) {
+            date = new Date(date);
+        }
+
+        return d3.time.format.utc('%x')(date)
+    };
+
+    CommonWidget.prototype.format.datetime = function (date) {
+
+        if(!(date instanceof Date)) {
+            date = new Date(date);
+        }
+
+        return d3.time.format.utc('%c')(date)
     };
 
 
@@ -459,6 +479,7 @@
             Function: window.Function,
             Array: window.Array,
             String: window.String,
+            Widget: this,
 
             /* Libraries */
             moment: window.moment,

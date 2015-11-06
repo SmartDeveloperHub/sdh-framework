@@ -186,9 +186,8 @@
             margin = {top:20,right:20,bottom:20,left:40};
 
         //formats
-        var dateFormat = d3.time.format('%m/%d/%Y'),
-            monthNameFormat = d3.time.format('%b'),
-            weekDayFormat = d3.time.format("%w");
+        var monthNameFormat = d3.time.format.utc('%b'),
+            weekDayFormat = d3.time.format.utc("%w");
 
         //axises and scales
         var axisWidth = 0 ,
@@ -290,7 +289,7 @@
             .append('title')
             .text(function(value, index){
                 var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
-                return dateFormat(new Date(curDate))+': '+value;
+                return this.format.date(new Date(curDate))+': '+value;
             });
 
         renderColor.call(this, rect, dateExtent);

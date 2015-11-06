@@ -169,7 +169,7 @@
             .height(25)
             .scale(d3.time.scale().domain([data.interval.from, data.interval.to]).range([0, this.element.width()]))
             .width(this.element.width())
-            .tickFormat(d3.time.format('%x'));
+            .tickFormat(this.format.date);
 
         d3.select(axisSvg.get(0))
             .call(axis);

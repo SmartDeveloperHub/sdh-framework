@@ -274,7 +274,7 @@
                     if(typeof d === 'string') {
                         return d;
                     } else {
-                        return '~' + d3.time.format('%x')(new Date(d));
+                        return '~' + d;
                     }
                 });
             }
@@ -282,9 +282,9 @@
                 if (typeof d == 'string') {
                     return d;
                 } else {
-                    return d3.time.format('%x')(new Date(d));
+                    return this.format.date(new Date(d));
                 }
-            })
+            }.bind(this))
             .showMaxMin(false);
 
             chart.yAxis.tickFormat(function(d) {
