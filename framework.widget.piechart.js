@@ -176,17 +176,16 @@
     var getNormalizedData = function getNormalizedData(framework_data) {
 
         var values = [];
-        var labelVariable = /%(\w|\.)+%/g; //Regex that matches all the "variables" of the label such as %mid%, %pid%...
 
-        for(var metricId in framework_data) {
+        for(var resourceName in framework_data) {
 
-            for(var m in framework_data[metricId]){
+            for(var resId in framework_data[resourceName]){
 
-                var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricId][m]['data'];
+                var metric = framework_data[resourceName][resId];
+                var metricData = framework_data[resourceName][resId]['data'];
 
                 //Generate the label by replacing the variables
-                var label = this.replace(this.configuration.labelFormat, metric, {resource: metricId, i: m});
+                var label = this.replace(this.configuration.labelFormat, metric, {resource: resourceName, resourceId:  resId});
 
                 for(var i in metricData['values']) {
 

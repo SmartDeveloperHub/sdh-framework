@@ -44,7 +44,7 @@
             configuration.duration = 250;
         }
         if (typeof configuration.labelFormat != "string") {
-            configuration.labelFormat = "%mid%";
+            configuration.labelFormat = '¬_E.resource¬';
         }
         if (typeof configuration.margin != "object") {
             configuration.margin = {left: 100, right: 70};
@@ -194,48 +194,22 @@
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
-    //Function that returns the value to replace with the label variables
-    var replacer = function(resourceId, resource, str) {
-
-        //Remove the initial an trailing '%' of the string
-        str = str.substring(1, str.length-1);
-
-        //Check if it is a parameter an return its value
-        if(str === "resourceId") { //Special command to indicate the name of the resource
-            return resourceId;
-
-        } else { // Obtain its value through the object given the path
-
-            var path = str.split(".");
-            var subObject = resource;
-
-            for(var p = 0; p < path.length; ++p) {
-                if((subObject = subObject[path[p]]) == null)
-                    return "";
-            }
-
-            return subObject.toString();
-        }
-
-    };
-
     /**
      * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
      * @param framework_data
      * @returns {Array} Contains objects with 'label' and 'value'.
      */
     var getNormalizedData = function getNormalizedData(framework_data) {
-        var labelVariable = /%(\w|\.)+%/g; //Regex that matches all the "variables" of the label such as %mid%, %pid%...
 
         var series = [];
         this.labels = {};
         //var colors = ['#ff7f0e','#2ca02c','#7777ff','#D53E4F','#9E0142'];
         //Data is represented as an array of {x,y} pairs.
-        for (var metricId in framework_data) {
-            for (var m in framework_data[metricId]) {
+        for (var resourceName in framework_data) {
+            for (var resId in framework_data[resourceName]) {
 
-                var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricId][m]['data'];
+                var metric = framework_data[resourceName][resId];
+                var metricData = framework_data[resourceName][resId]['data'];
 
                 if(metric['info']['request']['params']['max'] > 0) {
                     this.aproximatedDates = true;
@@ -243,19 +217,18 @@
 
                 var yserie = metricData.values;
 
-                // Create a replacer for this metric
-                var metricReplacer = replacer.bind(null, metricId, metric);
-
                 var genLabel = function genLabel(i) {
-                  var lab = this.configuration.labelFormat.replace(labelVariable,metricReplacer);
-                  if (i > 0) {
-                    lab = lab + '(' + i + ')';
-                  }
-                  if (lab in this.labels) {
-                    lab = genLabel.call(this, ++i);
-                  }
-                  this.labels[lab] = null;
-                  return lab;
+
+                    var lab = this.replace(this.configuration.labelFormat, metric, {resource: resourceName, resourceId:  resId});
+
+                    if (i > 0) {
+                        lab = lab + '(' + i + ')';
+                    }
+                    if (lab in this.labels) {
+                        lab = genLabel.call(this, ++i);
+                    }
+                    this.labels[lab] = null;
+                    return lab;
                 };
                 // Demo
                 // Generate the label by replacing the variables

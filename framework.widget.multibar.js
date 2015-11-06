@@ -60,7 +60,7 @@
         },
         labelFormat: {
             type: ['string'],
-            default: '%mid%'
+            default: '¬_E.resource¬'
         },
         maxDecimals: {
             type: ['number'],
@@ -68,10 +68,10 @@
         },
         x: {
             type: ['function'],
-            default: function(metric, i) {
+            default: function(metric, extra) {
                 //Get this metric date extent
                 var dateExtent = [new Date(metric['data']['interval']['from']), new Date(metric['data']['interval']['to'])];
-                return dateExtent[0].getTime() + i * metric['data']['step'];
+                return dateExtent[0].getTime() + extra.valueIndex * metric['data']['step'];
             }
         }
     };
@@ -191,21 +191,20 @@
     var getNormalizedData = function getNormalizedData(framework_data) {
 
         var values = [];
-        var labelVariable = /%(\w|\.)+%/g; //Regex that matches all the "variables" of the label such as %mid%, %pid%...
 
-        for(var metricId in framework_data) {
+        for(var resourceName in framework_data) {
 
-            for(var m in framework_data[metricId]){
+            for(var resId in framework_data[resourceName]){
 
-                var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricId][m]['data'];
+                var metric = framework_data[resourceName][resId];
+                var metricData = framework_data[resourceName][resId]['data'];
 
                 if(metric['info']['request']['params']['max'] > 0) {
                     this.aproximatedDates = true;
                 }
 
                 //Generate the label by replacing the variables
-                var label = this.replace(this.configuration.labelFormat, metric);
+                var label = this.replace(this.configuration.labelFormat, metric, {resource: resourceName, resourceId:  resId});
 
                 var mData = null;
                 var newDataGroup = true;
@@ -229,9 +228,9 @@
                     var xValue;
 
                     if(typeof this.configuration.x === 'function') {
-                        xValue = this.configuration.x(metric, metricId, i);
+                        xValue = this.configuration.x(metric, {resource: resourceName, resourceId:  resId, valueIndex: i});
                     } else {
-                        xValue = this.replace(this.configuration.x, metric, {resource: metricId, 'i': i});
+                        xValue = this.replace(this.configuration.x, metric, {resource: resourceName, resourceId:  resId, valueIndex: i});
                     }
 
 
