@@ -129,11 +129,19 @@
         maxDiameter: {
             type: ['number'],
             default: 150
+        },
+        xAxisGradient: {
+            type: ['object'],
+            default: null
+        },
+        yAxisGradient: {
+            type: ['object'],
+            default: null
+        },
         showMaxMin: {
             type: ['boolean'],
             default: true
         }
-
 
     };
 
@@ -169,6 +177,8 @@
      *         image to display inside the circle.
      *       ~ imageMargin: number - Margin of the image inside the circle.
      *       ~ showMaxMin: boolean - Display or hide the max min ticks in axis.
+     *       ~ yAxisGradient: array - Margin of the image inside the circle.
+     *       ~ xAxisGradient: array - Margin of the image inside the circle.
      *      }
      */
     var Scatter = function Scatter(element, metrics, contextId, configuration) {
@@ -368,7 +378,58 @@
                 .ticks(this.configuration.yAxisTicks)
                 .showMaxMin(this.configuration.showMaxMin);
 
+            // Gradient axis
+            var _svg = d3.select(this.svg.get(0));
+            var ygrad = this.configuration.yAxisGradient;
+            var xgrad = this.configuration.xAxisGradient;
+            if(ygrad !== null){
+                if (!(ygrad instanceof Array) || ygrad.length < 1) {
+                    console.error("yAxisGradient config error. spected array example: ['green', 'red']");
+                    return;
+                }
+                // define a gradient
+                defs = _svg.append("svg:defs");
 
+                var gradientX = defs.append("svg:linearGradient")
+                    .attr("id", "gradY")
+                    .attr("x1", "0")
+                    .attr("x2", "0")
+                    .attr("y1", "0")
+                    .attr("y2", "100%")
+                    .attr("gradientUnits", "userSpaceOnUse")
+                    .attr("spreadMethod", "pad");
+                var part = 100 / ygrad.length;
+                for (var i = 0; i < ygrad.length; i ++) {
+                    gradientX.append("svg:stop")
+                        .attr("offset", part*i + "%")
+                        .attr("stop-color", ygrad[i])
+                        .attr("stop-opacity", 1);
+                }
+            }
+            if(xgrad !== null){
+                if (!(xgrad instanceof Array) || xgrad.length < 1) {
+                    console.error("xAxisGradient config error. spected array example: ['green', 'red']");
+                    return;
+                }
+                // define a gradient
+                defs = _svg.append("svg:defs");
+
+                var gradientX = defs.append("svg:linearGradient")
+                    .attr("id", "gradX")
+                    .attr("x1", "0")
+                    .attr("x2", "100%")
+                    .attr("y1", "0")
+                    .attr("y2", "0")
+                    .attr("gradientUnits", "userSpaceOnUse")
+                    .attr("spreadMethod", "pad");
+                var part = 100 / xgrad.length;
+                for (var i = 0; i < xgrad.length; i ++) {
+                    gradientX.append("svg:stop")
+                        .attr("offset", part*i + "%")
+                        .attr("stop-color", xgrad[i])
+                        .attr("stop-opacity", 1);
+                }
+            }
             d3.select(this.svg.get(0))
                 .datum(data)
                 .call(this.chart);
