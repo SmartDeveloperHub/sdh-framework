@@ -1,0 +1,42 @@
+{
+  "name": "sdh-framework",
+  "homepage": "https://github.com/SmartDeveloperHub/sdh-framework",
+  "description": "SDH web framework that facilitates the acquisition of data from the API and provides widgets to create dashboards",
+  "main": "framework.js",
+  "moduleType": [],
+  "keywords": [
+    "dashboard",
+    "widget",
+    "visualization",
+    "smartdeveloperhub",
+    "sdh"
+  ],
+  "authors": [
+    "Alejandro Vera",
+    "Carlos Blanco"
+  ],
+  "license": "Apache License v2.0",
+  "ignore": [
+    "**/.*",
+    "vendor",
+    "test.html",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "2.1.x",
+    "d3": "3.5.x",
+    "joint": "0.9.x",
+    "nvd3": "1.8.1",
+    "moment": "2.9.0",
+    "cytoscape": "2.4.8",
+    "Chart.js": "1.0.2",
+    "underscore": "1.8.3",
+    "datatables": "1.10.7",
+    "qtip2": "2.2.1",
+    "cytoscape-qtip": "2.2.5"
+  },
+  "resolutions": {
+    "jquery": "2.1.x"
+  }
+}

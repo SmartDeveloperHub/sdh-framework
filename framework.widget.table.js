@@ -612,7 +612,7 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( ['datatables',
-            'css!sdh-framework/lib/jquery/datatables/css/jquery.dataTables.min'], function () { return Table; } );
+            'css!./vendor/datatables/media/css/jquery.dataTables.min'], function () { return Table; } );
     }
 
 })();
