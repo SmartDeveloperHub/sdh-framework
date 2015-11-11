@@ -326,6 +326,7 @@
             this.chart = nv.models.scatterChart()
                 .showDistX(this.configuration.showDistX)    //showDist, when true, will display those little distribution lines on the axis.
                 .showDistY(this.configuration.showDistY)
+                .showLegend(this.configuration.showLeyend)
                 .height(this.configuration.height)
                 .pointDomain(this.configuration.pointDomain)
                 .pointRange([this.configuration.minDiameter, this.configuration.maxDiameter])
