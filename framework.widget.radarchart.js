@@ -267,7 +267,7 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['sdh-framework/vendor/Chart.js/Chart.min.js'], function () { return RadarChart; } );
+        define( ['/vendor/Chart.js/Chart.min.js'], function () { return RadarChart; } );
     }
 
 })();
