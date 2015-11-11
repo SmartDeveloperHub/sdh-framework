@@ -129,6 +129,9 @@
         maxDiameter: {
             type: ['number'],
             default: 150
+        showMaxMin: {
+            type: ['boolean'],
+            default: true
         }
 
 
@@ -165,6 +168,7 @@
      *       ~ image: string - Executable string having in _D the point information. It should provide the url of the
      *         image to display inside the circle.
      *       ~ imageMargin: number - Margin of the image inside the circle.
+     *       ~ showMaxMin: boolean - Display or hide the max min ticks in axis.
      *      }
      */
     var Scatter = function Scatter(element, metrics, contextId, configuration) {
@@ -356,11 +360,13 @@
             this.chart.xAxis
                 .axisLabel(this.configuration.xAxisLabel)
                 .tickFormat(this.configuration.xAxisFormat)
-                .ticks(this.configuration.xAxisTicks);
+                .ticks(this.configuration.xAxisTicks)
+                .showMaxMin(this.configuration.showMaxMin);
             this.chart.yAxis
                 .axisLabel(this.configuration.yAxisLabel)
                 .tickFormat(this.configuration.yAxisFormat)
-                .ticks(this.configuration.yAxisTicks);
+                .ticks(this.configuration.yAxisTicks)
+                .showMaxMin(this.configuration.showMaxMin);
 
 
             d3.select(this.svg.get(0))
