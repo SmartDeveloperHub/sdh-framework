@@ -505,6 +505,9 @@
 
     //TODO: improve how to define the elements of window that you want to conserve
     function createSandbox(code, that, locals) {
+
+        var validVariable = /^[a-zA-Z_$][0-9a-zA-Z_$]*$/;
+
         code = '"use strict";' + code;
         var params = []; // the names of local variables
         var args = []; // the local variables
@@ -523,7 +526,7 @@
 
 
         for (var param in locals) {
-            if (locals.hasOwnProperty(param)) {
+            if (locals.hasOwnProperty(param) && validVariable.test(param)) {
                 args.push(locals[param]);
                 params.push(param);
             }
