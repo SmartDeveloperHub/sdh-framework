@@ -162,13 +162,17 @@
         var axisSvg = this.element.find("svg.axis");
         axisSvg.css('height', '25px');
 
-        var availableWidth = this.element.width();
+        var availableWidth = this.element.find(".progress").width();
 
         var axis = nv.models.axis()
             .showMaxMin(this.configuration.showMaxMin)
             .height(25)
-            .scale(d3.time.scale().domain([data.interval.from, data.interval.to]).range([0, this.element.width()]))
-            .width(this.element.width())
+            .scale(d3.time.scale.utc()
+                .domain([data.interval.from, data.interval.to])
+                .range([0, availableWidth]))
+                .ticks(Math.round(availableWidth / 200)
+            )
+            .width(availableWidth)
             .tickFormat(this.format.date);
 
         d3.select(axisSvg.get(0))
