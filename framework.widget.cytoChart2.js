@@ -111,8 +111,10 @@
             this.resizeEventHandler = null;
         }
 
+        // Destroy also removes the container
+        this.chart.destroy();
+
         //Clear DOM
-        $(this.cytoContainer).empty();
         this.element.empty();
 
         this.cytoContainer = null;
@@ -156,7 +158,15 @@
     };
 
     var repaint = function repaint(data, framework_data) {
-        $(this.cytoContainer).empty();
+
+        // Destroy the chart
+        this.chart.destroy(); //Destroy also removes the container
+
+        // Create a new container
+        this.cytoContainerr = $('<div class="cytoContainer blurable"></div>');
+        this.element.append(this.cytoContainer);
+
+        // Paint again
         paint.call(this, data, framework_data);
     };
 
@@ -165,7 +175,7 @@
         //TODO get this values from data
 
         var layoutConfig = {
-            name: 'arbor',
+            name: 'cola',
             animate: true, // whether to transition the node positions
             animationDuration: 6000, // duration of animation in ms if enabled
             maxSimulationTime: 8000, // max length in ms to run the layout
@@ -186,7 +196,7 @@
             'border-color': '#000',
             'border-width': 3,
             'border-opacity': 0.5,
-            'shape': 'data(faveShape)',
+            'shape': 'data(faveShape)'
         };
         var edgeStyle = {
             'width': 5,
@@ -248,11 +258,11 @@
         }
         var theEdge;
         for (var i= 0; i < this.config.edges.length; i++) {
-            theEdge = this.config.edges[i]
+            theEdge = this.config.edges[i];
             theEdges.push({
                 data: {
                     source: theEdge.source,
-                    target: theEdge.target,
+                    target: theEdge.target
                 }
             });
 
@@ -309,7 +319,7 @@
             // slow and heavy
             setTimeout(function() {
                 var normalizedData = getNormalizedData.call(this,this.lastData);
-                paint.call(this, normalizedData, framework_data);
+                repaint.call(this, normalizedData, framework_data);
             }.bind(this), 3000);
             // ñaping
                 //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
