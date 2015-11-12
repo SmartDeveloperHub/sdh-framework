@@ -246,7 +246,6 @@
                 }, 200);
             }.bind(this));
         }
-
     };
 
     Table.prototype = new framework.widgets.CommonWidget(true);
@@ -275,6 +274,73 @@
             if(this.configuration.selectable) {
                 this.tableDom.on('click', 'tbody tr', this, rowClickHandler);
             }
+
+            // Add mouseWeel event controller
+            function preventDefault(e) {
+                e = e || window.event;
+                if (e.preventDefault) {
+                    e.preventDefault();
+                } else {
+                    e.returnValue = false;
+                }
+            }
+            /*$(this.tableDom).bind('mousewheel', function(e){
+                if(e.originalEvent.detail > 0) {
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '-=100'
+                    }, 200);
+                    console.log('up');
+                }
+                else{
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '+=100'
+                    }, 200);
+                    console.log('down');
+                }
+                e.stopPropagation();
+                preventDefault(e);
+            }.bind(this));*/
+            //Firefox
+            $(this.tableDom).bind('DOMMouseScroll', function(e){
+                if(e.originalEvent.detail/120 > 0) {
+                    //scroll down
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '+=60'
+                    }, 5);
+                    console.log('DownDOM');
+                }else {
+                    //scroll up
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '-=60'
+                    }, 5);
+                    console.log('UpDOM');
+                }
+
+                e.stopPropagation();
+                preventDefault(e);
+                return false;
+            }.bind(this));
+
+            //IE, Opera, Safari
+            $(this.tableDom).bind('mousewheel', function(e){
+                if(e.originalEvent.wheelDelta/120 < 0) {
+                    //scroll down
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '+=60'
+                    }, 5);
+                    console.log('Down');
+                }else {
+                    //scroll up
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '-=60'
+                    }, 5);
+                    console.log('Up');
+                }
+
+                e.stopPropagation();
+                preventDefault(e);
+                return false;
+            }.bind(this));
         }
 
         var normalizedData = getNormalizedData.call(this,framework_data);
