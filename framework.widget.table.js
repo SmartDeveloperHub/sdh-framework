@@ -235,7 +235,7 @@
             $(this.configuration.scrollDownButton).click(function () {
                 this.element.find('.scroll-table').animate({
                     scrollTop: '+=100'
-                }, 100);
+                }, 200);
             }.bind(this));
         }
 
@@ -243,7 +243,7 @@
             $(this.configuration.scrollUpButton).click(function () {
                 this.element.find('.scroll-table').animate({
                     scrollTop: '-=100'
-                }, 100);
+                }, 200);
             }.bind(this));
         }
 
