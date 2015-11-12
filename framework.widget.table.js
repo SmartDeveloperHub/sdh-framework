@@ -91,8 +91,15 @@
             swapOnMaxim: {
                 type: 'boolean',
                 default: false
-            }
-
+            },
+            scrollDownButton: {
+                type: 'object',
+                default: null
+            },
+            scrollUpButton: {
+                type: 'object',
+                default: null
+            },
         };
 
         for(var confName in defaultConfig) {
@@ -224,6 +231,22 @@
 
         framework.data.observe(metrics, this.observeCallback , contextId);
 
+        if (this.configuration.scrollDownButton) {
+            $(this.configuration.scrollDownButton).click(function () {
+                this.element.find('.scroll-table').animate({
+                    scrollTop: '+=100'
+                }, 100);
+            }.bind(this));
+        }
+
+        if (this.configuration.scrollUpButton) {
+            $(this.configuration.scrollUpButton).click(function () {
+                this.element.find('.scroll-table').animate({
+                    scrollTop: '-=100'
+                }, 100);
+            }.bind(this));
+        }
+
     };
 
     Table.prototype = new framework.widgets.CommonWidget(true);
@@ -272,7 +295,7 @@
         var dom = "";
         if(this.configuration.filterControl) dom += '<"table-search"f>';
         if(this.configuration.lengthControl) dom += 'l';
-        dom += "t";
+        dom += '<"scroll-table"t>';
         if(this.configuration.tableInfo) dom += 'i';
         if(this.configuration.paginationControl) dom += 'p';
 
