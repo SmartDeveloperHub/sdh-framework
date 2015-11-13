@@ -219,6 +219,7 @@
     var getNormalizedData = function getNormalizedData(framework_data) {
 
         var values = [];
+        var totalDataRef;
         for(var resourceName in framework_data) {
 
             for(var resId in framework_data[resourceName]){
@@ -252,39 +253,42 @@
 
                 }
 
+                if(this.configuration.total != null && resourceName == this.configuration.total.id) {
+                    totalDataRef = mData;
+                }
+
                 values.push(mData);
 
 
             }
         }
 
-        // If total is used, then we have to make some arrangements with the last value
-        if(this.configuration.total != null) {
-            var totalData = values.pop();
+        // If total is used, then we have to calculate the difference in respect of the values displayed
+        if(totalDataRef != null) {
 
             //Calculate the total all the values shown
-            for(var v = 0; v < totalData['values'].length; ++v) {
+            for(var v = 0; v < totalDataRef['values'].length; ++v) {
 
-                var total = totalData['values'][v]['y'];
+                var total = totalDataRef['values'][v]['y'];
 
                 // The sum f the displayed values
                 var shownSum = 0;
                 for(var d = 0; d < values.length; ++d) {
-                    shownSum += values[d]['values'][v]['y'];
+                    if(values[d] != totalDataRef) {
+                        shownSum += values[d]['values'][v]['y'];
+                    }
                 }
 
                 //Override the value with the difference between the total and the sum of the shown
-                totalData['values'][v]['y'] = total - shownSum;
-                if(totalData['values'][v]['y'] < 0 ) {
-                    totalData['values'][v]['y'] = 20; //TODO: temporal while still have made up values
+                totalDataRef['values'][v]['y'] = total - shownSum;
+                if(totalDataRef['values'][v]['y'] < 0 ) {
+                    totalDataRef['values'][v]['y'] = 20; //TODO: temporal while still have made up values
                 }
 
             }
 
-            totalData.key = "Others";
+            totalDataRef.key = "Others";
 
-            //Now add it again
-            values.push(totalData);
         }
 
         return values;
