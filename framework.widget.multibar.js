@@ -273,12 +273,12 @@
                     if(typeof d === 'string') {
                         return d;
                     } else {
-                        return '~' + d;
+                        return '~' + this.format.date(d);
                     }
-                });
+                }.bind(this));
             }
             chart.xAxis.tickFormat(function(d) {
-                if (typeof d == 'string') {
+                if (typeof d === 'string') {
                     return d;
                 } else {
                     return this.format.date(new Date(d));
