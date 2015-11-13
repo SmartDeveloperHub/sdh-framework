@@ -31,9 +31,14 @@
         edges: {
             type: ['object'],
             default: []
-        }, staticSize: {
+        },
+        staticSize: {
             type: ['number'],
             default: 100
+        },
+        tooltip: {
+            type: ['string', 'function'],
+            default: ""
         }
     };
 
@@ -43,7 +48,7 @@
      *   contextId: optional.
      *   configuration: additional chart configuration:
      *      {
-     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', volume:"metrichashId" or "_static_" },...]
+     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', volume:"metrichashId" or "_static_", tooltip: 'text' },...]
      *      ~ edge: array - Edges to paint [{ source: 'nodeId1', target: 'nodeId2' }]
      *      ~ staticSize: number - static size for _static_ nodes
      *      }
@@ -128,33 +133,25 @@
      * @returns {Array} Contains objects with 'label' and 'value'.
      */
     var getNormalizedData = function getNormalizedData(framework_data) {
-        var labelVariable = /%(\w|\.)+%/g; //Regex that matches all the "variables" of the label such as %mid%, %pid%...
 
-        var series = [];
+        var nodeInfo = [];
         this.labels = {};
-        //var colors = ['#ff7f0e','#2ca02c','#7777ff','#D53E4F','#9E0142'];
-        //Data is represented as an array of {x,y} pairs.
-        for (var metricId in framework_data) {
-            for (var m in framework_data[metricId]) {
 
-                var metric = framework_data[metricId][m];
-                var metricData = framework_data[metricId][m]['data'];
+        for (var resourceName in framework_data) {
+            for (var resId in framework_data[resourceName]) {
 
-                var timePoint = metricData.interval.from - metricData.step;
-                var yserie = metricData.values;
+                var metric = framework_data[resourceName][resId];
+                var metricData = framework_data[resourceName][resId]['data'];
 
-                // Metric dataset
-                var dat = yserie.map(function(dat, index) {
-                    timePoint += metricData.step;
-                    return {'x': new Date(new Date(timePoint).getTime()), 'y': dat};
-                });
-                //var label = genLabel.call(this, 0);
-                series[metric.info.UID] = yserie[0];
+                nodeInfo[metric.info.UID] = {
+                    value: metricData.values[0],
+                    resource: resourceName,
+                    resourceId: resId
+                };
             }
         }
 
-        //Line chart data should be sent as an array of series objects.
-        return series;
+        return nodeInfo;
     };
 
     var repaint = function repaint(data, framework_data) {
@@ -163,7 +160,7 @@
         this.chart.destroy(); //Destroy also removes the container
 
         // Create a new container
-        this.cytoContainerr = $('<div class="cytoContainer blurable"></div>');
+        this.cytoContainer = $('<div class="cytoContainer blurable"></div>');
         this.element.append(this.cytoContainer);
 
         // Paint again
@@ -223,29 +220,39 @@
         // Add style info for each node
         for (var i= 0; i < this.config.nodes.length; i++) {
             theNod = this.config.nodes[i];
-            var size = {};
+            var size;
+            var tooltip;
+
             if (theNod.volume == '_static_') {
-                size['w'] = this.config.staticSize;
-                size['h'] = this.config.staticSize;
+                size = this.config.staticSize;
+                tooltip = theNod.tooltip;
             } else {
-                var theValue = data[theNod.volume];
+                var theValue = data[theNod.volume].value;
                 // TODO test
                 if(theValue > 99) {
                     theValue = 99;
-                }
-                if(theValue < 20) {
+                } else if(theValue < 20) {
                     theValue = 25;
                 }
-                size['w'] = theValue;
-                size['h'] = theValue;
+                size = theValue;
+
+                var nodData = data[theNod.volume];
+                var metric = framework_data[nodData['resource']][nodData['resourceId']];
+                if(typeof this.config.tooltip === 'function') {
+                    tooltip = this.config.tooltip(metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+                } else {
+                    tooltip = this.replace(this.config.tooltip, metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+                }
+
             }
             // node
             theNodes.push({
                 data: {
                     id: theNod.id,
                     faveShape: theNod.shape,
-                    w: size.w,
-                    h: size.h,
+                    w: size,
+                    h: size,
+                    tooltip: tooltip
                 }
             });
             // style
@@ -291,7 +298,7 @@
         // Tooltip
         cy.nodes().qtip({
             content: function(){
-                return 'Example qTip on ele ' + this.id();
+                return this._private.data.tooltip;
             },
             show: {
                 event: 'mouseover'
