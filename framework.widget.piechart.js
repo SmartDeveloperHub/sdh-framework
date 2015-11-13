@@ -154,7 +154,9 @@
         framework.data.stopObserve(this.observeCallback);
 
         //Remove resize event listener
-        $(window).off("resize", this.chart.update);
+        if(this.chart != null) {
+            $(window).off("resize", this.chart.update);
+        }
 
         //Clear DOM
         $(this.svg).empty();
