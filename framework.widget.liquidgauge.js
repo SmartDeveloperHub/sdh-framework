@@ -25,7 +25,7 @@
     var defaultConfig = {
         height: {
             type: ['number'],
-            default: 240
+            default: 150
         },
         minValue: {
             type: ['number'],
@@ -102,6 +102,10 @@
         waveTextColor: {
             type: ['string'],
             default: "#A4DBf8"
+        },
+        radius: {
+            type: ['number'],
+            default: "75"
         }
     };
 
@@ -137,6 +141,7 @@
      *       ~ displayPercent: boolean - If true, a % symbol is displayed after the value.
      *       ~ textColor: string - The color of the value text when the wave does not overlap it.
      *       ~ waveTextColor: string - The color of the value text when the wave overlaps it.
+     *       ~ radius: number - The gauge radius size.
      *      }
      */
     var LiquidGauge = function LiquidGauge(element, metrics, contextId, configuration) {
@@ -167,7 +172,8 @@
         // Create SVG element inside the container element
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = this.configuration.height + "px";
+        //this.svg.get(0).style.minHeight = this.configuration.height + "px";
+        this.svg.get(0).style.height = this.configuration.height + "px";
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
@@ -222,7 +228,7 @@
     function loadLiquidFillGauge(svg, value, config) {
 
         var gauge = d3.select(svg);
-        var radius = Math.min(parseInt(gauge.style("width")), parseInt(gauge.style("height")))/2;
+        var radius = config.radius;
         var locationX = parseInt(gauge.style("width"))/2 - radius;
         var locationY = parseInt(gauge.style("height"))/2 - radius;
         var fillPercent = Math.max(config.minValue, Math.min(config.maxValue, value))/config.maxValue;
