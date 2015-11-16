@@ -36,6 +36,10 @@
                 type: 'number',
                 default: 240
             },
+            radius: {
+                type: 'number',
+                default: 200
+            },
             labels: {
                 type: 'object',
                 default: []
@@ -102,13 +106,14 @@
         return configuration;
     };
 
-    /* PieChart constructor
+    /* RadarChart constructor
      *   element: the DOM element that will contain the PieChart
      *   data: the data id array
      *   contextId: optional.
      *   configuration: additional chart configuration:
      *      {
      *       ~ height: number - Height of the widget.
+     *       ~ radius: number - The radius of the widget.
      *       ~ labels: array - Array of labels
      *       ~ fillColor: string - Fill color of the area between points.
      *       ~ strokeColor: string - Stroke color of the area between points.
@@ -201,7 +206,8 @@
             this.container = this.element.children("div");
             this.canvas = this.container.children("canvas");
             this.container.get(0).style.minHeight = this.configuration.height + "px";
-            this.canvas.attr('height', this.configuration.height);
+            this.canvas.attr('height', this.configuration.radius * 2);
+            this.canvas.attr('width', this.configuration.radius* 2);
 
 
             var ctx = this.canvas.get(0).getContext("2d");
