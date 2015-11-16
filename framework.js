@@ -188,9 +188,11 @@
                 { "id" : "userinfo", "path" : "/users/{uid}", params: {'uid': {name: 'uid',in: 'path',required: true}}, "description" : "User Information" },
                 { "id" : "repoinfo", "path" : "/repositories/{rid}", params: {'rid': {name: 'rid',in: 'path',required: true}}, "description" : "Repository Information" },
                 { "id" : "productinfo", "path" : "/products/{prid}", params: {'prid': {name: 'prid',in: 'path',required: true}}, "description" : "Product Information" },
+                { "id" : "projectinfo", "path" : "/projects/{pid}", params: {'pid': {name: 'pid',in: 'path',required: true}}, "description" : "Project Information" },
                 { "id" : "orginfo", "path" : "/", "description" : "Organization Information" },
                 { "id" : "userlist", "path" : "/users/", "description" : "Users List" },
                 { "id" : "productlist", "path" : "/products/", "description" : "Products List" },
+                { "id" : "projectlist", "path" : "/projects/", "description" : "Projects List" },
                 { "id" : "repolist", "path" : "/repositories/", "description" : "Repository List" },
                 { "id" : "metriclist", "path" : "/metrics/", "description" : "Metrics list" },
                 { "id" : "tbdlist", "path" : "/tbd/", "description" : "Time-based data list" }
