@@ -1,0 +1,264 @@
+/*
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+  This file is part of the Smart Developer Hub Project:
+    http://www.smartdeveloperhub.org
+  Center for Open Middleware
+        http://www.centeropenmiddleware.com/
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+  Copyright (C) 2015 Center for Open Middleware.
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+            http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+#-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=#
+*/
+table.dataTable {
+    width: 100% !important;
+}
+table.dataTable thead {
+    background-color: transparent;
+}
+table.dataTable, table.dataTable thead th, table.dataTable thead td {
+    border: 0 !important;
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background: #ffffff;
+}
+.table-search {
+    width: 100%;
+    padding: 0 10px 5px 10px;
+    border: 0;
+}
+.table-search label {
+    width: 100%;
+}
+.table-search .dataTables_filter {
+    width: 100%;
+    float: none !important;
+}
+
+table.dataTable .sorting_disabled, table.dataTable .sorting_asc {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.dataTables_filter input[type="search"] {
+    margin-left: 0 !important;
+    max-width: 172px;
+    min-width: 42%;
+    padding-left: 5%;
+    padding-right: 4%;
+    position: relative;
+    height: 34px;
+    font-size: 14px;
+    line-height: 1.42857143;
+    color: #555;
+    background-color: #fff;
+    background-image: none;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+    -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+    -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+    transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+}
+.dataTables_filter label {
+    text-align: center;
+}
+.dataTables_filter input[type="search"]:focus {
+    outline-style: none;
+}
+
+table.dataTable tbody {
+    background-color: #FFF !important;
+    display: block;
+    min-width: 100%;
+    box-shadow: 0px 0px 6px -1px #615C61 inset;
+}
+
+table.dataTable tbody tr.selected {
+    /*-webkit-box-shadow: inset 0px 0px 13px 1px #615C61;
+    -moz-box-shadow: inset 0px 0px 13px 1px rgba(97,92,97,1);
+    box-shadow: inset 0px 0px 13px 1px #615C61;*/
+    /*border-image: linear-gradient(#fff, #615C61) 14% stretch;*/
+    /*background-color: #F9F9FF !important;
+    box-shadow: inset 0px 11px 8px -10px #CCC, inset 0px -11px 8px -10px #CCC;
+    border: 1px #CCC solid;*/
+    background-color: #FFF !important;
+}
+
+table.dataTable tbody tr {
+    background-color: rgba(241, 241, 241, 0.43) !important;
+    display: block;
+    min-width: 100%;
+}
+
+table.dataTable tbody tr .odd {
+    border-bottom: solid 1px #808080;
+    border-top: 0;
+    border-left: 0;
+    border-right: 0;
+}
+
+.dashboardLink {
+    text-align: right;
+    width: 90%;
+    line-height: 65px;
+    display: inline-block;
+    pointer-events: none;
+}
+
+.dashboardLink {
+    text-align: right;
+    width: 90%;
+    line-height: 65px;
+    display: inline-block;
+    pointer-events: none;
+}
+
+.dashboardLink img {
+    cursor: pointer;
+    height: 50px;
+    width: 50px;
+    -webkit-transition: all ease-in-out .10s;
+    -o-transition: all ease-in-out .10s;
+    transition: all ease-in-out .10s;
+    /* b/w filters */
+    -webkit-filter: grayscale(1);
+    -webkit-filter: grayscale(100%);
+    filter: gray;
+    filter: grayscale(100%);
+    pointer-events: none;
+}
+
+.dashboardLink img:hover {
+    -webkit-animation-name: linkQuake;
+        -moz-animation-name: linkQuake;
+            animation-name: linkQuake;
+    -webkit-animation-duration: 0.4s;
+        -moz-animation-duration: 0.4s;
+            animation-duration: 0.4s;
+    -webkit-transform-origin:50% 50%;
+        -moz-transform-origin:50% 50%;
+            transform-origin:50% 50%;
+    -webkit-animation-iteration-count: 1;
+        -moz-animation-iteration-count: 1;
+            animation-iteration-count: 1;
+}
+
+.dataTable td {
+    vertical-align: middle;
+    -webkit-transition: all ease-in-out .10s;
+    -o-transition: all ease-in-out .10s;
+    transition: all ease-in-out .10s;
+}
+
+.dataTable tr td:nth-child(2) {
+    cursor: pointer;
+    font-family: Roboto;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0;
+    font-size: 20px;
+    width: 100%;
+    color: #A9A8A8;
+    max-width: 110px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dataTable td:hover .dashboardLink img {
+}
+
+table.dataTable tbody tr.selected td .dashboardLink img {
+    height: 60px;
+    width: 60px;
+    /* b/w filters */
+    -webkit-filter: none;
+    filter: none;
+}
+
+table.dataTable tbody tr.selected td .dashboardLink img, table.dataTable tbody tr.selected td .dashboardLink {
+    pointer-events: all;
+}
+
+.dataTable tr td:nth-child(2):hover {
+}
+
+table.dataTable tbody tr.selected td:nth-child(2) {
+    font-size: 23px;
+    width: 100%;
+    color: #4E4E4E;
+}
+
+div.dataTables_filter input {
+    border-radius: 12px;
+    padding-left: 44px;
+    padding-right: 44px;
+    position: relative;
+}
+
+.dataTables_wrapper {
+    height: 500px;
+}
+
+.scroll-table {
+    overflow: hidden;
+    white-space: nowrap;
+    height: 436px;
+}
+
+.upPTableButton, .downPTableButton {
+    z-index: 100;
+    font-size: 28px;
+    box-sizing: content-box;
+    color: #888;
+    cursor: pointer;
+    height: 27px;
+    width: 27px;
+    text-align: center;
+    -webkit-transition: all ease-in-out .30s;
+    -o-transition: all ease-in-out .30s;
+    transition: all ease-in-out .30s;
+}
+
+.upPTableButton:hover, .downPTableButton:hover {
+    color: #8ACA17;
+}
+
+.upPTableButton {
+    position: absolute;
+    top: 130px;
+    left: 10%;
+}
+
+.downPTableButton {
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+}
+
+.tableSelectedIcon {
+    width: 25px;
+    height: 25px;
+    color: #9FCE23;
+    font-size: 25px;
+    display: inline-block;
+    vertical-align: middle;
+    text-shadow: 2px 1px 2px #038400;
+    visibility: hidden;
+    position: absolute;
+    right: 18px;
+    margin-top: 20px;
+}
+
+table.dataTable tbody tr.selected .tableSelectedIcon {
+    visibility: visible;
+}
