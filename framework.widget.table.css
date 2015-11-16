@@ -215,7 +215,7 @@ div.dataTables_filter input {
     height: 436px;
 }
 
-.upPTableButton, .downPTableButton {
+.upTableButton, .downTableButton {
     z-index: 100;
     font-size: 28px;
     box-sizing: content-box;
@@ -229,17 +229,17 @@ div.dataTables_filter input {
     transition: all ease-in-out .30s;
 }
 
-.upPTableButton:hover, .downPTableButton:hover {
+.upTableButton:hover, .downTableButton:hover {
     color: #8ACA17;
 }
 
-.upPTableButton {
+.upTableButton {
     position: absolute;
     top: 130px;
     left: 10%;
 }
 
-.downPTableButton {
+.downTableButton {
     position: absolute;
     bottom: 0;
     left: 10%;
