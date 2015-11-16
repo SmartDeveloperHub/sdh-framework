@@ -284,22 +284,7 @@
                     e.returnValue = false;
                 }
             }
-            /*$(this.tableDom).bind('mousewheel', function(e){
-                if(e.originalEvent.detail > 0) {
-                    this.element.find('.scroll-table').animate({
-                        scrollTop: '-=100'
-                    }, 200);
-                    console.log('up');
-                }
-                else{
-                    this.element.find('.scroll-table').animate({
-                        scrollTop: '+=100'
-                    }, 200);
-                    console.log('down');
-                }
-                e.stopPropagation();
-                preventDefault(e);
-            }.bind(this));*/
+
             //Firefox
             $(this.tableDom).bind('DOMMouseScroll', function(e){
                 if(e.originalEvent.detail/120 > 0) {
@@ -307,13 +292,11 @@
                     this.element.find('.scroll-table').animate({
                         scrollTop: '+=60'
                     }, 5);
-                    console.log('DownDOM');
                 }else {
                     //scroll up
                     this.element.find('.scroll-table').animate({
                         scrollTop: '-=60'
                     }, 5);
-                    console.log('UpDOM');
                 }
 
                 e.stopPropagation();
@@ -328,13 +311,11 @@
                     this.element.find('.scroll-table').animate({
                         scrollTop: '+=60'
                     }, 5);
-                    console.log('Down');
                 }else {
                     //scroll up
                     this.element.find('.scroll-table').animate({
                         scrollTop: '-=60'
                     }, 5);
-                    console.log('Up');
                 }
 
                 e.stopPropagation();
@@ -496,13 +477,15 @@
 
         if ( type === 'display' ) {
 
+            var col;
             if (linkInfo['icon'] != null) { //It is an icon
-                return '<div class="dashboardLink ' + linkInfo['icon'] + '"></div>';
+                col = '<div class="dashboardLink ' + linkInfo['icon'] + '"></div>';
             } else if (linkInfo['img'] != null) { //It is an image
-                return '<div class="dashboardLink"><img src="' + rowData[linkInfo['img']] + '"></div>';
+                col = '<div class="dashboardLink"><img src="' + rowData[linkInfo['img']] + '"></div>';
             }else { //Just a label
-                return '<div class="dashboardLink">' + linkInfo['label'] + '</div>';
+                col = '<div class="dashboardLink">' + linkInfo['label'] + '</div>';
             }
+            return col;
 
         }
 
