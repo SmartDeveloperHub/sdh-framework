@@ -26,84 +26,71 @@
      * @param configuration
      * @returns {*}
      */
-    var normalizeConfig = function normalizeConfig(configuration) {
-        if (configuration == null) {
-            configuration = {};
+    var defaultConfig = {
+        height: {
+            type: ['number'],
+            default: 240
+        },
+        radius: {
+            type: ['number'],
+            default: 200
+        },
+        labels: {
+            type: [Array],
+            default: []
+        },
+        labelsAssoc: {
+            type: [Array],
+            default: ""
+        },
+        fillColor: {
+            type: ['string', Array],
+            default: 'rgba(22,22,220,0.2)'
+        },
+        strokeColor: {
+            type: ['string', Array],
+            default: 'rgba(22,22,220,0.5)'
+        },
+        pointColor: {
+            type: ['string', Array],
+            default: 'rgba(22,22,220,0.75)'
+        },
+        pointDot: {
+            type: ['boolean'],
+            default: true
+        },
+        pointDotRadius: {
+            type: ['number'],
+            default: 3
+        },
+        pointDotStrokeWidth: {
+            type: ['number'],
+            default: 1
+        },
+        pointLabelFontSize: {
+            type: ['number'],
+            default: 12
+        },
+        pointLabelFontColor: {
+            type: ['string'],
+            default: '#666'
+        },
+        pointStrokeColor: {
+            type: ['string', Array],
+            default: "#fff"
+        },
+        pointHighlightFill: {
+            type: ['string', Array],
+            default: "#fff"
+        },
+        pointHighlightStroke: {
+            type: ['string', Array],
+            default: "rgba(22,22,220,1)"
+        },
+        maxDecimals: {
+            type: ['number'],
+            default: 2
         }
-
-        var defaultConfig = {
-            height: {
-                type: 'number',
-                default: 240
-            },
-            radius: {
-                type: 'number',
-                default: 200
-            },
-            labels: {
-                type: 'object',
-                default: []
-            },
-            fillColor: {
-                type: 'string',
-                default: 'rgba(22,22,220,0.2)'
-            },
-            strokeColor: {
-                type: 'string',
-                default: 'rgba(22,22,220,0.5)'
-            },
-            pointColor: {
-                type: 'string',
-                default: 'rgba(22,22,220,0.75)'
-            },
-            pointDot: {
-                type: 'boolean',
-                default: true
-            },
-            pointDotRadius: {
-                type: 'number',
-                default: 3
-            },
-            pointDotStrokeWidth: {
-                type: 'number',
-                default: 1
-            },
-            pointLabelFontSize: {
-                type: 'number',
-                default: 12
-            },
-            pointLabelFontColor: {
-                type: 'string',
-                default: '#666'
-            },
-            pointStrokeColor: {
-                type: 'string',
-                default: "#fff"
-            },
-            pointHighlightFill: {
-                type: 'string',
-                default: "#fff"
-            },
-            pointHighlightStroke: {
-                type: 'string',
-                default: "rgba(22,22,220,1)"
-            },
-            maxDecimals: {
-                type: 'number',
-                default: 2
-            }
-
-
-        };
-
-        for(var confName in defaultConfig) {
-            var conf = defaultConfig[confName];
-            if (typeof configuration[confName] != conf['type']) {
-                configuration[confName] = conf['default'];
-            }
-        }
-
-        return configuration;
     };
 
     /* RadarChart constructor
@@ -115,16 +102,24 @@
      *       ~ height: number - Height of the widget.
      *       ~ radius: number - The radius of the widget.
      *       ~ labels: array - Array of labels
-     *       ~ fillColor: string - Fill color of the area between points.
-     *       ~ strokeColor: string - Stroke color of the area between points.
-     *       ~ pointColor: string - Color of the points.
+     *       ~ labelsAssoc: array - Array of hashmaps with the association of metricName -> label. The order of the
+     *         hashmaps determines the order of the datasets.
+     *       ~ fillColor: string or Array - Fill color of the area between points. In case of array, it is one color for
+     *         each of the datasets.
+     *       ~ strokeColor: string or Array - Stroke color of the area between points. In case of array, it is one color
+     *         for each of the datasets.
+     *       ~ pointColor: string or Array - Color of the points.In case of array, it is one color
+     *         for each of the datasets.
      *       ~ pointDot: boolean - Whether to show the points or not.
      *       ~ pointDotRadius: number - Radius of the points.
      *       ~ pointDotStrokeWidth: number - Width of the point strokes.
      *       ~ pointLabelFontSize: number - Font size for the points.
-     *       ~ pointStrokeColor: string - Color of the stroke of the points.
-     *       ~ pointHighlightFill: string - Color to fill with the points when highlighted.
-     *       ~ pointHighlightStroke: string - Stroke color of the points when highlighted.
+     *       ~ pointStrokeColor: string or Array - Color of the stroke of the points. In case of array, it is one color
+     *         for each of the datasets.
+     *       ~ pointHighlightFill: string or Array - Color to fill with the points when highlighted. In case of array,
+     *         it is one color for each of the datasets.
+     *       ~ pointHighlightStroke: string or Array - Stroke color of the points when highlighted. In case of array,
+     *         it is one color for each of the datasets.
      *      }
      */
     var RadarChart = function RadarChart(element, metrics, contextId, configuration) {
@@ -150,7 +145,7 @@
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
         // Configuration
-        this.configuration = normalizeConfig(configuration);
+        this.configuration = this.normalizeConfig(defaultConfig, configuration);
 
         // Create the chart only once, then only will be updated
         createChart.call(this);
@@ -170,9 +165,8 @@
         for(var i = 0, nItems = this.chart.datasets[0].points.length; i < nItems; ++i) {
             this.chart.removeData();
         }
-        for(var i = 0; i < normalizedData.length; i++) {
-            var label = (i < this.configuration.labels.length ? this.configuration.labels[i] : "Data " + i);
-            this.chart.addData( [normalizedData[i]], label );
+        for(var label in normalizedData) {
+            this.chart.addData( normalizedData[label], label );
         }
         this.chart.update();
 
@@ -200,6 +194,19 @@
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
+    /**
+     * The dataset specific configuration can be a array specifying the value for each dataset or only one value
+     * specifying the value for all the datasets.
+     * @param config
+     */
+    var getDatasetSpecificConfig = function(config, dataset) {
+        if(config instanceof Array) {
+            return config[dataset];
+        } else {
+            return config;
+        }
+    };
+
      var createChart = function createChart() {
         if(this.canvas == null) {
             this.element.append('<div class="blurable"><canvas></canvas></div>');
@@ -215,16 +222,20 @@
 
             var chartConfig = {
                 labels: this.configuration.labels,
-                datasets: [{
-                    fillColor: this.configuration.fillColor,
-                    strokeColor: this.configuration.strokeColor,
-                    pointColor: this.configuration.pointColor,
-                    pointStrokeColor: this.configuration.pointStrokeColor,
-                    pointHighlightFill: this.configuration.pointHighlightFill,
-                    pointHighlightStroke: this.configuration.pointHighlightStroke,
-                    data: []
-                }]
+                datasets: []
             };
+
+            for(var ds = 0; ds < this.configuration.labelsAssoc.length; ++ds) {
+                chartConfig.datasets[ds] = {
+                    fillColor: getDatasetSpecificConfig(this.configuration.fillColor, ds),
+                    strokeColor: getDatasetSpecificConfig(this.configuration.strokeColor, ds),
+                    pointColor: getDatasetSpecificConfig(this.configuration.pointColor, ds),
+                    pointStrokeColor: getDatasetSpecificConfig(this.configuration.pointStrokeColor, ds),
+                    pointHighlightFill: getDatasetSpecificConfig(this.configuration.pointHighlightFill, ds),
+                    pointHighlightStroke: getDatasetSpecificConfig(this.configuration.pointHighlightStroke, ds),
+                    data: []
+                };
+            }
 
             this.chart = new Chart(ctx).Radar(chartConfig, {
                 scaleOverride: true,
@@ -241,19 +252,20 @@
     };
 
     /**
-     * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
+     * Gets an object of data divided by label
      * @param framework_data
-     * @returns {Array} Contains objects with 'label' and 'value'.
+     * @returns {Object} Contains objects with 'label' and array of values.
      */
     var getNormalizedData = function getNormalizedData(framework_data) {
 
-        var values = [];
+        var values = {};
 
-        for(var metricId in framework_data) {
+        for(var resource in framework_data) {
 
-            for(var m in framework_data[metricId]){
+            for(var resourceId in framework_data[resource]){
 
-                var metricData = framework_data[metricId][m]['data'];
+                var metric = framework_data[resource][resourceId];
+                var metricData = framework_data[resource][resourceId]['data'];
 
                 //Truncate decimals
                 if(this.configuration.maxDecimals >= 0) {
@@ -261,7 +273,22 @@
                     metricData['values'][0] = Math.floor(metricData['values'][0] * pow) / pow;
                 }
 
-                values.push(metricData['values'][0]);
+                // Get the label of the metric witha function, a replace string or an association table
+                //Is an array of hashmaps with pairs of metricName -> label
+                var dataset, label;
+                for(var i = 0; i < this.configuration.labelsAssoc.length; i++) {
+                    if(this.configuration.labelsAssoc[i][resource] != null) {
+                        label = this.configuration.labelsAssoc[i][resource];
+                        dataset = i;
+                        break;
+                    }
+                }
+
+                //Add the value to the hash map in the corresponding label
+                if(values[label] == null) {
+                    values[label] = [];
+                }
+                values[label][dataset] = metricData['values'][0];
             }
         }
 
@@ -273,7 +300,7 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['/vendor/Chart.js/Chart.min.js'], function () { return RadarChart; } );
+        define( ['/vendor/Chart.js/Chart.js'], function () { return RadarChart; } );
     }
 
 })();
