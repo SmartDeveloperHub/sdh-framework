@@ -40,7 +40,7 @@
             default: 0.05
         },
         circleColor: {
-            type: ['string'],
+            type: ['string', Array],
             default: "#178BCA"
         },
         waveHeight: {
@@ -72,7 +72,7 @@
             default: true
         },
         waveColor: {
-            type: ['string'],
+            type: ['string', Array],
             default: "#178BCA"
         },
         waveOffset: {
@@ -96,11 +96,11 @@
             default: true
         },
         textColor: {
-            type: ['string'],
+            type: ['string', Array],
             default: "#045681"
         },
         waveTextColor: {
-            type: ['string'],
+            type: ['string', Array],
             default: "#A4DBf8"
         },
         radius: {
@@ -121,9 +121,9 @@
      *       ~ circleThickness:number - The outer circle thickness as a percentage of it's radius.
      *       ~ circleFillGap: number - The size of the gap between the outer circle and wave circle as a percentage of
      *         the outer circles radius.
-     *       ~ circleColor: string - The color of the outer circle.
+     *       ~ circleColor: string or array- The color of the outer circle or an array of colors describing a liner scale.
      *       ~ waveHeight: number - The wave height as a percentage of the radius of the wave circle.
-     *       ~ waveCount: number - The number of full waves per width of the wave circle.
+     *       ~ waveCount: number - The number of full waves per width of the wave circle or an array (see waveColor).
      *       ~ waveRiseTime:number - The amount of time in milliseconds for the wave to rise from 0 to it's final height.
      *       ~ waveAnimateTime: number - The amount of time in milliseconds for a full wave to enter the wave circle.
      *       ~ waveRise: boolean - Control if the wave should rise from 0 to it's full height, or start at it's full height.
@@ -131,7 +131,7 @@
      *         height reaches it's maximum at 50% fill, and minimum at 0% and 100% fill. This helps to prevent the wave
      *         from making the wave circle from appear totally full or empty when near it's minimum or maximum fill.
      *       ~ waveAnimate: boolean - Controls if the wave scrolls or is static.
-     *       ~ waveColor: string - The color of the fill wave.
+     *       ~ waveColor: string or array - The color of the fill wave or an array of colors describing a liner scale.
      *       ~ waveOffset: number - The amount to initially offset the wave. 0 = no offset. 1 = offset of one full wave.
      *       ~ textVertPosition: number - The height at which to display the percentage text withing the wave circle.
      *         0 = bottom, 1 = top.
@@ -139,8 +139,10 @@
      *       ~ valueCountUp: boolean - If true, the displayed value counts up from 0 to it's final value upon loading.
      *         If false, the final value is displayed.
      *       ~ displayPercent: boolean - If true, a % symbol is displayed after the value.
-     *       ~ textColor: string - The color of the value text when the wave does not overlap it.
-     *       ~ waveTextColor: string - The color of the value text when the wave overlaps it.
+     *       ~ textColor: string or array - The color of the value text when the wave does not overlap it or an array of
+     *         colors describing a liner scale.
+     *       ~ waveTextColor: string or array - The color of the value text when the wave overlaps it or an array of
+     *         colors describing a liner scale.
      *       ~ radius: number - The gauge radius size.
      *      }
      */
@@ -189,7 +191,7 @@
         this.data = data[resourceId][resourceUID]['data'];
 
         if(this.chart == null) {
-            this.chart = loadLiquidFillGauge(this.svg.get(0), this.data.values[0], this.configuration);
+            this.chart = loadLiquidFillGauge.call(this, this.svg.get(0), this.data.values[0], this.configuration);
         } else {
             // Repaint
             this.chart.update(this.data.values[0]);
@@ -216,6 +218,28 @@
         define( [], function () { return LiquidGauge; } );
     }
 
+    /**
+     * Get the color to display depending on the percentage value
+     * @param colors It should be an array of colors that represents the different proportional steps of the scale.
+     * @param value
+     * @returns {*}
+     */
+    var getColor = function getColor(colors, value, min, max) {
+
+        if(typeof colors === 'string') {
+            return colors;
+
+        } else if (colors instanceof Array) {
+
+            return d3.scale.linear()
+                .domain([min, max])
+                .range(colors)
+                (value);
+
+        } else {
+            return "#000000";
+        }
+    };
 
 
     /*!
@@ -309,7 +333,7 @@
             .innerRadius(gaugeCircleY(radius-circleThickness));
         gaugeGroup.append("path")
             .attr("d", gaugeCircleArc)
-            .style("fill", config.circleColor)
+            .style("fill", getColor(config.circleColor, value, this.configuration.minValue, this.configuration.maxValue))
             .attr('transform','translate('+radius+','+radius+')');
 
         // Text where the wave does not overlap.
@@ -318,7 +342,7 @@
             .attr("class", "liquidFillGaugeText")
             .attr("text-anchor", "middle")
             .attr("font-size", textPixels + "px")
-            .style("fill", config.textColor)
+            .style("fill", getColor(config.textColor, value, this.configuration.minValue, this.configuration.maxValue))
             .attr('transform','translate('+radius+','+textRiseScaleY(config.textVertPosition)+')');
 
         // The clipping wave area.
@@ -342,7 +366,7 @@
             .attr("cx", radius)
             .attr("cy", radius)
             .attr("r", fillCircleRadius)
-            .style("fill", config.waveColor);
+            .style("fill", getColor(config.waveColor, value, this.configuration.minValue, this.configuration.maxValue));
 
         // Text where the wave does overlap.
         var text2 = fillCircleGroup.append("text")
@@ -350,7 +374,7 @@
             .attr("class", "liquidFillGaugeText")
             .attr("text-anchor", "middle")
             .attr("font-size", textPixels + "px")
-            .style("fill", config.waveTextColor)
+            .style("fill", getColor(config.waveTextColor, value, this.configuration.minValue, this.configuration.maxValue))
             .attr('transform','translate('+radius+','+textRiseScaleY(config.textVertPosition)+')');
 
         // Make the value count up.
@@ -412,10 +436,12 @@
 
                 text1.transition()
                     .duration(config.waveRiseTime)
-                    .tween("text", textTween);
+                    .tween("text", textTween)
+                    .style('fill', getColor(config.textColor, value, config.minValue, config.maxValue));
                 text2.transition()
                     .duration(config.waveRiseTime)
-                    .tween("text", textTween);
+                    .tween("text", textTween)
+                    .style('fill', getColor(config.waveTextColor, value, config.minValue, config.maxValue));
 
                 var fillPercent = Math.max(config.minValue, Math.min(config.maxValue, value))/config.maxValue;
                 var waveHeight = fillCircleRadius*waveHeightScale(fillPercent*100);
@@ -455,7 +481,19 @@
                     });
                 waveGroup.transition()
                     .duration(config.waveRiseTime)
-                    .attr('transform','translate('+waveGroupXPosition+','+newHeight+')')
+                    .attr('transform','translate('+waveGroupXPosition+','+newHeight+')');
+
+                // Color transitions
+                gaugeGroup.select('path')
+                    .transition()
+                    .duration(config.waveRiseTime)
+                    .style('fill', getColor(config.circleColor, value, config.minValue, config.maxValue));
+
+                fillCircleGroup.select('circle')
+                    .transition()
+                    .duration(config.waveRiseTime)
+                    .style('fill', getColor(config.waveColor, value, config.minValue, config.maxValue));
+
             }
         }
 
