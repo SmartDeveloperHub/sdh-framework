@@ -386,8 +386,16 @@
         var completedRequests = 0;
         var allData = {};
         var requests = [];
+        var requestGroupId = 0; //This id is used to identify groups of requests, that is for example a request that contains
+                                // multiparameters...So a group can be composed of multiple requests.
+        var groupInfo = []; //This array contains all the information needed for each post-aggregator having as index
+                            // the group id. That is:
+                            // - resourceId: the id of the resource that is requested by the request group
+                            // - postAggregator: post-aggregator function
+                            // - responses: all the responses that belong to the request group
+                            // - originalParams: the parameters of the request group (that is the request before expanding it)
 
-        var onResourceReady = function(resourceId, params, data) {
+        var onResourceReady = function(resourceId, groupId, params, data) {
 
             if(allData[resourceId] == null) {
                 allData[resourceId] = [];
@@ -402,12 +410,48 @@
                 }
             };
 
-            allData[resourceId].push({
+            var response = {
                 data: data,
                 info: info
-            });
+            };
 
+            // If it has to be post-aggregated don't add it to the allData, add it to an special list to be processed
+            // when all the requests have finished
+            if(groupInfo[groupId] != null) {
+
+                // Push all the responses that belongs to that post aggregator
+                groupInfo[groupId]['responses'].push(response);
+
+            } else {
+                allData[resourceId].push(response);
+            }
+
+
+            // All the responses have been received
             if(++completedRequests === requests.length) {
+
+                // Process all the post agregators
+                //TODO: refactor
+                for(var grid = 0; grid < groupInfo.length; grid++) {
+
+                    var group = groupInfo[grid];
+
+                    if(group != null) {
+
+                        //Create the framework "response" skeleton that the post aggregator can use to simplify its job
+                        var responseSkel = createPostAggregatorResponseSkeleton(group);
+
+                        try {
+                            var result = group['postAggregator'](group['responses'], responseSkel); //Execute post-aggr
+                            allData[group['resourceId']].push(result);
+                        }catch(e) {
+                            error("Error while executing post aggregator: " + e);
+                        }
+
+                    }
+                }
+
+                //Finally sent all the responses to the callback
                 sendDataEventToCallback(allData, callback, unique);
             }
         };
@@ -420,8 +464,9 @@
             var resourceId = resources[i].id;
             var params = {};
             var multiparams = [];
+            var postAggrFunction = null;
 
-            //Fill the params and multiparams
+            //Fill the params and multiparams and check post aggregators
             for(var name in resources[i]) {
 
                 if(_resourcesInfo[resourceId]['optionalParams'][name] != null || _resourcesInfo[resourceId]['requiredParams'][name] != null) { //Is a param
@@ -433,20 +478,88 @@
 
                     params[name] =  resources[i][name];
 
+                } else if(name === 'post_aggr') { //The post aggregator is a function that is executed before the callback
+
+                    var postAggrVal = resources[i][name];
+
+                    // Post aggregator can be an string which is a predefined agregator that the framework defines
+                    if(typeof postAggrVal === 'string') {
+                        switch (postAggrVal) {
+                            case 'sum':
+                                postAggrFunction = sumPostAggregator;
+                                break;
+                            case 'avg':
+                                postAggrFunction = avgPostAggregator;
+                                break;
+                        }
+
+                    // The post aggregator can also be a custom function defined by the user to be called before the
+                    // the callback is executed.
+                    } else if(typeof postAggrVal === 'function') {
+                        postAggrFunction = postAggrVal;
+                    }
+
                 }
+
             }
 
-            var requestsCombinations = generateResourceRequestParamsCombinations(resourceId, params, multiparams);
+            //If it had a post-aggregator we have to save some information about the group
+            if(postAggrFunction != null) {
+                groupInfo[requestGroupId] = {
+                    resourceId: resourceId,
+                    postAggregator: postAggrFunction,
+                    responses: [],
+                    originalParams: params
+                };
+            }
+
+            var requestsCombinations = generateResourceRequestParamsCombinations(resourceId, params, multiparams, requestGroupId);
             requests = requests.concat(requestsCombinations);
+
+            // Next group id
+            requestGroupId++;
 
         }
 
         for(var i in requests) {
             var resourceId = requests[i]['resourceId'];
             var params = requests[i]['params'];
+            var groupId = requests[i]['groupId'];
 
-             makeResourceRequest(resourceId, params, onResourceReady.bind(undefined, resourceId, params));
+             makeResourceRequest(resourceId, params, onResourceReady.bind(undefined, resourceId, groupId, params));
         }
+
+    };
+
+    /**
+     * Creates an skeleton of response for a request group. This skeleton is filled by the post aggregator.
+     * @param group
+     * @returns {{data: {values: Array, info: Object}, info: {UID, request: {params: *}}}}
+     */
+    var createPostAggregatorResponseSkeleton = function(group) {
+
+        var resourceId = group['resourceId'];
+        var groupRequests = group['responses'];
+        var groupParams = group['originalParams'];
+
+        //Remove the extra info that the API can send about the parameters
+        var data_info = clone(groupRequests[0]['data']['info']);
+        for(var i = data_info['params'].length - 1; i >= 0; i--) {
+            delete data_info[data_info['params'][i]];
+        }
+
+        return {
+            data: {
+                values: [],
+                info: data_info
+            },
+            info: {
+                UID: _self.utils.resourceHash(resourceId, groupParams),
+                request: {
+                    params: groupParams
+                }
+            }
+        };
 
     };
 
@@ -455,9 +568,11 @@
      * @param resourceId
      * @param params Hash map of param name and values.
      * @param multiparam List of parameter names that have multiple values.
+     * @param groupId Id of the group the requests belong to. This is usefull to determine after expanding a multiparameter
+     *          to which request group it belongs.
      * @returns {Array} Array of requests to execute for one resource
      */
-    var generateResourceRequestParamsCombinations = function (resourceId, params, multiparam) {
+    var generateResourceRequestParamsCombinations = function (resourceId, params, multiparam, groupId) {
 
         var paramsCombinations = generateParamsCombinations(params, multiparam);
         var allCombinations = [];
@@ -466,7 +581,8 @@
         for(var i = 0, len_i = paramsCombinations.length; i < len_i; ++i) {
             allCombinations.push({
                 resourceId: resourceId,
-                params: paramsCombinations[i]
+                params: paramsCombinations[i],
+                groupId: groupId
             });
         }
 
@@ -556,6 +672,7 @@
     var cleanResources = function cleanResources(resources) {
 
         var newResources = [];
+        var specialParameters = ['id', 'static', 'post_aggr'];
 
         for(var i = 0; i < resources.length; ++i) {
             var resource = resources[i];
@@ -567,7 +684,7 @@
             } else { //Check its parameters
                 var cleanParameters = {};
                 for(var paramName in resource) {
-                    if(paramName != 'id' && paramName != 'static' && resourceInfo['requiredParams'][paramName] == null && resourceInfo['optionalParams'][paramName] == null) {
+                    if(specialParameters.indexOf(paramName) === -1 && resourceInfo['requiredParams'][paramName] == null && resourceInfo['optionalParams'][paramName] == null) {
                         warn("Parameter '"+paramName+"' is not a valid parameter for resource '"+resourceId+"'.");
                     } else {
                         cleanParameters[paramName] = resource[paramName];
@@ -798,6 +915,49 @@
         });
     };
 
+    /**
+     * This post aggreator makes the summation of all the values of the responses of a request group.
+     * @param responses List of framework responses to a group request (all the requests that appear after expanding all
+     *                  the multiparameters).
+     * @param skel The framework builds a response with an empty data property, which the post aggregator should fill.
+     * @returns {*} The framework response.
+     */
+    var sumPostAggregator = function sumPostAggregator(responses, skel) {
+
+        var sum = 0;
+        for(var i = 0; i < responses.length; ++i, sum += vSum) {
+            var values = responses[i]['data']['values'];
+            for(var x = 0, vSum = 0; x < values.length; vSum += values[x++]);
+        }
+
+        skel['data']['values'] = [sum];
+
+        return skel;
+
+    };
+
+    /**
+     * This post aggregator calculates the average of all the values of the responses of a request group.
+     * @param responses List of framework responses to a group request (all the requests that appear after expanding all
+     *                  the multiparameters).
+     * @param skel The framework builds a response with an empty data property, which the post aggregator should fill.
+     * @returns {*} The framework response.
+     */
+    var avgPostAggregator = function avgPostAggregator(responses, skel) {
+
+        var sum = 0;
+        var count = 0;
+        for(var i = 0; i < responses.length; ++i, sum += vSum) {
+            var values = responses[i]['data']['values'];
+            for(var x = 0, vSum = 0; x < values.length; vSum += values[x++], count++);
+        }
+
+        skel['data']['values'] = [sum / count];
+
+        return skel;
+
+    };
+
 
 
     /*
@@ -815,9 +975,13 @@
      *          }
      *  For example: {
      *                   id: "usercommits",
-     *                   uid: "pepito",
+     *                   uid: [1, 2, 3], //This is a multiparameter. The framework expands automatically this request
+     *                                   //called "request group" to simple requests.
      *                   from :  new Date(),
      *                   max: 0,
+     *                   post_aggr: "sum",  //Post agregator if executed after retrievin all the simple request of a
+     *                                      //request group in order to combine them into a single response.
+     *                                      //Note that the use of a past_aggr is not compulsory with mutiparameters.
      *                   static: ["from"] //Static makes this parameter unalterable by the context changes.
      *                                    //Static parameters must have a value; otherwise, an error will be returned.
      *               }
