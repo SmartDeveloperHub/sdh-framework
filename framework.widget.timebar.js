@@ -61,6 +61,7 @@
     var TimeBar = function TimeBar(element, resources, contexts, configuration) {
 
         this.element = $(element); //Store as jquery object
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, element);
@@ -79,6 +80,10 @@
 
     TimeBar.prototype.updateData = function(framework_data) {
 
+        // Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         paint.call(this, normalizedData, framework_data);
@@ -88,6 +93,10 @@
 
     TimeBar.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         // Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
@@ -96,6 +105,9 @@
         }
 
         this.element.remove(".timebar-container");
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -203,6 +215,8 @@
 
         }
 
+        // Set the chart as ready
+        this.status = 1;
 
     };
 

@@ -140,6 +140,7 @@
         this.container = null;
         this.data = [];
         this.chart = null;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -160,6 +161,9 @@
 
     RadarChart.prototype.updateData = function(framework_data) {
 
+        if(this.status !== 1)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         for(var i = 0, nItems = this.chart.datasets[0].points.length; i < nItems; ++i) {
@@ -173,6 +177,10 @@
     };
 
     RadarChart.prototype.delete = function() {
+
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
 
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
@@ -188,6 +196,9 @@
         this.canvas = null;
         this.container = null;
         this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -207,7 +218,7 @@
         }
     };
 
-     var createChart = function createChart() {
+    var createChart = function createChart() {
         if(this.canvas == null) {
             this.element.append('<div class="blurable"><canvas></canvas></div>');
             this.container = this.element.children("div");
@@ -249,6 +260,8 @@
                 pointLabelFontColor: this.configuration.pointLabelFontColor
             });
         }
+
+        this.status = 1;
     };
 
     /**

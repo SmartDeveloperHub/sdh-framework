@@ -74,6 +74,8 @@
         this.data = null;
         this.chart = null;
         this.labels = {};
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
+        this.onResizeTimeout = null;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -93,11 +95,15 @@
 
     CytoChart2.prototype.updateData = function(framework_data) {
 
+        //Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
         this.lastData = framework_data;
 
         //Update data
-        if(this.chart != null) {
+        if(this.status === 1) {
             repaint.call(this, normalizedData, framework_data);
         } else { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
@@ -107,23 +113,31 @@
 
     CytoChart2.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
-        //Remove resize event listener
-        if(this.resizeEventHandler != null) {
+        if(this.status === 1) {
+
+            //Remove resize event listener
             $(window).off("resize", this.resizeEventHandler);
             this.resizeEventHandler = null;
-        }
 
-        // Destroy also removes the container
-        this.chart.destroy();
+            // Destroy also removes the container
+            this.chart.destroy();
+            this.chart = null;
+        }
 
         //Clear DOM
         this.element.empty();
 
         this.cytoContainer = null;
-        this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -322,16 +336,30 @@
         //Update the chart when window resizes.
         this.resizeEventHandler = function(e) {
             // dont run
-                //this.chart.resize(); 
-            // slow and heavy
-            setTimeout(function() {
-                var normalizedData = getNormalizedData.call(this,this.lastData);
-                repaint.call(this, normalizedData, framework_data);
-            }.bind(this), 3000);
+                //this.chart.resize();
+
+            // Wait some time to repaint and do it only once
+            if(this.onResizeTimeout == null) {
+                this.onResizeTimeout = setTimeout(function() {
+
+                    //Has been destroyed
+                    if(this.status === 2)
+                        return;
+
+                    var normalizedData = getNormalizedData.call(this,this.lastData);
+                    repaint.call(this, normalizedData, framework_data);
+
+                    this.onResizeTimeout = null;
+                }.bind(this), 3000);
+            }
+
             // ñaping
                 //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
         }.bind(this);
         $(window).resize(this.resizeEventHandler);
+
+        // Set the chart as ready
+        this.status = 1;
 
     };
 

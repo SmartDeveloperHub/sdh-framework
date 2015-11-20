@@ -130,6 +130,8 @@
         this.data = null;
         this.decimal = this.configuration.decimal;
         this.currentValue = 0;
+        this.deleted = false;
+
         // container
         this.container = document.createElement('div');
         this.container.className = "com-widget com-counter";
@@ -173,6 +175,11 @@
     CounterBox.prototype = new framework.widgets.CommonWidget(true);
 
     CounterBox.prototype.updateData = function(data) {
+
+        // If it has been deleted, don't do nothing
+        if(this.deleted)
+            return;
+
         var resourceId = Object.keys(data)[0];
         var resourceUID = Object.keys(data[resourceId])[0];
         this.data = data[resourceId][resourceUID]['data'];
@@ -194,6 +201,12 @@
     };
 
     CounterBox.prototype.delete = function() {
+
+        // If it has been delete, don't do nothing
+        if(this.deleted)
+            return;
+
+        this.deleted = true;
 
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);

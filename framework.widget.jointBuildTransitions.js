@@ -138,6 +138,7 @@
         // Configuration
         //this.configuration = normalizeConfig(configuration);
         this.configuration = configuration;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         this.observeCallback = this.commonObserveCallback.bind(this);
 
@@ -156,21 +157,32 @@
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         //Update data
-        if(this.chart != null) {
+        if(this.status === 1) {
             updateValues.call(this, normalizedData);
-        } else { // Paint it for first time
+        } else if(this.status === 0) { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
         }
     };
 
     BuildTransitions.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
+
+        if(this.status === 1) {
+            $(window).off("resize", this.resizeEventHandler);
+        }
 
         //Clear DOM
         $(this.container).empty();
         this.element.empty();
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -555,6 +567,9 @@
             
         };
         $(window).resize(this.resizeEventHandler);
+
+        // Set the chart as ready
+        this.status = 1;
 
         //}).bind(this);
     };

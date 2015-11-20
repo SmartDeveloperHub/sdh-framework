@@ -65,7 +65,7 @@
         this.data = null;
         this.aspect = null;
         this.resizeEventHandler = null;
-        this.painted = false;
+        this.status = 0; // 0 - not painted, 1 - painted, 2 - destroyed
         this.metricId = metrics[0]['id'];
         this.maxValue = -1;
         this.minValue = Infinity;
@@ -86,12 +86,16 @@
 
     Heatmap.prototype.updateData = function(data) {
 
-        if(this.painted) {
+        // If it has been deleted, don't do nothing
+        if(this.status === 2)
+            return;
+
+        if(this.status === 1) {
             //Clear DOM
             this.svg.empty();
             this.element.find('svg').remove();
             this.svg = null;
-            this.painted = false;
+            this.status = 0;
         }
 
         var metricUID = Object.keys(this.metricId)[0];
@@ -101,7 +105,7 @@
 
     Heatmap.prototype.delete = function() {
 
-        if(!this.painted)
+        if(this.status === 2)
             return;
 
         //Stop listening to window resize events
@@ -116,7 +120,7 @@
         this.element.find('svg').remove();
         this.svg = null;
 
-        this.painted = false;
+        this.status = 2;
 
     };
 
@@ -166,7 +170,7 @@
             return; // Nothing to paint
         }
 
-        if(this.painted) {
+        if(this.status === 1) {
             this.updateSize();
             return;
         }
@@ -304,7 +308,7 @@
 
         updateSize.call(this);
 
-        this.painted = true;
+        this.status = 1;
 
     };
 

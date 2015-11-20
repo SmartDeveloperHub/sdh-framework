@@ -220,6 +220,7 @@
         this.table = null;
         this.selected = [];
         this.currentSelected = null;
+        this.deleted = false;
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -255,6 +256,10 @@
      * @param framework_data
      */
     Table.prototype.updateData = function(framework_data) {
+
+        // Has been destroyed
+        if(this.deleted)
+            return;
 
         var creating = false; //Is it the creation of the dable
 
@@ -459,6 +464,9 @@
 
         this.tableDom = null;
         this.table = null;
+
+        //Update status
+        this.deleted = true;
 
     };
 

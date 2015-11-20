@@ -205,6 +205,7 @@
         this.data = null;
         this.chart = null;
         this.chartUpdate = null;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -226,10 +227,14 @@
 
     Scatter.prototype.updateData = function(framework_data) {
 
+        // Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         //Update data
-        if(this.chart != null) {
+        if(this.status === 1) {
             d3.select(this.svg.get(0)).datum(normalizedData);
             if(this.chartUpdate != null) {
                 this.chartUpdate();
@@ -246,12 +251,17 @@
 
     Scatter.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
         //Remove resize event listener
-        if(this.chartUpdate != null) {
+        if(this.status === 1) {
             $(window).off("resize", this.chartUpdate);
+            this.chart.dispatch.on('renderEnd', null);
             this.chartUpdate = null;
         }
 
@@ -261,6 +271,9 @@
 
         this.svg = null;
         this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -336,6 +349,10 @@
     var paint = function paint(data, framework_data) {
 
         nv.addGraph(function() {
+
+            if(this.status != 0) {
+                return; //Already initialized or destroyed
+            }
 
             this.chart = nv.models.scatterChart()
                 .showDistX(this.configuration.showDistX)    //showDist, when true, will display those little distribution lines on the axis.
@@ -524,6 +541,9 @@
 
 
             $(window).resize(this.chartUpdate);
+
+            // Set the chart as ready
+            this.status = 1;
 
             return this.chart;
         }.bind(this));

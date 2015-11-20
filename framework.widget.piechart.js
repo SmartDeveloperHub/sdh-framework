@@ -117,6 +117,7 @@
         this.svg = null;
         this.data = null;
         this.chart = null;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -134,13 +135,17 @@
 
     PieChart.prototype.updateData = function(framework_data) {
 
+        // Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         //Update data
-        if(this.svg != null) {
+        if(this.status === 1) {
             d3.select(this.svg.get(0)).datum(normalizedData);
             this.chart.color(this.generateColors(framework_data));
-            this.chart.update();
+            this.updateChart();
 
         } else { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
@@ -150,12 +155,17 @@
 
     PieChart.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
         //Remove resize event listener
-        if(this.chart != null) {
-            $(window).off("resize", this.chart.update);
+        if(this.status === 1) {
+            $(window).off("resize", this.updateChart);
+            this.chart = null;
         }
 
         //Clear DOM
@@ -163,7 +173,9 @@
         this.element.empty();
 
         this.svg = null;
-        this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -212,6 +224,10 @@
         nv.addGraph({
             generate: function() {
 
+                if(this.status != 0) {
+                    return; //Already initialized or destroyed
+                }
+
                 this.chart = nv.models.pieChart()
                     .x(function(d) {
                         return d.label;
@@ -243,7 +259,11 @@
                     .transition().duration(0)
                     .call(this.chart);
 
-                $(window).resize(this.chart.update);
+                this.updateChart = this.chart.update; //This is important to get the reference because it changes!
+                $(window).resize(this.updateChart);
+
+                // Set the chart as ready
+                this.status = 1;
 
                 return this.chart;
 

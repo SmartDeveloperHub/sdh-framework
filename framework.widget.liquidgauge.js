@@ -164,6 +164,7 @@
         this.svg = null;
         this.data = null;
         this.chart = null;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -190,9 +191,9 @@
         var resourceUID = Object.keys(data[resourceId])[0];
         this.data = data[resourceId][resourceUID]['data'];
 
-        if(this.chart == null) {
+        if(this.status === 0) {
             this.chart = loadLiquidFillGauge.call(this, this.svg.get(0), this.data.values[0], this.configuration);
-        } else {
+        } else if(this.status === 1) {
             // Repaint
             this.chart.update(this.data.values[0]);
         }
@@ -203,20 +204,20 @@
 
     LiquidGauge.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
         //Clear DOM
         this.element.empty();
 
+        //Update status
+        this.status = 2;
+
     };
-
-    window.framework.widgets.LiquidGauge = LiquidGauge;
-
-    // AMD compliant
-    if ( typeof define === "function" && define.amd) {
-        define( [], function () { return LiquidGauge; } );
-    }
 
     /**
      * Get the color to display depending on the percentage value
@@ -497,7 +498,17 @@
             }
         }
 
+        //Update status
+        this.status = 1;
+
         return new GaugeUpdater();
+    }
+
+    window.framework.widgets.LiquidGauge = LiquidGauge;
+
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( [], function () { return LiquidGauge; } );
     }
 
 })();

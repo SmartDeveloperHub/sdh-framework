@@ -126,6 +126,7 @@
         this.minY = Number.MAX_VALUE;
         this.maxT = -8640000000000000;
         this.minT = 8640000000000000;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -137,7 +138,7 @@
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = this.configuration.height + "px";;
+        this.svg.get(0).style.minHeight = this.configuration.height + "px";
         this.svg.get(0).style.backgroundColor = this.configuration.background;
 
         this.observeCallback = this.commonObserveCallback.bind(this);
@@ -150,13 +151,17 @@
 
     RangeNv.prototype.updateData = function(framework_data) {
 
+        //Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
         setTimeInfo(this.minT, this.maxT);
 
         //Update data
-        if(this.chart != null) {
+        if(this.status === 1) {
             d3.select(this.svg.get(0)).datum(normalizedData);
-            this.chart.update();
+            this.updateChart();
 
         } else { // Paint it for first time
             paint.call(this, normalizedData);
@@ -166,13 +171,16 @@
 
     RangeNv.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
         //Remove resize event listener
-        if(this.resizeEventHandler != null) {
-            $(window).off("resize", this.resizeEventHandler);
-            this.resizeEventHandler = null;
+        if(this.status === 1) {
+            $(window).off("resize", this.updateChart);
         }
 
         //Clear DOM
@@ -181,6 +189,9 @@
 
         this.svg = null;
         this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -298,10 +309,12 @@
 
     var paint = function paint(data) {
 
-        var width = this.element.get(0).getBoundingClientRect().width;
-        var height = this.element.get(0).getBoundingClientRect().height;
-
         nv.addGraph(function() {
+
+            if(this.status != 0) {
+                return; //Already initialized or destroyed
+            }
+
             var chart = nv.models.lineWithFocusChart()
                 .focusHeight(this.configuration.focusHeight)
                 .interpolate(this.configuration.interpolate)
@@ -372,8 +385,8 @@
             }.bind(this));
 
             //Update the chart when window resizes.
-            this.resizeEventHandler = function() { chart.update() };
-            $(window).resize(this.resizeEventHandler);
+            this.updateChart = this.chart.update; //This is important to get the reference because it changes!
+            $(window).resize(this.updateChart);
 
             if (!this.configuration.showFocus) {
                 $(".nv-focus").attr("class", "nv-focus hidden");
@@ -389,6 +402,9 @@
 
             //Call update to update the chart and threfore the context
             chart.update();
+
+            // Set the chart as ready
+            this.status = 1;
 
             return chart;
         }.bind(this));

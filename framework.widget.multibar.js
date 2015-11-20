@@ -126,6 +126,7 @@
         this.data = null;
         this.chart = null;
         this.aproximatedDates = false;
+        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
 
         // Extending widget
         framework.widgets.CommonWidget.call(this, false, this.element.get(0));
@@ -147,13 +148,17 @@
 
     MultiBar.prototype.updateData = function(framework_data) {
 
+        // Has been destroyed
+        if(this.status === 2)
+            return;
+
         var normalizedData = getNormalizedData.call(this,framework_data);
 
         //Update data
-        if(this.chart != null) {
+        if(this.status === 1) {
             d3.select(this.svg.get(0)).datum(normalizedData);
             this.chart.color(this.generateColors(framework_data, this.configuration.color));
-            this.chart.update();
+            this.updateChart();
 
         } else { // Paint it for first time
             paint.call(this, normalizedData, framework_data);
@@ -163,21 +168,27 @@
 
     MultiBar.prototype.delete = function() {
 
+        // Has already been destroyed
+        if(this.status === 2)
+            return;
+
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
         //Remove resize event listener
-        if(this.resizeEventHandler != null) {
-            $(window).off("resize", this.resizeEventHandler);
-            this.resizeEventHandler = null;
+        if(this.status === 1) {
+            $(window).off("resize", this.updateChart);
+            this.chart = null;
         }
 
         //Clear DOM
-        $(this.svg).empty();
+        this.svg.empty();
         this.element.empty();
 
         this.svg = null;
-        this.chart = null;
+
+        //Update status
+        this.status = 2;
 
     };
 
@@ -256,6 +267,11 @@
     var paint = function paint(data, framework_data) {
 
         nv.addGraph(function() {
+
+            if(this.status != 0) {
+                return; //Already initialized or destroyed
+            }
+
             var chart = nv.models.multiBarChart()
                 .height(this.configuration.height)
                 .color(this.generateColors(framework_data, this.configuration.color))
@@ -306,8 +322,11 @@
                 .call(chart);
 
             //Update the chart when window resizes.
-            this.resizeEventHandler = function() { chart.update() };
-            $(window).resize(this.resizeEventHandler);
+            this.updateChart = this.chart.update; //This is important to get the reference because it changes!
+            $(window).resize(this.updateChart);
+
+            // Set the chart as ready
+            this.status = 1;
 
             return chart;
         }.bind(this));
