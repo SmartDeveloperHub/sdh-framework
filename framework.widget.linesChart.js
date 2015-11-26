@@ -118,9 +118,6 @@
             return;
         }
 
-        // We need relative position for the nvd3 tooltips
-        element.style.position = 'inherit';
-
         this.element = $(element); //Store as jquery object
         this.data = null;
         this.chart = null;
@@ -134,21 +131,6 @@
         // Configuration
         this.configuration = normalizeConfig(configuration);
 
-        var extraClass = '';
-        if (this.configuration.showPoints && this.configuration.showLines) {
-            extraClass = "showPoints";
-        }
-        if(!this.configuration.showLines && !this.configuration.showPoints) {
-            extraClass = "hideLines"
-        }
-        if(!this.configuration.showLines && this.configuration.showPoints) {
-            extraClass = "hideLines showPoints"
-        }
-        this.element.append('<svg class="lineChart blurable ' + extraClass + '"></svg>');
-        this.svg = this.element.children("svg");
-
-        this.svg.get(0).style.minHeight = this.configuration.height + "px";
-
         this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId);
@@ -157,6 +139,10 @@
     LinesChart.prototype = new framework.widgets.CommonWidget(true);
 
     LinesChart.prototype.updateData = function(framework_data) {
+
+        // Has been destroyed
+        if(this.status === 2)
+            return;
 
         var normalizedData = getNormalizedData.call(this,framework_data);
 
@@ -277,9 +263,19 @@
 
     var paint = function paint(data, framework_data) {
 
-        var width = this.element.get(0).getBoundingClientRect().width;
-        var xlabel = this.configuration.xlabel;
-        var ylabel = this.configuration.ylabel;
+        var extraClass = '';
+        if (this.configuration.showPoints && this.configuration.showLines) {
+            extraClass = "showPoints";
+        }
+        if(!this.configuration.showLines && !this.configuration.showPoints) {
+            extraClass = "hideLines"
+        }
+        if(!this.configuration.showLines && this.configuration.showPoints) {
+            extraClass = "hideLines showPoints"
+        }
+
+        this.element.append('<svg class="lineChart blurable ' + extraClass + '"></svg>');
+        this.svg = this.element.children("svg");
 
         nv.addGraph(function() {
 
