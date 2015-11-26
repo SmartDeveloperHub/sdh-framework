@@ -219,7 +219,6 @@
 
         this.element.append('<svg class="blurable"></svg>');
         this.svg = this.element.children("svg");
-        this.svg.get(0).style.minHeight = this.configuration.height + "px";
 
         nv.addGraph({
             generate: function() {
