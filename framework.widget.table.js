@@ -92,14 +92,10 @@
                 type: 'boolean',
                 default: false
             },
-            scrollDownButton: {
-                type: 'object',
-                default: null
-            },
-            scrollUpButton: {
-                type: 'object',
-                default: null
-            },
+            scrollButtons: {
+                type: 'boolean',
+                default: true
+            }
         };
 
         for(var confName in defaultConfig) {
@@ -232,21 +228,6 @@
 
         framework.data.observe(metrics, this.observeCallback , contextId);
 
-        if (this.configuration.scrollDownButton) {
-            $(this.configuration.scrollDownButton).click(function () {
-                this.element.find('.scroll-table').animate({
-                    scrollTop: '+=100'
-                }, 200);
-            }.bind(this));
-        }
-
-        if (this.configuration.scrollUpButton) {
-            $(this.configuration.scrollUpButton).click(function () {
-                this.element.find('.scroll-table').animate({
-                    scrollTop: '-=100'
-                }, 200);
-            }.bind(this));
-        }
     };
 
     Table.prototype = new framework.widgets.CommonWidget(true);
@@ -271,6 +252,30 @@
             this.element.append('<table class="blurable table"><thead><tr></tr></thead><tbody></tbody></table>');
             this.tableDom = this.element.children("table");
             this.tableDom.get(0).style.maxHeight = this.configuration.height + "px";
+
+            // Add buttons to scroll up and down in the table
+            if (this.configuration.scrollButtons) {
+
+                var upScrollButton = $('<div class="upTableButton fa-angle-double-up"></div>');
+                var downScrollButton = $('<div class="downTableButton fa-angle-double-down"></div>');
+
+                this.element.append(upScrollButton);
+                this.element.append(downScrollButton);
+
+                upScrollButton.click(function () {
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '-=100'
+                    }, 200);
+                }.bind(this));
+
+                downScrollButton.click(function () {
+                    this.element.find('.scroll-table').animate({
+                        scrollTop: '+=100'
+                    }, 200);
+                }.bind(this));
+
+            }
+
 
             //Add click listener for links
             this.tableDom.on( 'click', '.dashboardLink', this, dashboardLinkClickHandler);

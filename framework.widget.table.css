@@ -213,6 +213,7 @@ div.dataTables_filter input {
     overflow: hidden;
     white-space: nowrap;
     height: 436px;
+    position: inherit;
 }
 
 .upTableButton, .downTableButton {
@@ -235,14 +236,18 @@ div.dataTables_filter input {
 
 .upTableButton {
     position: absolute;
-    top: 130px;
-    left: 10%;
+    top: 0;
+    left: -35px;
 }
 
 .downTableButton {
     position: absolute;
     bottom: 0;
-    left: 10%;
+    left: -35px;
+}
+
+.dataTables_wrapper {
+    overflow: hidden;
 }
 
 .tableSelectedIcon {
