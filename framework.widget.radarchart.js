@@ -148,9 +148,6 @@
         // Configuration
         this.configuration = this.normalizeConfig(defaultConfig, configuration);
 
-        // Create the chart only once, then only will be updated
-        createChart.call(this);
-
         this.observeCallback = this.commonObserveCallback.bind(this);
 
         framework.data.observe(metrics, this.observeCallback , contextId);
@@ -161,8 +158,13 @@
 
     RadarChart.prototype.updateData = function(framework_data) {
 
-        if(this.status !== 1)
+        if(this.status === 2)
             return;
+
+        // Create the chart only once, then only will be updated
+        if(this.status === 0) {
+            createChart.call(this);
+        }
 
         var normalizedData = getNormalizedData.call(this,framework_data);
 
