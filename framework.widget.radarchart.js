@@ -188,10 +188,12 @@
         framework.data.stopObserve(this.observeCallback);
 
         //Destroy the chart
-        this.chart.destroy();
+        if(this.status === 1) {
+            this.chart.destroy();
+            this.container.empty();
+        }
 
         //Clear DOM
-        this.container.empty();
         this.element.empty();
 
         this.data = [];

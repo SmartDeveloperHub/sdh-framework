@@ -166,10 +166,10 @@
         if(this.status === 1) {
             $(window).off("resize", this.updateChart);
             this.chart = null;
+            this.svg.empty();
         }
 
         //Clear DOM
-        $(this.svg).empty();
         this.element.empty();
 
         this.svg = null;

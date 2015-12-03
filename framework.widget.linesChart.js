@@ -167,15 +167,15 @@
         //Stop observing for data changes
         framework.data.stopObserve(this.observeCallback);
 
-        //Remove resize event listener
+        //Remove resize event listener and empty initialized elements
         if(this.status === 1) {
             $(window).off("resize", this.updateChart);
 
+            this.svg.empty();
             this.chart = null;
         }
 
         //Clear DOM
-        this.svg.empty();
         this.element.empty();
 
         this.svg = null;
