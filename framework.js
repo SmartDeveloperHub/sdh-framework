@@ -1355,8 +1355,15 @@
     /**
      * Gets the dashboard environment
      */
-    _self.dashboard.getEnv = function getEnv() {
-        return clone(_dashboardEnv) || {}; // TODO: optimize?
+    _self.dashboard.getEnv = function getEnv(paramName) {
+
+        if(typeof paramName === 'undefined') {
+            return clone(_dashboardEnv) || {}; // TODO: optimize?
+        } else {
+            var val = _dashboardEnv[paramName];
+            return (typeof val === 'object' ? clone(val) : val);
+        }
+
     };
 
     /**
