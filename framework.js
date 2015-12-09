@@ -1397,20 +1397,31 @@
 
     };
 
+    /**
+     * Calculate the hash of a resource.
+     * @param resourceId Id of the resource
+     * @param requestParams Parameters of the resource request.
+     * @returns {string} Hash of the resource. If resource does not exist, undefined will be returned.
+     */
     _self.utils.resourceHash = function resourceHash(resourceId, requestParams){
         //TODO: loadResourcesInfo should set the list  of hasheable parameters
-        var str = resourceId;
-        var hasheable = "";
-        for(var i in _resourcesInfo[resourceId]['requiredParams']){
-            var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
-            hasheable += param  + requestParams[param] + ";"
-        }
 
-        if(requestParams['aggr'] != null) {
-            hasheable += 'aggr'  + requestParams['aggr'] + ";"
-        }
+        if(_resourcesInfo[resourceId] != null) {
 
-        return resourceId + "#" + hashCode(hasheable).toString(16);
+            var str = resourceId;
+            var hasheable = "";
+            for(var i in _resourcesInfo[resourceId]['requiredParams']){
+                var param = _resourcesInfo[resourceId]['requiredParams'][i]['name'];
+                hasheable += param  + requestParams[param] + ";"
+            }
+
+            if(requestParams['aggr'] != null) {
+                hasheable += 'aggr'  + requestParams['aggr'] + ";"
+            }
+
+            return resourceId + "#" + hashCode(hasheable).toString(16);
+
+        }
     };
     /*
      --------------------------------
