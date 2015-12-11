@@ -1511,7 +1511,7 @@
 
             // AMD compliant
             if ( typeof define === "function" && define.amd) {
-                define( [], function () { return window.framework; } );
+                define( "framework", [], function () { return window.framework; } );
             }
 
         }

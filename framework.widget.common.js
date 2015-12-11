@@ -545,7 +545,7 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return CommonWidget; } );
+        define( "widgetCommon", [], function () { return CommonWidget; } );
     }
 
 })();
