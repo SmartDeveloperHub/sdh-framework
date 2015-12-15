@@ -35,10 +35,6 @@
         staticSize: {
             type: ['number'],
             default: 100
-        },
-        tooltip: {
-            type: ['string', 'function'],
-            default: ""
         }
     };
 
@@ -194,7 +190,7 @@
             maxNodeSpacing: 70,
             boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
             avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
-            infinite: true,
+            infinite: false,
             'tension': 0.6,
             'repulsion': 700,
             'friction': 0.4,
@@ -235,13 +231,20 @@
         for (var i= 0; i < this.config.nodes.length; i++) {
             theNod = this.config.nodes[i];
             var size;
-            var tooltip;
+            var tooltip = theNod.tooltip;
 
-            if (theNod.volume == '_static_') {
-                size = this.config.staticSize;
-                tooltip = theNod.tooltip;
+            var nodData = data[theNod['metric']];
+            var metric = framework_data[nodData['resource']][nodData['resourceId']];
+            if(typeof tooltip === 'function') {
+                tooltip = tooltip(metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
             } else {
-                var theValue = data[theNod.volume].value;
+                tooltip = this.replace(tooltip, metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+            }
+
+            if (theNod['volume'] == '_static_') {
+                size = this.config.staticSize;
+            } else {
+                var theValue = data[theNod.metric].value;
                 // TODO test
                 if(theValue > 99) {
                     theValue = 99;
@@ -249,14 +252,6 @@
                     theValue = 25;
                 }
                 size = theValue;
-
-                var nodData = data[theNod.volume];
-                var metric = framework_data[nodData['resource']][nodData['resourceId']];
-                if(typeof this.config.tooltip === 'function') {
-                    tooltip = this.config.tooltip(metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
-                } else {
-                    tooltip = this.replace(this.config.tooltip, metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
-                }
 
             }
             // node
