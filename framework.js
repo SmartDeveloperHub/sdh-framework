@@ -395,7 +395,16 @@
                             // - responses: all the responses that belong to the request group
                             // - originalParams: the parameters of the request group (that is the request before expanding it)
 
-        var onResourceReady = function(resourceId, groupId, params, data) {
+        /**
+         *
+         * @param resourceId
+         * @param groupId
+         * @param params
+         * @param postModifier Function to be executed after post aggregator (if is set) and before sending the data in
+         *          order to modify the data to send. Null if the post modifier is not defined.
+         * @param data
+         */
+        var onResourceReady = function(resourceId, groupId, params, postModifier, data) {
 
             if(allData[resourceId] == null) {
                 allData[resourceId] = [];
@@ -430,28 +439,15 @@
             // All the responses have been received
             if(++completedRequests === requests.length) {
 
-                // Process all the post agregators
-                //TODO: refactor
-                for(var grid = 0; grid < groupInfo.length; grid++) {
+                // Process all the post aggregators (allData is modified)
+                processPostAggregatorInAllData(groupInfo, allData);
 
-                    var group = groupInfo[grid];
-
-                    if(group != null) {
-
-                        //Create the framework "response" skeleton that the post aggregator can use to simplify its job
-                        var responseSkel = createPostAggregatorResponseSkeleton(group);
-
-                        try {
-                            var result = group['postAggregator'](group['responses'], responseSkel); //Execute post-aggr
-                            allData[group['resourceId']].push(result);
-                        }catch(e) {
-                            error("Error while executing post aggregator: " + e);
-                        }
-
-                    }
+                // Apply post modifier if exists
+                if(postModifier != null) {
+                    processPostModifierInAllData(postModifier, allData);
                 }
 
-                //Finally sent all the responses to the callback
+                // Finally sent all the responses to the callback
                 sendDataEventToCallback(allData, callback, unique);
             }
         };
@@ -465,6 +461,7 @@
             var params = {};
             var multiparams = [];
             var postAggrFunction = null;
+            var postModifier = null;
 
             //Fill the params and multiparams and check post aggregators
             for(var name in resources[i]) {
@@ -479,6 +476,7 @@
                     params[name] =  resources[i][name];
 
                 } else if(name === 'post_aggr') { //The post aggregator is a function that is executed before the callback
+                                                  // to make grouping operations on request groups.
 
                     var postAggrVal = resources[i][name];
 
@@ -499,6 +497,8 @@
                         postAggrFunction = postAggrVal;
                     }
 
+                } else if(name === 'post_modifier' && typeof resources[i][name] === 'function') {
+                    postModifier = resources[i][name];
                 }
 
             }
@@ -525,8 +525,9 @@
             var resourceId = requests[i]['resourceId'];
             var params = requests[i]['params'];
             var groupId = requests[i]['groupId'];
+            var resourceReadyCallback = onResourceReady.bind(undefined, resourceId, groupId, params, postModifier);
 
-             makeResourceRequest(resourceId, params, onResourceReady.bind(undefined, resourceId, groupId, params));
+             makeResourceRequest(resourceId, params, resourceReadyCallback);
         }
 
     };
@@ -560,6 +561,53 @@
                 }
             }
         };
+
+    };
+
+    /**
+     * This method executes all the post aggregators in the request groups that have a post aggregator defined.
+     * It modifies the allData parameter to add an entry for each request group (the combination of responses of that
+     * group)
+     * @param groupInfo Information of the request group.
+     * @param allData Hashmap to be returned to the observe callback. Note: This parameter is modified by reference
+     */
+    var processPostAggregatorInAllData = function(groupInfo, allData) {
+
+        for(var grid = 0; grid < groupInfo.length; grid++) {
+
+            var group = groupInfo[grid];
+
+            if(group != null) {
+
+                //Create the framework "response" skeleton that the post aggregator can use to simplify its job
+                var responseSkel = createPostAggregatorResponseSkeleton(group);
+
+                try {
+                    var result = group['postAggregator'](group['responses'], responseSkel); //Execute post-aggr
+                    allData[group['resourceId']].push(result);
+                }catch(e) {
+                    error("Error while executing post aggregator: " + e);
+                }
+
+            }
+        }
+
+    };
+
+    /**
+     *
+     * @param postModifier
+     * @param allData Hashmap to be returned to the observe callback. Note: This parameter is modified by reference
+     */
+    var processPostModifierInAllData = function(postModifier, allData) {
+
+        for(var resourceId in allData) {
+            for(var x = allData[resourceId].length - 1; x >= 0; --x) {
+
+                var res = allData[resourceId][x];
+                allData[resourceId][x] = postModifier(res);
+            }
+        }
 
     };
 
@@ -672,7 +720,7 @@
     var cleanResources = function cleanResources(resources) {
 
         var newResources = [];
-        var specialParameters = ['id', 'static', 'post_aggr'];
+        var specialParameters = ['id', 'static', 'post_aggr', 'post_modifier'];
 
         for(var i = 0; i < resources.length; ++i) {
             var resource = resources[i];
@@ -883,8 +931,9 @@
 
         if(typeof callback === "function") {
 
+            // Check if it still is being observed
             var observed = false;
-            if(!unique) { //Check if it still is being observed
+            if(!unique) {
                 for (var i in _event_handlers) {
                     if (_event_handlers[i].userCallback === callback) {
                         observed = true;
@@ -895,6 +944,7 @@
                 observed = true;
             }
 
+            // If it is still being observe, send the data to the callback
             if(observed) {
                 callback({
                     event: "data",
