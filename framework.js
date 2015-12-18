@@ -331,6 +331,8 @@
     /**
      * Request a given resource
      * @param resourceId
+     * @param params Parameters of the request
+     * @param callback Callback to execute when the response is retrieved
      */
     var makeResourceRequest = function makeResourceRequest(resourceId, params, callback) {
 
@@ -392,11 +394,12 @@
                             // the group id. That is:
                             // - resourceId: the id of the resource that is requested by the request group
                             // - postAggregator: post-aggregator function
+                            // - postModifier: post-modifier function
                             // - responses: all the responses that belong to the request group
                             // - originalParams: the parameters of the request group (that is the request before expanding it)
 
         /**
-         *
+         * Callback to execute when the response is retrieved
          * @param resourceId
          * @param groupId
          * @param params
@@ -432,6 +435,12 @@
                 groupInfo[groupId]['responses'].push(response);
 
             } else {
+
+                //Execute post modifier
+                if(typeof postModifier === 'function') {
+                    response = postModifier(response);
+                }
+
                 allData[resourceId].push(response);
             }
 
@@ -440,12 +449,7 @@
             if(++completedRequests === requests.length) {
 
                 // Process all the post aggregators (allData is modified)
-                processPostAggregatorInAllData(groupInfo, allData);
-
-                // Apply post modifier if exists
-                if(postModifier != null) {
-                    processPostModifierInAllData(postModifier, allData);
-                }
+                processPostMethodsInAllData(groupInfo, allData);
 
                 // Finally sent all the responses to the callback
                 sendDataEventToCallback(allData, callback, unique);
@@ -508,6 +512,7 @@
                 groupInfo[requestGroupId] = {
                     resourceId: resourceId,
                     postAggregator: postAggrFunction,
+                    postModifier: postModifier,
                     responses: [],
                     originalParams: params
                 };
@@ -565,13 +570,13 @@
     };
 
     /**
-     * This method executes all the post aggregators in the request groups that have a post aggregator defined.
+     * This method executes the post aggregator and post modifier in the request groups that have them defined.
      * It modifies the allData parameter to add an entry for each request group (the combination of responses of that
      * group)
      * @param groupInfo Information of the request group.
      * @param allData Hashmap to be returned to the observe callback. Note: This parameter is modified by reference
      */
-    var processPostAggregatorInAllData = function(groupInfo, allData) {
+    var processPostMethodsInAllData = function(groupInfo, allData) {
 
         for(var grid = 0; grid < groupInfo.length; grid++) {
 
@@ -584,28 +589,14 @@
 
                 try {
                     var result = group['postAggregator'](group['responses'], responseSkel); //Execute post-aggr
+                    if(typeof group['postModifier'] === 'function') {
+                        result = group['postModifier'](result);
+                    }
                     allData[group['resourceId']].push(result);
                 }catch(e) {
                     error("Error while executing post aggregator: " + e);
                 }
 
-            }
-        }
-
-    };
-
-    /**
-     *
-     * @param postModifier
-     * @param allData Hashmap to be returned to the observe callback. Note: This parameter is modified by reference
-     */
-    var processPostModifierInAllData = function(postModifier, allData) {
-
-        for(var resourceId in allData) {
-            for(var x = allData[resourceId].length - 1; x >= 0; --x) {
-
-                var res = allData[resourceId][x];
-                allData[resourceId][x] = postModifier(res);
             }
         }
 
@@ -1029,9 +1020,11 @@
      *                                   //called "request group" to simple requests.
      *                   from :  new Date(),
      *                   max: 0,
-     *                   post_aggr: "sum",  //Post agregator if executed after retrievin all the simple request of a
+     *                   post_aggr: "sum",  //Post aggregator is executed after retrieving all the simple request of a
      *                                      //request group in order to combine them into a single response.
-     *                                      //Note that the use of a past_aggr is not compulsory with mutiparameters.
+     *                                      //Note that the use of a post_aggr is not compulsory with multiparameters.
+     *                   post_modifier: function(resource) {} //Function executed after the post_aggr (if any)
+     *                                      //to modify an individual response.
      *                   static: ["from"] //Static makes this parameter unalterable by the context changes.
      *                                    //Static parameters must have a value; otherwise, an error will be returned.
      *               }
@@ -1205,6 +1198,9 @@
 
     };
 
+    /**
+     * Stops all the observers and clears contexts.
+     */
     _self.data.clear = function() {
 
         //Stop all the observes
