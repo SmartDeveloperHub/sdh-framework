@@ -21,342 +21,349 @@
 
 (function() {
 
-    var cy;
+    var __loader = (function() {
 
-    var defaultConfig = {
-        nodes: {
-            type: ['object'],
-            default: []
-        },
-        edges: {
-            type: ['object'],
-            default: []
-        },
-        staticSize: {
-            type: ['number'],
-            default: 100
-        }
-    };
+        var cy;
 
-    /* CytoChart2 constructor
-     *   element: the DOM element that will contain the CytoChart2
-     *   data: the data id array
-     *   contextId: optional.
-     *   configuration: additional chart configuration:
-     *      {
-     *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', volume:"metrichashId" or "_static_", tooltip: 'text' },...]
-     *      ~ edge: array - Edges to paint [{ source: 'nodeId1', target: 'nodeId2' }]
-     *      ~ staticSize: number - static size for _static_ nodes
-     *      }
-     */
-    var CytoChart2 = function CytoChart2(element, metrics, contextId, configuration) {
+        var defaultConfig = {
+            nodes: {
+                type: ['object'],
+                default: []
+            },
+            edges: {
+                type: ['object'],
+                default: []
+            },
+            staticSize: {
+                type: ['number'],
+                default: 100
+            }
+        };
 
-        if(!framework.isReady()) {
-            console.error("CytoChart2 object could not be created because framework is not loaded.");
-            return;
-        }
+        /* CytoChart2 constructor
+         *   element: the DOM element that will contain the CytoChart2
+         *   data: the data id array
+         *   contextId: optional.
+         *   configuration: additional chart configuration:
+         *      {
+         *      ~ node: array - Nodes to paint [{ 'id': 'nodeId', 'avatar':avatarURL, 'shape': 'svgShape', volume:"metrichashId" or "_static_", tooltip: 'text' },...]
+         *      ~ edge: array - Edges to paint [{ source: 'nodeId1', target: 'nodeId2' }]
+         *      ~ staticSize: number - static size for _static_ nodes
+         *      }
+         */
+        var CytoChart2 = function CytoChart2(element, metrics, contextId, configuration) {
 
-        // CHECK cytoscape
-        if(typeof cytoscape === 'undefined') {
-            console.error("CytoChart2 could not be loaded.");
-            return;
-        }
+            if(!framework.isReady()) {
+                console.error("CytoChart2 object could not be created because framework is not loaded.");
+                return;
+            }
 
-        // We need relative position for the nvd3 tooltips
-        element.style.position = 'inherit';
+            // CHECK cytoscape
+            if(typeof cytoscape === 'undefined') {
+                console.error("CytoChart2 could not be loaded.");
+                return;
+            }
 
-        this.element = $(element); //Store as jquery object
-        this.element.addClass('cytoChart2');
-        this.data = null;
-        this.chart = null;
-        this.labels = {};
-        this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
-        this.onResizeTimeout = null;
+            // We need relative position for the nvd3 tooltips
+            element.style.position = 'inherit';
 
-        // Extending widget
-        framework.widgets.CommonWidget.call(this, false, this.element.get(0));
-
-        // Configuration
-        this.config = this.normalizeConfig(defaultConfig, configuration);
-
-        this.element.append('<div class="cytoContainer blurable"></div>');
-        this.cytoContainer = this.element.find('.cytoContainer');
-
-        this.observeCallback = this.commonObserveCallback.bind(this);
-
-        framework.data.observe(metrics, this.observeCallback , contextId);
-    };
-
-    CytoChart2.prototype = new framework.widgets.CommonWidget(true);
-
-    CytoChart2.prototype.updateData = function(framework_data) {
-
-        //Has been destroyed
-        if(this.status === 2)
-            return;
-
-        var normalizedData = getNormalizedData.call(this,framework_data);
-        this.lastData = framework_data;
-
-        //Update data
-        if(this.status === 1) {
-            repaint.call(this, normalizedData, framework_data);
-        } else { // Paint it for first time
-            paint.call(this, normalizedData, framework_data);
-        }
-
-    };
-
-    CytoChart2.prototype.delete = function() {
-
-        // Has already been destroyed
-        if(this.status === 2)
-            return;
-
-        //Stop observing for data changes
-        framework.data.stopObserve(this.observeCallback);
-
-        if(this.status === 1) {
-
-            //Remove resize event listener
-            $(window).off("resize", this.resizeEventHandler);
-            this.resizeEventHandler = null;
-
-            // Destroy also removes the container
-            this.chart.destroy();
+            this.element = $(element); //Store as jquery object
+            this.element.addClass('cytoChart2');
+            this.data = null;
             this.chart = null;
-        }
+            this.labels = {};
+            this.status = 0; // 0 - not initialized, 1 - ready, 2 - destroyed
+            this.onResizeTimeout = null;
 
-        //Clear DOM
-        this.element.empty();
+            // Extending widget
+            framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
-        this.cytoContainer = null;
+            // Configuration
+            this.config = this.normalizeConfig(defaultConfig, configuration);
 
-        //Update status
-        this.status = 2;
+            this.element.append('<div class="cytoContainer blurable"></div>');
+            this.cytoContainer = this.element.find('.cytoContainer');
 
-    };
+            this.observeCallback = this.commonObserveCallback.bind(this);
 
-    /**
-     * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
-     * @param framework_data
-     * @returns {Array} Contains objects with 'label' and 'value'.
-     */
-    var getNormalizedData = function getNormalizedData(framework_data) {
-
-        var nodeInfo = [];
-        this.labels = {};
-
-        for (var resourceName in framework_data) {
-            for (var resId in framework_data[resourceName]) {
-
-                var metric = framework_data[resourceName][resId];
-                var metricData = framework_data[resourceName][resId]['data'];
-
-                nodeInfo[metric.info.UID] = {
-                    value: metricData.values[0],
-                    resource: resourceName,
-                    resourceId: resId
-                };
-            }
-        }
-
-        return nodeInfo;
-    };
-
-    var repaint = function repaint(data, framework_data) {
-
-        // Destroy the chart
-        this.chart.destroy(); //Destroy also removes the container
-
-        // Create a new container
-        this.cytoContainer = $('<div class="cytoContainer blurable"></div>');
-        this.element.append(this.cytoContainer);
-
-        // Paint again
-        paint.call(this, data, framework_data);
-    };
-
-    var paint = function paint(data, framework_data) {
-        var width = this.element.get(0).getBoundingClientRect().width;
-        //TODO get this values from data
-
-        var layoutConfig = {
-            name: 'cola',
-            animate: true, // whether to transition the node positions
-            animationDuration: 6000, // duration of animation in ms if enabled
-            maxSimulationTime: 8000, // max length in ms to run the layout
-            minNodeSpacing: 10, // min spacing between outside of nodes (used for radius adjustment)
-            maxNodeSpacing: 70,
-            boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
-            avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
-            infinite: false,
-            'tension': 0.6,
-            'repulsion': 700,
-            'friction': 0.4,
-            'gravity': true
-        };
-        var nodeStyle = {
-            'width':  'data(w)',
-            'height':  'data(h)',
-            'background-fit': 'cover',
-            'border-color': '#000',
-            'border-width': 3,
-            'border-opacity': 0.5,
-            'shape': 'data(faveShape)'
-        };
-        var edgeStyle = {
-            'width': 5,
-            'target-arrow-shape': 't',
-            'line-color': '#004C8B',
-            'target-arrow-color': '#004C8B'
+            framework.data.observe(metrics, this.observeCallback , contextId);
         };
 
-        var cytoStyle = [
-            {
-                selector: 'node',
-                style: nodeStyle
-            },
-            {
-                selector: 'edge',
-                style: edgeStyle
-            }
-        ];
+        CytoChart2.prototype = new framework.widgets.CommonWidget(true);
 
-        var theNodes = [];
-        var theEdges = [];
-        var theNod;
+        CytoChart2.prototype.updateData = function(framework_data) {
 
-        // Add style info for each node
-        for (var i= 0; i < this.config.nodes.length; i++) {
-            theNod = this.config.nodes[i];
-            var size;
-            var tooltip = theNod.tooltip;
+            //Has been destroyed
+            if(this.status === 2)
+                return;
 
-            var nodData = data[theNod['metric']];
-            var metric = framework_data[nodData['resource']][nodData['resourceId']];
-            if(typeof tooltip === 'function') {
-                tooltip = tooltip(metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
-            } else {
-                tooltip = this.replace(tooltip, metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+            var normalizedData = getNormalizedData.call(this,framework_data);
+            this.lastData = framework_data;
+
+            //Update data
+            if(this.status === 1) {
+                repaint.call(this, normalizedData, framework_data);
+            } else { // Paint it for first time
+                paint.call(this, normalizedData, framework_data);
             }
 
-            if (theNod['volume'] == '_static_') {
-                size = this.config.staticSize;
-            } else {
-                var theValue = data[theNod.metric].value;
-                // TODO test
-                if(theValue > 99) {
-                    theValue = 99;
-                } else if(theValue < 20) {
-                    theValue = 25;
+        };
+
+        CytoChart2.prototype.delete = function() {
+
+            // Has already been destroyed
+            if(this.status === 2)
+                return;
+
+            //Stop observing for data changes
+            framework.data.stopObserve(this.observeCallback);
+
+            if(this.status === 1) {
+
+                //Remove resize event listener
+                $(window).off("resize", this.resizeEventHandler);
+                this.resizeEventHandler = null;
+
+                // Destroy also removes the container
+                this.chart.destroy();
+                this.chart = null;
+            }
+
+            //Clear DOM
+            this.element.empty();
+
+            this.cytoContainer = null;
+
+            //Update status
+            this.status = 2;
+
+        };
+
+        /**
+         * Gets a normalized array of data according to the chart expected input from the data returned by the framework.
+         * @param framework_data
+         * @returns {Array} Contains objects with 'label' and 'value'.
+         */
+        var getNormalizedData = function getNormalizedData(framework_data) {
+
+            var nodeInfo = [];
+            this.labels = {};
+
+            for (var resourceName in framework_data) {
+                for (var resId in framework_data[resourceName]) {
+
+                    var metric = framework_data[resourceName][resId];
+                    var metricData = framework_data[resourceName][resId]['data'];
+
+                    nodeInfo[metric.info.UID] = {
+                        value: metricData.values[0],
+                        resource: resourceName,
+                        resourceId: resId
+                    };
                 }
-                size = theValue;
+            }
+
+            return nodeInfo;
+        };
+
+        var repaint = function repaint(data, framework_data) {
+
+            // Destroy the chart
+            this.chart.destroy(); //Destroy also removes the container
+
+            // Create a new container
+            this.cytoContainer = $('<div class="cytoContainer blurable"></div>');
+            this.element.append(this.cytoContainer);
+
+            // Paint again
+            paint.call(this, data, framework_data);
+        };
+
+        var paint = function paint(data, framework_data) {
+            var width = this.element.get(0).getBoundingClientRect().width;
+            //TODO get this values from data
+
+            var layoutConfig = {
+                name: 'cola',
+                animate: true, // whether to transition the node positions
+                animationDuration: 6000, // duration of animation in ms if enabled
+                maxSimulationTime: 8000, // max length in ms to run the layout
+                minNodeSpacing: 10, // min spacing between outside of nodes (used for radius adjustment)
+                maxNodeSpacing: 70,
+                boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+                avoidOverlap: true, // prevents node overlap, may overflow boundingBox if not enough space
+                infinite: false,
+                'tension': 0.6,
+                'repulsion': 700,
+                'friction': 0.4,
+                'gravity': true
+            };
+            var nodeStyle = {
+                'width':  'data(w)',
+                'height':  'data(h)',
+                'background-fit': 'cover',
+                'border-color': '#000',
+                'border-width': 3,
+                'border-opacity': 0.5,
+                'shape': 'data(faveShape)'
+            };
+            var edgeStyle = {
+                'width': 5,
+                'target-arrow-shape': 't',
+                'line-color': '#004C8B',
+                'target-arrow-color': '#004C8B'
+            };
+
+            var cytoStyle = [
+                {
+                    selector: 'node',
+                    style: nodeStyle
+                },
+                {
+                    selector: 'edge',
+                    style: edgeStyle
+                }
+            ];
+
+            var theNodes = [];
+            var theEdges = [];
+            var theNod;
+
+            // Add style info for each node
+            for (var i= 0; i < this.config.nodes.length; i++) {
+                theNod = this.config.nodes[i];
+                var size;
+                var tooltip = theNod.tooltip;
+
+                var nodData = data[theNod['metric']];
+                var metric = framework_data[nodData['resource']][nodData['resourceId']];
+                if(typeof tooltip === 'function') {
+                    tooltip = tooltip(metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+                } else {
+                    tooltip = this.replace(tooltip, metric, {resource: nodData['resource'], resourceId:  nodData['resourceId']});
+                }
+
+                if (theNod['volume'] == '_static_') {
+                    size = this.config.staticSize;
+                } else {
+                    var theValue = data[theNod.metric].value;
+                    // TODO test
+                    if(theValue > 99) {
+                        theValue = 99;
+                    } else if(theValue < 20) {
+                        theValue = 25;
+                    }
+                    size = theValue;
+
+                }
+                // node
+                theNodes.push({
+                    data: {
+                        id: theNod.id,
+                        faveShape: theNod.shape,
+                        w: size,
+                        h: size,
+                        tooltip: tooltip
+                    }
+                });
+                // style
+                cytoStyle.push({
+                    selector: '#' + theNod.id,
+                    style: {
+                        'background-image': theNod.avatar
+                    }
+                });
+            }
+            var theEdge;
+            for (var i= 0; i < this.config.edges.length; i++) {
+                theEdge = this.config.edges[i];
+                theEdges.push({
+                    data: {
+                        source: theEdge.source,
+                        target: theEdge.target
+                    }
+                });
 
             }
-            // node
-            theNodes.push({
-                data: {
-                    id: theNod.id,
-                    faveShape: theNod.shape,
-                    w: size,
-                    h: size,
-                    tooltip: tooltip
-                }
-            });
-            // style
-            cytoStyle.push({
-                selector: '#' + theNod.id,
+
+            var cytoElements = {
+                nodes: theNodes,
+                edges: theEdges
+            };
+
+            this.cytoContainer.cytoscape({
+                container: this.cytoContainer.get(0),
+                style: cytoStyle,
+                elements: cytoElements,
+                layout: layoutConfig,
+                boxSelectionEnabled: false
+            }); // cy init
+
+            cy = this.cytoContainer.cytoscape('get');
+            this.chart = cy;
+            //cy.center();
+            //cy.fit( cy.$('#j, #e') );
+            cy.userPanningEnabled( false );
+            cy.userZoomingEnabled(false);
+            cy.nodes().unselectify();
+            // Tooltip
+            cy.nodes().qtip({
+                content: function(){
+                    return this._private.data.tooltip;
+                },
+                show: {
+                    event: 'mouseover'
+                },
+                hide: {
+                    event: 'mouseout'
+                },
+                position: {
+                    my: 'top center',
+                    at: 'bottom center'
+                },
                 style: {
-                    'background-image': theNod.avatar
-                }
-            });
-        }
-        var theEdge;
-        for (var i= 0; i < this.config.edges.length; i++) {
-            theEdge = this.config.edges[i];
-            theEdges.push({
-                data: {
-                    source: theEdge.source,
-                    target: theEdge.target
+                    classes: 'qtip-bootstrap',
+                    tip: {
+                        width: 16,
+                        height: 6
+                    }
                 }
             });
 
-        }
+            //Update the chart when window resizes.
+            this.resizeEventHandler = function(e) {
+                // dont run
+                    //this.chart.resize();
 
-        var cytoElements = {
-            nodes: theNodes,
-            edges: theEdges
+                // Wait some time to repaint and do it only once
+                if(this.onResizeTimeout == null) {
+                    this.onResizeTimeout = setTimeout(function() {
+
+                        //Has been destroyed
+                        if(this.status === 2)
+                            return;
+
+                        var normalizedData = getNormalizedData.call(this,this.lastData);
+                        repaint.call(this, normalizedData, framework_data);
+
+                        this.onResizeTimeout = null;
+                    }.bind(this), 3000);
+                }
+
+                // ñaping
+                    //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
+            }.bind(this);
+            $(window).resize(this.resizeEventHandler);
+
+            // Set the chart as ready
+            this.status = 1;
+
         };
 
-        this.cytoContainer.cytoscape({
-            container: this.cytoContainer.get(0),
-            style: cytoStyle,
-            elements: cytoElements, 
-            layout: layoutConfig,
-            boxSelectionEnabled: false
-        }); // cy init
+        window.framework.widgets.CytoChart2 = CytoChart2;
+        return CytoChart2;
 
-        cy = this.cytoContainer.cytoscape('get');
-        this.chart = cy;
-        //cy.center();
-        //cy.fit( cy.$('#j, #e') );
-        cy.userPanningEnabled( false );
-        cy.userZoomingEnabled(false);
-        cy.nodes().unselectify();
-        // Tooltip
-        cy.nodes().qtip({
-            content: function(){
-                return this._private.data.tooltip;
-            },
-            show: {
-                event: 'mouseover'
-            },
-            hide: {
-                event: 'mouseout'
-            },
-            position: {
-                my: 'top center',
-                at: 'bottom center'
-            },
-            style: {
-                classes: 'qtip-bootstrap',
-                tip: {
-                    width: 16,
-                    height: 6
-                }
-            }
-        });
-
-        //Update the chart when window resizes.
-        this.resizeEventHandler = function(e) {
-            // dont run
-                //this.chart.resize();
-
-            // Wait some time to repaint and do it only once
-            if(this.onResizeTimeout == null) {
-                this.onResizeTimeout = setTimeout(function() {
-
-                    //Has been destroyed
-                    if(this.status === 2)
-                        return;
-
-                    var normalizedData = getNormalizedData.call(this,this.lastData);
-                    repaint.call(this, normalizedData, framework_data);
-
-                    this.onResizeTimeout = null;
-                }.bind(this), 3000);
-            }
-
-            // ñaping
-                //this.chart._invokeListeners({group:'nodes', type:'click', target: this.config.mainNode});
-        }.bind(this);
-        $(window).resize(this.resizeEventHandler);
-
-        // Set the chart as ready
-        this.status = 1;
-
-    };
+    });
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
@@ -367,11 +374,10 @@
             'cytoscape-qtip',
             'css!vendor/sdh-framework/framework.widget.cytoChart2.css'
         ], function () {
-            window.framework.widgets.CytoChart2 = CytoChart2;
-            return CytoChart2;
+            return __loader();
         } );
     } else {
-        window.framework.widgets.CytoChart2 = CytoChart2;
+        __loader();
     }
 
 })();

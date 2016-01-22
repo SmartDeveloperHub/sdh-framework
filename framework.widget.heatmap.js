@@ -21,296 +21,303 @@
 
 (function() {
 
-    //Constants
-    var ONE_DAY_MS = 86400000;
-    var ONE_WEEK_MS = 604800000;
-    var PAINT_DELAY_MS = 1000;
+    var __loader = (function() {
 
-    // Configuration checker
-    var normalizeConfig = function normalizeConfig(configuration) {
+        //Constants
+        var ONE_DAY_MS = 86400000;
+        var ONE_WEEK_MS = 604800000;
+        var PAINT_DELAY_MS = 1000;
 
-        if (configuration == null) {
-            configuration = {};
-        }
+        // Configuration checker
+        var normalizeConfig = function normalizeConfig(configuration) {
 
-        if(!(configuration['colors'] instanceof Array)) {
-            configuration['colors'] = ['#F6FAAA','#FEE08B','#FDAE61','#F46D43','#D53E4F','#9E0142'];
-        }
+            if (configuration == null) {
+                configuration = {};
+            }
 
-        return configuration;
-    };
+            if(!(configuration['colors'] instanceof Array)) {
+                configuration['colors'] = ['#F6FAAA','#FEE08B','#FDAE61','#F46D43','#D53E4F','#9E0142'];
+            }
 
-    // BASIC METHODS - - - - - - - - - - - - - - - - - - - - - -
+            return configuration;
+        };
 
-    var Heatmap = function Heatmap(element, metrics, contextId, configuration) {
+        // BASIC METHODS - - - - - - - - - - - - - - - - - - - - - -
 
-        if(!framework.isReady()) {
-            console.error("Heatmap object could not be created because framework is not loaded.");
-            return;
-        }
+        var Heatmap = function Heatmap(element, metrics, contextId, configuration) {
 
-        // CHECK D3
-        if(typeof d3 === 'undefined') {
-            console.error("Heatmap could not be loaded because d3 did not exist.");
-            return;
-        }
+            if(!framework.isReady()) {
+                console.error("Heatmap object could not be created because framework is not loaded.");
+                return;
+            }
 
-        if(metrics.length > 1) {
-            metrics = metrics.splice(1, metrics.length-1);
-            console.warn("This widget only allows one metric. The other metrics will be ignored.");
-        }
+            // CHECK D3
+            if(typeof d3 === 'undefined') {
+                console.error("Heatmap could not be loaded because d3 did not exist.");
+                return;
+            }
 
-        this.element = $(element); //Store as jquery object
-        this.svg = null;
-        this.data = null;
-        this.aspect = null;
-        this.resizeEventHandler = null;
-        this.status = 0; // 0 - not painted, 1 - painted, 2 - destroyed
-        this.metricId = metrics[0]['id'];
-        this.maxValue = -1;
-        this.minValue = Infinity;
+            if(metrics.length > 1) {
+                metrics = metrics.splice(1, metrics.length-1);
+                console.warn("This widget only allows one metric. The other metrics will be ignored.");
+            }
 
-        // Extending widget
-        framework.widgets.CommonWidget.call(this, false, this.element.get(0));
+            this.element = $(element); //Store as jquery object
+            this.svg = null;
+            this.data = null;
+            this.aspect = null;
+            this.resizeEventHandler = null;
+            this.status = 0; // 0 - not painted, 1 - painted, 2 - destroyed
+            this.metricId = metrics[0]['id'];
+            this.maxValue = -1;
+            this.minValue = Infinity;
 
-        // Configuration
-        this.configuration = normalizeConfig(configuration);
+            // Extending widget
+            framework.widgets.CommonWidget.call(this, false, this.element.get(0));
 
-        this.observeCallback = this.commonObserveCallback.bind(this);
+            // Configuration
+            this.configuration = normalizeConfig(configuration);
 
-        framework.data.observe(metrics, this.observeCallback , contextId);
+            this.observeCallback = this.commonObserveCallback.bind(this);
 
-    };
+            framework.data.observe(metrics, this.observeCallback , contextId);
 
-    Heatmap.prototype = new framework.widgets.CommonWidget(true);
+        };
 
-    Heatmap.prototype.updateData = function(data) {
+        Heatmap.prototype = new framework.widgets.CommonWidget(true);
 
-        // If it has been deleted, don't do nothing
-        if(this.status === 2)
-            return;
+        Heatmap.prototype.updateData = function(data) {
 
-        if(this.status === 1) {
+            // If it has been deleted, don't do nothing
+            if(this.status === 2)
+                return;
+
+            if(this.status === 1) {
+                //Clear DOM
+                this.svg.empty();
+                this.element.find('svg').remove();
+                this.svg = null;
+                this.status = 0;
+            }
+
+            var metricUID = Object.keys(this.metricId)[0];
+            this.data = data[this.metricId][metricUID]['data'];
+            paint.call(this);
+        };
+
+        Heatmap.prototype.delete = function() {
+
+            if(this.status === 2)
+                return;
+
+            //Stop listening to window resize events
+            $(window).off("resize", this.resizeEventHandler);
+            this.resizeEventHandler = null;
+
+            //Stop observing for data changes
+            framework.data.stopObserve(this.observeCallback);
+
             //Clear DOM
             this.svg.empty();
             this.element.find('svg').remove();
             this.svg = null;
-            this.status = 0;
-        }
 
-        var metricUID = Object.keys(this.metricId)[0];
-        this.data = data[this.metricId][metricUID]['data'];
-        paint.call(this);
-    };
+            this.status = 2;
 
-    Heatmap.prototype.delete = function() {
-
-        if(this.status === 2)
-            return;
-
-        //Stop listening to window resize events
-        $(window).off("resize", this.resizeEventHandler);
-        this.resizeEventHandler = null;
-
-        //Stop observing for data changes
-        framework.data.stopObserve(this.observeCallback);
-
-        //Clear DOM
-        this.svg.empty();
-        this.element.find('svg').remove();
-        this.svg = null;
-
-        this.status = 2;
-
-    };
+        };
 
 
-    // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
+        // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
 
-    var updateSize = function updateSize() {
+        var updateSize = function updateSize() {
 
-        var parentWidth = this.svg.parent().get(0).getBoundingClientRect().width;
-        var parentHeight = this.svg.parent().get(0).getBoundingClientRect().height;
-        var parentAspect = parentWidth / parentHeight;
-        if(parentAspect <= this.aspect){
-            this.svg.attr('width', parentWidth);
-            this.svg.attr('height', parentWidth / this.aspect);
-        } else {
-            this.svg.attr('width', parentHeight * this.aspect);
-            this.svg.attr('height', parentHeight);
-        }
-    };
+            var parentWidth = this.svg.parent().get(0).getBoundingClientRect().width;
+            var parentHeight = this.svg.parent().get(0).getBoundingClientRect().height;
+            var parentAspect = parentWidth / parentHeight;
+            if(parentAspect <= this.aspect){
+                this.svg.attr('width', parentWidth);
+                this.svg.attr('height', parentWidth / this.aspect);
+            } else {
+                this.svg.attr('width', parentHeight * this.aspect);
+                this.svg.attr('height', parentHeight);
+            }
+        };
 
-    var renderColor = function renderColor(rect, dateExtent){
+        var renderColor = function renderColor(rect, dateExtent){
 
-        rect
-            .filter(function(value){
-                return value >= 0;
-            })
-            .transition()
-            .delay(function(d, index){
-                var max = dateExtent[1].getTime();
-                var min = dateExtent[0].getTime();
-                var current = dateExtent[0].getTime() + index * this.data['step'];
-                return PAINT_DELAY_MS * (current - min)/(max - min);
-            }.bind(this))
-            .duration(500)
-            .attrTween('fill',function(value,i,a){
-                //choose color dynamically
-                var colorIndex = d3.scale.quantize()
-                    .range(d3.range(0, this.configuration['colors'].length, 1))
-                    .domain([this.minValue, this.maxValue]);
-                return d3.interpolate(a, this.configuration['colors'][colorIndex(value)]);
+            rect
+                .filter(function(value){
+                    return value >= 0;
+                })
+                .transition()
+                .delay(function(d, index){
+                    var max = dateExtent[1].getTime();
+                    var min = dateExtent[0].getTime();
+                    var current = dateExtent[0].getTime() + index * this.data['step'];
+                    return PAINT_DELAY_MS * (current - min)/(max - min);
+                }.bind(this))
+                .duration(500)
+                .attrTween('fill',function(value,i,a){
+                    //choose color dynamically
+                    var colorIndex = d3.scale.quantize()
+                        .range(d3.range(0, this.configuration['colors'].length, 1))
+                        .domain([this.minValue, this.maxValue]);
+                    return d3.interpolate(a, this.configuration['colors'][colorIndex(value)]);
+                }.bind(this));
+        };
+
+        var paint = function paint() {
+
+            if(this.data == null) {
+                return; // Nothing to paint
+            }
+
+            if(this.status === 1) {
+                this.updateSize();
+                return;
+            }
+
+            // Add an svg element to draw in it
+            this.element.append('<svg role="heatmap" class="heatmap blurable" preserveAspectRatio="xMidYMid"></svg>');
+            this.svg = this.element.children("svg");
+
+            // Metric values
+            var dataValues = this.data['values'];
+
+            //UI configuration
+            var itemSize = 18,
+                cellSize = itemSize-1,
+                width = this.element.width(),
+                height = this.element.height(),
+                margin = {top:20,right:20,bottom:20,left:40};
+
+            //formats
+            var monthNameFormat = d3.time.format.utc('%b'),
+                weekDayFormat = d3.time.format.utc("%w");
+
+            //axises and scales
+            var axisWidth = 0 ,
+                axisHeight = itemSize*7,
+                xAxisScale = d3.time.scale(),
+                yAxisScale = d3.scale.linear(),
+                xAxis = d3.svg.axis()
+                    .orient('top')
+                    .ticks(d3.time.months,1)
+                    .tickFormat(monthNameFormat),
+                weekDayNames = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
+            yAxis = d3.svg.axis()
+                .orient('left')
+                .ticks(7)
+                .tickFormat(function(d, i){
+                    return weekDayNames[d];
+                });
+
+            var d3svg = d3.select(this.svg.get(0));
+            var heatmap = d3svg
+                .attr('width',width)
+                .attr('height',height)
+                .style('max-height', height)
+                .append('g')
+                .attr('width',width-margin.left-margin.right)
+                .attr('height',height-margin.top-margin.bottom)
+                .attr('class','heatmap-content')
+                .attr('transform','translate('+margin.left+','+margin.top+')');
+
+            var rect = null;
+            var dailyValues = [];
+
+            //Create a date extent object with the from and to dates
+            var dateExtent = [new Date(this.data['interval']['from']), new Date(this.data['interval']['to'])];
+
+            //Clean the from date to start from midnight
+            var firstDay = new Date(dateExtent[0]);
+            firstDay.setHours(0);
+            firstDay.setMinutes(0);
+            firstDay.setMilliseconds(0);
+
+            dataValues.forEach(function(value,index){
+
+                //Given the data index and the from date, calculate the current date
+                var curDate = dateExtent[0].getTime() + index * this.data['step'];
+
+                //How many days has been since the from date
+                var day = Math.floor((curDate - firstDay) / ONE_DAY_MS);
+
+                //Increment the value for that day
+                dailyValues[day] = (dailyValues[day] != null ? dailyValues[day] + value : value);
+
             }.bind(this));
-    };
 
-    var paint = function paint() {
+            this.maxValue = -1;
+            this.minValue = Infinity;
 
-        if(this.data == null) {
-            return; // Nothing to paint
-        }
+            //Get the min and max values (to create later the color scale)
+            dailyValues.forEach(function(value){
+                this.minValue = d3.min([this.minValue, value]);
+                this.maxValue = d3.max([this.maxValue, value]);
+            }.bind(this));
 
-        if(this.status === 1) {
-            this.updateSize();
-            return;
-        }
+            //Number of weeks to be displayed in the chart
+            var numWeeks = Math.ceil((dateExtent[1] - dateExtent[0] + weekDayFormat(dateExtent[0]) * ONE_DAY_MS) / ONE_WEEK_MS);
 
-        // Add an svg element to draw in it
-        this.element.append('<svg role="heatmap" class="heatmap blurable" preserveAspectRatio="xMidYMid"></svg>');
-        this.svg = this.element.children("svg");
+            axisWidth = itemSize * numWeeks; //53 weeks in a year
 
-        // Metric values
-        var dataValues = this.data['values'];
+            //render axises
+            xAxis.scale(xAxisScale.range([0,axisWidth]).domain([dateExtent[0],dateExtent[1]]));
+            yAxis.scale(yAxisScale.range([0,axisHeight]).domain([0,6]));
 
-        //UI configuration
-        var itemSize = 18,
-            cellSize = itemSize-1,
-            width = this.element.width(),
-            height = this.element.height(),
-            margin = {top:20,right:20,bottom:20,left:40};
+            d3svg.append('g')
+                .attr('transform','translate('+margin.left+','+margin.top+')')
+                .attr('class','x axis')
+                .call(xAxis);
+            d3svg.append('g')
+                .attr('transform','translate('+margin.left+','+margin.top+')')
+                .attr('class','y axis')
+                .call(yAxis);
 
-        //formats
-        var monthNameFormat = d3.time.format.utc('%b'),
-            weekDayFormat = d3.time.format.utc("%w");
+            //render heatmap rects
+            rect = heatmap.selectAll('rect')
+                .data(dailyValues)
+                .enter().append('rect')
+                .attr('width',cellSize)
+                .attr('height',cellSize)
+                .attr('x',function(d,index){
+                    var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
+                    return itemSize * Math.floor((curDate - firstDay + weekDayFormat(firstDay) * ONE_DAY_MS) / ONE_WEEK_MS);
+                })
+                .attr('y',function(d,index){
+                    var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
+                    return weekDayFormat(new Date(curDate))*itemSize;
+                })
+                .attr('fill','#ffffff');
 
-        //axises and scales
-        var axisWidth = 0 ,
-            axisHeight = itemSize*7,
-            xAxisScale = d3.time.scale(),
-            yAxisScale = d3.scale.linear(),
-            xAxis = d3.svg.axis()
-                .orient('top')
-                .ticks(d3.time.months,1)
-                .tickFormat(monthNameFormat),
-            weekDayNames = ["Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"];
-        yAxis = d3.svg.axis()
-            .orient('left')
-            .ticks(7)
-            .tickFormat(function(d, i){
-                return weekDayNames[d];
-            });
+            rect.filter(function(value){ return value>0;})
+                .append('title')
+                .text(function(value, index){
+                    var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
+                    return this.format.date(new Date(curDate))+': '+value;
+                });
 
-        var d3svg = d3.select(this.svg.get(0));
-        var heatmap = d3svg
-            .attr('width',width)
-            .attr('height',height)
-            .style('max-height', height)
-            .append('g')
-            .attr('width',width-margin.left-margin.right)
-            .attr('height',height-margin.top-margin.bottom)
-            .attr('class','heatmap-content')
-            .attr('transform','translate('+margin.left+','+margin.top+')');
+            renderColor.call(this, rect, dateExtent);
 
-        var rect = null;
-        var dailyValues = [];
+            var chartWidth = numWeeks * itemSize + margin.left + margin.right;
+            var chartHeight = 7 * itemSize + margin.top + margin.bottom;
+            d3svg.attr('viewBox', '0 0 '+chartWidth+' '+chartHeight);
+            this.aspect = chartWidth / chartHeight;
 
-        //Create a date extent object with the from and to dates
-        var dateExtent = [new Date(this.data['interval']['from']), new Date(this.data['interval']['to'])];
+            this.resizeEventHandler = updateSize.bind(this);
+            $(window).resize(this.resizeEventHandler);
 
-        //Clean the from date to start from midnight
-        var firstDay = new Date(dateExtent[0]);
-        firstDay.setHours(0);
-        firstDay.setMinutes(0);
-        firstDay.setMilliseconds(0);
+            updateSize.call(this);
 
-        dataValues.forEach(function(value,index){
+            this.status = 1;
 
-            //Given the data index and the from date, calculate the current date
-            var curDate = dateExtent[0].getTime() + index * this.data['step'];
+        };
 
-            //How many days has been since the from date
-            var day = Math.floor((curDate - firstDay) / ONE_DAY_MS);
+        window.framework.widgets.Heatmap = Heatmap;
+        return Heatmap;
 
-            //Increment the value for that day
-            dailyValues[day] = (dailyValues[day] != null ? dailyValues[day] + value : value);
-
-        }.bind(this));
-
-        this.maxValue = -1;
-        this.minValue = Infinity;
-
-        //Get the min and max values (to create later the color scale)
-        dailyValues.forEach(function(value){
-            this.minValue = d3.min([this.minValue, value]);
-            this.maxValue = d3.max([this.maxValue, value]);
-        }.bind(this));
-
-        //Number of weeks to be displayed in the chart
-        var numWeeks = Math.ceil((dateExtent[1] - dateExtent[0] + weekDayFormat(dateExtent[0]) * ONE_DAY_MS) / ONE_WEEK_MS);
-
-        axisWidth = itemSize * numWeeks; //53 weeks in a year
-
-        //render axises
-        xAxis.scale(xAxisScale.range([0,axisWidth]).domain([dateExtent[0],dateExtent[1]]));
-        yAxis.scale(yAxisScale.range([0,axisHeight]).domain([0,6]));
-
-        d3svg.append('g')
-            .attr('transform','translate('+margin.left+','+margin.top+')')
-            .attr('class','x axis')
-            .call(xAxis);
-        d3svg.append('g')
-            .attr('transform','translate('+margin.left+','+margin.top+')')
-            .attr('class','y axis')
-            .call(yAxis);
-
-        //render heatmap rects
-        rect = heatmap.selectAll('rect')
-            .data(dailyValues)
-            .enter().append('rect')
-            .attr('width',cellSize)
-            .attr('height',cellSize)
-            .attr('x',function(d,index){
-                var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
-                return itemSize * Math.floor((curDate - firstDay + weekDayFormat(firstDay) * ONE_DAY_MS) / ONE_WEEK_MS);
-            })
-            .attr('y',function(d,index){
-                var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
-                return weekDayFormat(new Date(curDate))*itemSize;
-            })
-            .attr('fill','#ffffff');
-
-        rect.filter(function(value){ return value>0;})
-            .append('title')
-            .text(function(value, index){
-                var curDate = dateExtent[0].getTime() + index * ONE_DAY_MS;
-                return this.format.date(new Date(curDate))+': '+value;
-            });
-
-        renderColor.call(this, rect, dateExtent);
-
-        var chartWidth = numWeeks * itemSize + margin.left + margin.right;
-        var chartHeight = 7 * itemSize + margin.top + margin.bottom;
-        d3svg.attr('viewBox', '0 0 '+chartWidth+' '+chartHeight);
-        this.aspect = chartWidth / chartHeight;
-
-        this.resizeEventHandler = updateSize.bind(this);
-        $(window).resize(this.resizeEventHandler);
-
-        updateSize.call(this);
-
-        this.status = 1;
-
-    };
+    });
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
@@ -319,11 +326,10 @@
             'd3',
             'css!vendor/sdh-framework/framework.widget.heatmap.css'
         ], function () {
-            window.framework.widgets.Heatmap = Heatmap;
-            return Heatmap;
+            return __loader();
         });
     } else{
-        window.framework.widgets.Heatmap = Heatmap;
+        __loader();
     }
 
 })();

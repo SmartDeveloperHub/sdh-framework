@@ -1555,17 +1555,20 @@
                 isReady: isFrameworkReady
             };
 
-            // AMD compliant
-            if ( typeof define === "function" && define.amd) {
-                define( "framework", [
-                    'jquery'
-                ], function () { return window.framework; } );
-            }
-
         }
 
     };
 
-    frameworkInit();
+    // AMD compliant
+    if ( typeof define === "function" && define.amd) {
+        define( "framework", [
+            'jquery'
+        ], function () {
+            frameworkInit();
+            return window.framework;
+        } );
+    } else {
+        frameworkInit();
+    }
 
 })();
