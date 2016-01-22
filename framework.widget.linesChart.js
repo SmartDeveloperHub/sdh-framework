@@ -341,11 +341,18 @@
 
     };
 
-    window.framework.widgets.LinesChart = LinesChart;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return LinesChart; } );
+        define( [
+            'widgetCommon',
+            'd3',
+            'css!vendor/sdh-framework/framework.widget.linesChart.css'
+        ], function () {
+            window.framework.widgets.LinesChart = LinesChart;
+            return LinesChart;
+        } );
+    } else {
+        window.framework.widgets.LinesChart = LinesChart;
     }
 
 })();

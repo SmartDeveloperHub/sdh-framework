@@ -692,12 +692,19 @@
 
     };
 
-    window.framework.widgets.Table = Table;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['datatables',
-            'css!/vendor/datatables/media/css/jquery.dataTables.min'], function () { return Table; } );
+        define( [
+            'widgetCommon',
+            'datatables',
+            'css!vendor/sdh-framework/framework.widget.table.css',
+            'css!/vendor/datatables/media/css/jquery.dataTables.min'
+        ], function () {
+            window.framework.widgets.Table = Table;
+            return Table;
+        } );
+    } else {
+        window.framework.widgets.Table = Table;
     }
 
 })();

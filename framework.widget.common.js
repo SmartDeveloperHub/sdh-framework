@@ -65,14 +65,6 @@
 
     var oldContainerClass, oldposstyle;
 
-    // Set the global and set it to be reset on every change of dashboard
-    CommonWidget.prototype.previousColors = {};
-    framework.ready(function() {
-        framework.dashboard.addEventListener('change', function () {
-            CommonWidget.prototype.previousColors = {};
-        });
-    });
-
     CommonWidget.prototype.startLoading = function startLoading() {
         this._common.isloading += 1;
         if (this._common.isloading > 1) {
@@ -173,6 +165,9 @@
 
         return false;
     };
+
+    // Set the global
+    CommonWidget.prototype.previousColors = {};
 
     /**
      * Generates colors for the chart given the data received from the framework and a palette. This method must be
@@ -540,12 +535,27 @@
         return Function.prototype.bind.apply(sandbox, context); // bind the local variables to the sandbox
     }
 
-
-    window.framework.widgets.CommonWidget = CommonWidget;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( "widgetCommon", [], function () { return CommonWidget; } );
+        define( "widgetCommon", [
+            'framework',
+            'css!vendor/sdh-framework/framework.widget.common.css'
+        ], function () {
+
+            //Register it in the framework
+            window.framework.widgets.CommonWidget = CommonWidget;
+
+            //Set it to be reset on every change of dashboard
+            framework.ready(function() {
+                framework.dashboard.addEventListener('change', function () {
+                    CommonWidget.prototype.previousColors = {};
+                });
+            });
+
+            return CommonWidget;
+        } );
+    } else {
+        window.framework.widgets.CommonWidget = CommonWidget;
     }
 
 })();

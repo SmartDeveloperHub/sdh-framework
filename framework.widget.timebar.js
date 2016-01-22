@@ -248,12 +248,20 @@
         progress.append(bar);
     };
 
-    // Register the widget in the framework
-    window.framework.widgets.TimeBar = TimeBar;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [ 'jquery-qtip' ], function () { return TimeBar; } );
+        define( [
+            'widgetCommon',
+            'jquery-qtip',
+            'css!vendor/bootstrap/dist/css/bootstrap.min.css',
+            'css!vendor/sdh-framework/framework.widget.timebar.css',
+            'css!vendor/qtip2/jquery.qtip.min.css'
+        ], function () {
+            window.framework.widgets.TimeBar = TimeBar;
+            return TimeBar;
+        } );
+    } else {
+        window.framework.widgets.TimeBar = TimeBar;
     }
 
 })();

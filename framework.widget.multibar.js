@@ -333,11 +333,17 @@
 
     };
 
-    window.framework.widgets.MultiBar = MultiBar;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return MultiBar; } );
+        define( [
+            'widgetCommon',
+            'nvd3'
+        ], function () {
+            window.framework.widgets.MultiBar = MultiBar;
+            return MultiBar;
+        } );
+    } else {
+        window.framework.widgets.MultiBar = MultiBar;
     }
 
 })();

@@ -371,11 +371,17 @@
 
     };
 
-    window.framework.widgets.HorizontalBar = HorizontalBar;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return HorizontalBar; } );
+        define( [
+            'widgetCommon',
+            'nvd3'
+        ], function () {
+            window.framework.widgets.HorizontalBar = HorizontalBar;
+            return HorizontalBar;
+        } );
+    } else {
+        window.framework.widgets.HorizontalBar = HorizontalBar;
     }
 
 })();

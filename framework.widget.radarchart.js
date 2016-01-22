@@ -313,11 +313,17 @@
 
     };
 
-    window.framework.widgets.RadarChart = RadarChart;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['/vendor/Chart.js/Chart.js'], function () { return RadarChart; } );
+        define( [
+            'widgetCommon',
+            '/vendor/Chart.js/Chart.js'
+        ], function () {
+            window.framework.widgets.RadarChart = RadarChart;
+            return RadarChart;
+        } );
+    } else {
+        window.framework.widgets.RadarChart = RadarChart;
     }
 
 })();

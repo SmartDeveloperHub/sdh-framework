@@ -271,11 +271,17 @@
 
     };
 
-    window.framework.widgets.PieChart = PieChart;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return PieChart; } );
+        define( [
+            'widgetCommon',
+            'nvd3'
+        ], function () {
+            window.framework.widgets.PieChart = PieChart;
+            return PieChart;
+        } );
+    } else {
+        window.framework.widgets.PieChart = PieChart;
     }
 
 })();

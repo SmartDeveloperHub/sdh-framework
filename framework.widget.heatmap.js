@@ -312,11 +312,18 @@
 
     };
 
-    window.framework.widgets.Heatmap = Heatmap;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['css!sdh-framework/framework.widget.heatmap'], function () { return Heatmap; });
+        define( [
+            'widgetCommon',
+            'd3',
+            'css!vendor/sdh-framework/framework.widget.heatmap.css'
+        ], function () {
+            window.framework.widgets.Heatmap = Heatmap;
+            return Heatmap;
+        });
+    } else{
+        window.framework.widgets.Heatmap = Heatmap;
     }
 
 })();

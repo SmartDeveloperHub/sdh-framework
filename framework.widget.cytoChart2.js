@@ -358,11 +358,20 @@
 
     };
 
-    window.framework.widgets.CytoChart2 = CytoChart2;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['jquery-qtip', 'cytoscape', 'cytoscape-qtip'], function () { return CytoChart2; } );
+        define( [
+            'widgetCommon',
+            'jquery-qtip',
+            'cytoscape',
+            'cytoscape-qtip',
+            'css!vendor/sdh-framework/framework.widget.cytoChart2.css'
+        ], function () {
+            window.framework.widgets.CytoChart2 = CytoChart2;
+            return CytoChart2;
+        } );
+    } else {
+        window.framework.widgets.CytoChart2 = CytoChart2;
     }
 
 })();

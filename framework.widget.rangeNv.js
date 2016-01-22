@@ -411,11 +411,17 @@
 
     };
 
-    window.framework.widgets.RangeNv = RangeNv;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return RangeNv; } );
+        define( [
+            'widgetCommon',
+            'nvd3'
+        ], function () {
+            window.framework.widgets.RangeNv = RangeNv;
+            return RangeNv;
+        } );
+    } else {
+        window.framework.widgets.RangeNv = RangeNv;
     }
 
 })();

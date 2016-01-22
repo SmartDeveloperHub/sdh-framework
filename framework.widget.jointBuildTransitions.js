@@ -574,14 +574,19 @@
         //}).bind(this);
     };
 
-    window.framework.widgets.BuildTransitions = BuildTransitions;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['joint'], function (_joint) {
+        define( [
+            'widgetCommon',
+            'joint',
+            'css!vendor/sdh-framework/framework.widget.jointBuildTransitions.css'
+        ], function (_joint) {
             joint = _joint;
+            window.framework.widgets.BuildTransitions = BuildTransitions;
             return BuildTransitions;
         });
+    } else {
+        window.framework.widgets.BuildTransitions = BuildTransitions;
     }
 
 })();

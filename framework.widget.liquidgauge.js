@@ -504,11 +504,17 @@
         return new GaugeUpdater();
     }
 
-    window.framework.widgets.LiquidGauge = LiquidGauge;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return LiquidGauge; } );
+        define( [
+            'widgetCommon',
+            'd3'
+        ], function () {
+            window.framework.widgets.LiquidGauge = LiquidGauge;
+            return LiquidGauge;
+        } );
+    } else {
+        window.framework.widgets.LiquidGauge = LiquidGauge;
     }
 
 })();

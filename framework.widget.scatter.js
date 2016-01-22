@@ -551,11 +551,17 @@
 
     };
 
-    window.framework.widgets.Scatter = Scatter;
-
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [], function () { return Scatter; } );
+        define( [
+            'widgetCommon',
+            'nvd3'
+        ], function () {
+            window.framework.widgets.Scatter = Scatter;
+            return Scatter;
+        } );
+    } else {
+        window.framework.widgets.Scatter = Scatter;
     }
 
 })();

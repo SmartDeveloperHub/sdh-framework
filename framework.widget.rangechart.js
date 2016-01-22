@@ -204,8 +204,6 @@
 
     };
 
-    window.framework.widgets.RangeChart = RangeChart;
-
 
     // PRIVATE METHODS - - - - - - - - - - - - - - - - - - - - - -
     var dragTime4Pixel = 4500000;
@@ -489,7 +487,16 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( ['css!sdh-framework/framework.widget.rangechart'], function () { return RangeChart; });
+        define( [
+            'widgetCommon',
+            'd3',
+            'css!vendor/sdh-framework/framework.widget.rangechart.css'
+        ], function () {
+            window.framework.widgets.RangeChart = RangeChart;
+            return RangeChart;
+        });
+    } else {
+        window.framework.widgets.RangeChart = RangeChart;
     }
 
 })();
