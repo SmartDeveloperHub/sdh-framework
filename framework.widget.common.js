@@ -237,7 +237,7 @@
 
         /**
          * Generic observe methods that should be used in the widget as it controls concurrency problems.
-         * When new data is received, the updateData method is called.
+         * When new data is received, the updateData method is called. It also triggers an DATA_RECEIVED event.
          * @param event
          */
         CommonWidget.prototype.commonObserveCallback = function commonObserveCallback(event) {
@@ -263,6 +263,9 @@
                 }
 
                 this.endLoading(this.updateData.bind(this, event.data));
+
+                $(this).trigger("DATA_RECEIVED", event.data);
+
             }
 
         };
