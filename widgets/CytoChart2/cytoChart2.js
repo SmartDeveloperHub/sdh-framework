@@ -372,7 +372,7 @@
             'jquery-qtip',
             'cytoscape',
             'cytoscape-qtip',
-            'css!vendor/sdh-framework/widgets/cytoChart2.css'
+            'css!vendor/sdh-framework/widgets/CytoChart2/cytoChart2.css'
         ], function () {
             return __loader();
         } );

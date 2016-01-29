@@ -585,7 +585,7 @@
         define( [
             '../../vendor/joint/joint',
             'widgetCommon',
-            'css!vendor/sdh-framework/widgets/jointBuildTransitions.css'
+            'css!vendor/sdh-framework/widgets/JointBuildTransitions/jointBuildTransitions.css'
         ], function (_joint) {
             return __loader(_joint);
         });

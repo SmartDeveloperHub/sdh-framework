@@ -324,7 +324,7 @@
         define( [
             'widgetCommon',
             'd3',
-            'css!vendor/sdh-framework/widgets/heatmap.css'
+            'css!vendor/sdh-framework/widgets/HeatMap/heatmap.css'
         ], function () {
             return __loader();
         });
