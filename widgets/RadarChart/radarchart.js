@@ -325,7 +325,7 @@
     if ( typeof define === "function" && define.amd) {
         define( [
             'widgetCommon',
-            '/vendor/Chart.js/Chart.js'
+            'vendor/Chart.js/Chart'
         ], function () {
             return __loader();
         } );
