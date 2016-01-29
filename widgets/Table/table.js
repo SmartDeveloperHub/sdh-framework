@@ -703,7 +703,7 @@
         define( [
             'widgetCommon',
             'datatables',
-            'css!vendor/sdh-framework/framework.widget.table.css',
+            'css!vendor/sdh-framework/widgets/table.css',
             'css!/vendor/datatables/media/css/jquery.dataTables.min'
         ], function () {
             return __loader();

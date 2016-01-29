@@ -558,7 +558,7 @@
     if ( typeof define === "function" && define.amd) {
         define( "widgetCommon", [
             'framework',
-            'css!vendor/sdh-framework/framework.widget.common.css'
+            'css!vendor/sdh-framework/widgets/Common/common.css'
         ], function () {
             return __loader();
         } );

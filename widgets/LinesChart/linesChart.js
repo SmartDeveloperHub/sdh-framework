@@ -353,7 +353,7 @@
         define( [
             'widgetCommon',
             'd3',
-            'css!vendor/sdh-framework/framework.widget.linesChart.css'
+            'css!vendor/sdh-framework/widgets/linesChart.css'
         ], function () {
             return __loader();
         } );

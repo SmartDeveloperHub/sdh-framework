@@ -583,9 +583,9 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'joint',
+            '../../vendor/joint/joint',
             'widgetCommon',
-            'css!vendor/sdh-framework/framework.widget.jointBuildTransitions.css'
+            'css!vendor/sdh-framework/widgets/jointBuildTransitions.css'
         ], function (_joint) {
             return __loader(_joint);
         });

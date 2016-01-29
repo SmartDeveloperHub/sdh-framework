@@ -263,7 +263,7 @@
     if ( typeof define === "function" && define.amd) {
         define( [
             'widgetCommon',
-            'css!vendor/sdh-framework/framework.widget.bigcounterbox.css'
+            'css!vendor/sdh-framework/widgets/BigCounterBox/bigcounterbox.css'
         ], function () {
             return __loader();
         } );

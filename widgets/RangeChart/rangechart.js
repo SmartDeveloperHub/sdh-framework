@@ -498,7 +498,7 @@
         define( [
             'widgetCommon',
             'd3',
-            'css!vendor/sdh-framework/framework.widget.rangechart.css'
+            'css!vendor/sdh-framework/widgets/rangechart.css'
         ], function () {
             return __loader();
         });

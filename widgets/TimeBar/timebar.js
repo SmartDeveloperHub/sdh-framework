@@ -261,7 +261,7 @@
             'nvd3',
             'jquery-qtip',
             'css!vendor/bootstrap/dist/css/bootstrap.min.css',
-            'css!vendor/sdh-framework/framework.widget.timebar.css',
+            'css!vendor/sdh-framework/widgets/timebar.css',
             'css!vendor/qtip2/jquery.qtip.min.css'
         ], function () {
             return __loader();
