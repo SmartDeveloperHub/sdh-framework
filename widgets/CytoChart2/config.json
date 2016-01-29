@@ -1,3 +1,4 @@
 {
-    "name": "CytoChart2"
+    "name": "CytoChart2",
+    "main": "cytoChart2.js"
 }

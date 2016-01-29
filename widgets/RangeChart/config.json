@@ -1,3 +1,4 @@
 {
-    "name": "RangeChart"
+    "name": "RangeChart",
+    "main": "rangechart.js"
 }

@@ -1,3 +1,4 @@
 {
-    "name": "TimeBar"
+    "name": "TimeBar",
+    "main": "timebar.js"
 }

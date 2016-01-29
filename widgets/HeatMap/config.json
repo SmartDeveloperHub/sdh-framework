@@ -1,3 +1,4 @@
 {
-    "name": "Heatmap"
+    "name": "Heatmap",
+    "main": "heatmap.js"
 }

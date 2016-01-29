@@ -1,3 +1,4 @@
 {
-    "name": "LinesChart"
+    "name": "LinesChart",
+    "main": "linesChart.js"
 }

@@ -1,3 +1,4 @@
 {
-    "name": "BuildTransitions"
+    "name": "BuildTransitions",
+    "main": "jointBuildTransitions.js"
 }

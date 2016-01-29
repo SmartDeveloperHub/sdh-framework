@@ -1,3 +1,4 @@
 {
-    "name": "PieChart"
+    "name": "PieChart",
+    "main": "piechart.js"
 }

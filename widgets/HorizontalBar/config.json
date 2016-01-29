@@ -1,3 +1,4 @@
 {
-    "name": "HorizontalBar"
+    "name": "HorizontalBar",
+    "main": "horizontalbar.js"
 }

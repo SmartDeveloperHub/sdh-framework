@@ -1,3 +1,4 @@
 {
-    "name": "Table"
+    "name": "Table",
+    "main": "table.js"
 }

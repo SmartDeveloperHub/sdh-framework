@@ -1,3 +1,4 @@
 {
-    "name": "RadarChart"
+    "name": "RadarChart",
+    "main": "radarchart.js"
 }

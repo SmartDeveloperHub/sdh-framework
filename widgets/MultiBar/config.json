@@ -1,3 +1,4 @@
 {
-    "name": "MultiBar"
+    "name": "MultiBar",
+    "main": "multibar.js"
 }

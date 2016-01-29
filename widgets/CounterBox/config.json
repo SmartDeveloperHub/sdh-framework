@@ -1,3 +1,4 @@
 {
-    "name": "CounterBox"
+    "name": "CounterBox",
+    "main": "counterbox.js"
 }

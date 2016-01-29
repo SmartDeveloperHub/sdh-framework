@@ -1,3 +1,4 @@
 {
-    "name": "RangeNv"
+    "name": "RangeNv",
+    "main": "rangeNv.js"
 }
