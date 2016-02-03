@@ -1,11 +1,10 @@
-.timebar-container {
-    padding: 5px;
+.timebar-container > .progress {
+    margin-bottom: 0;
 }
+
 .timebar-container .axis {
     overflow: visible;
     height: 25px;
-    position: relative;
-    top: -15px;
 }
 .timebar-container .axis path {
     opacity: 0.5;

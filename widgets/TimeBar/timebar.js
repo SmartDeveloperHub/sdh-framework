@@ -133,8 +133,8 @@
             this.element.find(".timebar-container").remove();
 
             // Add new bar
-            this.element.append('<div class="timebar-container blurable">' +
-                    '<div class="progress" style="height: ' + this.configuration.height + 'px"></div>' +
+            this.element.append('<div class="timebar-container blurable"  style="height: ' + this.configuration.height + 'px">' +
+                    '<div class="progress"></div>' +
                     '<svg class="axis nvd3"></svg>' +
                 '</div>');
             var progress = this.element.find(".progress");
