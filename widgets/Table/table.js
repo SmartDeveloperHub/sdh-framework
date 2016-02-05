@@ -704,7 +704,7 @@
             'widgetCommon',
             'datatables',
             'css!vendor/sdh-framework/widgets/Table/table.css',
-            'css!/vendor/datatables/media/css/jquery.dataTables.min'
+            'css!vendor/datatables/media/css/jquery.dataTables.min'
         ], function () {
             return __loader();
         } );
