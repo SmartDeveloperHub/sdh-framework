@@ -1,3 +1,7 @@
+.timebar-container  {
+    display: block;
+}
+
 .timebar-container > .progress {
     margin-bottom: 0;
 }
