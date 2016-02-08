@@ -404,7 +404,8 @@
                 "oLanguage": {
                     "sSearch": "",
                     "sSearchPlaceholder": "Search..."
-                }
+                },
+                "paging": this.configuration.paginationControl
             };
             if(this.configuration.orderByColumn instanceof Array) {
                 conf['order'] = this.configuration.orderByColumn;
