@@ -33,7 +33,7 @@
                 type: ['number'],
                 default: 240
             },
-            radius: {
+            width: {
                 type: ['number'],
                 default: 200
             },
@@ -102,7 +102,7 @@
          *   configuration: additional chart configuration:
          *      {
          *       ~ height: number - Height of the widget.
-         *       ~ radius: number - The radius of the widget.
+         *       ~ width: number - Width of the widget.
          *       ~ labels: array - Array of labels
          *       ~ labelsAssoc: array - Array of hashmaps with the association of metricName -> label. The order of the
          *         hashmaps determines the order of the datasets.
@@ -227,11 +227,11 @@
         var createChart = function createChart() {
             if(this.canvas == null) {
                 this.element.append('<div class="blurable"><canvas></canvas></div>');
-                this.container = this.element.children("div");
+                this.container = this.element.children(".blurable");
                 this.canvas = this.container.children("canvas");
                 this.container.get(0).style.minHeight = this.configuration.height + "px";
-                this.canvas.attr('height', this.configuration.radius * 2);
-                this.canvas.attr('width', this.configuration.radius* 2);
+                this.canvas.attr('height', this.configuration.height);
+                this.canvas.attr('width', this.configuration.width);
 
 
                 var ctx = this.canvas.get(0).getContext("2d");
