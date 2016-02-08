@@ -86,6 +86,16 @@
     };
 
     /**
+     * Prints a framework error and sends an error event to the observer.
+     * @param message
+     * @param callback
+     */
+    var errorWithObserve = function(message, callback) {
+        error(message);
+        sendErrorEventToCallback(message, callback);
+    };
+
+    /**
      * Prints a framework warning
      * @param message Message to display.
      */
@@ -94,7 +104,7 @@
     };
 
 
-    var requestJSON = function requestJSON(path, queryParams, callback, maxRetries) {
+    var requestJSON = function requestJSON(path, queryParams, callback, maxRetries, onError) {
 
         if(typeof maxRetries === 'undefined'){
             maxRetries = 2; //So up to 3 times will be requested
@@ -113,8 +123,6 @@
 
             }
         }).fail( function(jqxhr, textStatus, e) {
-            error("Framework getJSON request failed\nStatus: " + textStatus + " \nError: "+ (e ? e : '-') + "\nRequested url: '"+
-                path+"'\nParameters: " + JSON.stringify(queryParams));
 
             // Handle authentication error
             if(jqxhr.statusCode() == 401) {
@@ -128,6 +136,12 @@
             //Retry the request
             if (maxRetries > 0 && textStatus === "timeout") {
                 requestJSON(path, queryParams, callback, --maxRetries);
+            } else {
+                error("Framework getJSON request failed\nStatus: " + textStatus + " \nError: "+ (e ? e : '-') + "\nRequested url: '"+
+                    path+"'\nParameters: " + JSON.stringify(queryParams));
+                if(typeof onError === 'function') {
+                    onError(e);
+                }
             }
 
         });
@@ -146,7 +160,7 @@
      *   }
      * @param onReady
      */
-    var loadResourcesInfo = function loadResourcesInfo(onReady) {
+    var loadResourcesInfo = function loadResourcesInfo(onReady, onError) {
 
         requestJSON("/api/", null, function(data) {
 
@@ -276,12 +290,12 @@
                     }
 
                     pathProcessed(); //Finished processing this path
-                }.bind(null, x));
+                }.bind(null, x), 2, onError);
 
 
             }
 
-        });
+        }, 3, onError);
     };
 
     /**
@@ -332,7 +346,8 @@
      * Request a given resource
      * @param resourceId
      * @param params Parameters of the request
-     * @param callback Callback to execute when the response is retrieved
+     * @param callback Callback to execute when the response is retrieved (or when an error happened, in which case the
+     *                  data returned in the callback will be null)
      */
     var makeResourceRequest = function makeResourceRequest(resourceId, params, callback) {
 
@@ -369,10 +384,13 @@
 
 
             /* Make the request */
-            requestJSON(path, queryParams, callback);
+            requestJSON(path, queryParams, callback, 0, function() { //In case of error return null
+                callback(null);
+            });
 
         } else {
             error("Resource '"+ resourceId + "' does not exist.");
+            callback(null);
         }
 
     };
@@ -408,6 +426,10 @@
          * @param data
          */
         var onResourceReady = function(resourceId, groupId, params, postModifier, data) {
+
+            if(data == null) {
+                sendErrorEventToCallback("An error occurred while requesting resource " + resourceId, callback);
+            }
 
             if(allData[resourceId] == null) {
                 allData[resourceId] = [];
@@ -957,6 +979,18 @@
     };
 
     /**
+     * Sens an error event to the given observer.
+     * @param msg Text to display
+     * @param callback
+     */
+    var sendErrorEventToCallback = function sendErrorEventToCallback(msg, callback) {
+        callback({
+            event: "error",
+            msg: msg
+        });
+    };
+
+    /**
      * This post aggreator makes the summation of all the values of the responses of a request group.
      * @param responses List of framework responses to a group request (all the requests that appear after expanding all
      *                  the multiparameters).
@@ -1037,18 +1071,17 @@
      */
     _self.data.observe = function observe(resources, callback, contextIds) {
 
-        if('function' !== typeof callback){
-            error("Method 'observeData' requires a valid callback function.");
-            return;
+        if('function' !== typeof callback) {
+            throw new Error("Method 'observeData' requires a valid callback function.");
         }
 
         if(!Array.isArray(resources) || resources.length === 0 ) {
-            error("Method 'observeData' has received an invalid resources parameter.");
+            errorWithObserve("Method 'observeData' has received an invalid resources parameter.", callback);
             return;
         }
 
         if(contextIds != null && !(contextIds instanceof Array) ) {
-            error("Method 'observeData' expects contextIds parameter to be null or an array.");
+            errorWithObserve("Method 'observeData' expects contextIds parameter to be null or an array.", callback);
             return;
         }
 
@@ -1056,7 +1089,7 @@
         resources = normalizeResources(resources);
 
         if(resources.length === 0) {
-            warn("No resources to observe.");
+            errorWithObserve("No resources to observe.", callback);
             return;
         }
 
@@ -1066,7 +1099,7 @@
                 for(var s = 0; s < resources[i]['static'].length; ++s) {
                     var staticParam = resources[i]['static'][s];
                     if(resources[i][staticParam] == null) {
-                        error("Static parameter '"+staticParam+"' must have its value defined.");
+                        errorWithObserve("Static parameter '"+staticParam+"' must have its value defined.", callback);
                         return;
                     }
                 }
@@ -1160,7 +1193,7 @@
             if(allResourcesCanBeRequested(resources)) {
                 multipleResourcesRequest(resources, callback, true);
             } else {
-                error("Some of the resources have not information enough for an 'observe' without context or does not exist.");
+                errorWithObserve("Some of the resources have not information enough for an 'observe' without context or does not exist.", callback);
             }
         }
 
@@ -1536,16 +1569,6 @@
 
         if(frameworkPreCheck()) {
 
-            loadResourcesInfo(function(){
-
-                window.framework.data = _self.data;
-                window.framework.dashboard = _self.dashboard;
-                window.framework.utils = _self.utils;
-
-                _isReady = true;
-                $(_eventBox).trigger("FRAMEWORK_READY");
-            });
-
             window.framework = {
                 data: {},
                 widgets: {},
@@ -1554,6 +1577,21 @@
                 ready: frameworkReady, /* Method to add a callback that will be executed when the framework is ready */
                 isReady: isFrameworkReady
             };
+
+            loadResourcesInfo(function(){ //Everything ok
+
+                window.framework.data = _self.data;
+                window.framework.dashboard = _self.dashboard;
+                window.framework.utils = _self.utils;
+
+                _isReady = true;
+                $(_eventBox).trigger("FRAMEWORK_READY");
+
+            }, function(e) { //An error happened
+                _isReady = false;
+                $(_eventBox).off("FRAMEWORK_READY");
+                $(window).trigger("FRAMEWORK_INITIALIZATION_ERROR", e);
+            });
 
         }
 

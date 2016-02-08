@@ -248,6 +248,7 @@
 
             if(event.event === 'loading') {
                 this.startLoading();
+
             } else if(event.event === 'data') {
 
                 //Check if there is any metric that needs to be filled with zeros
@@ -265,6 +266,18 @@
                 this.endLoading(this.updateData.bind(this, event.data));
 
                 $(this).trigger("DATA_RECEIVED", event.data);
+
+            } else if(event.event === 'error') {
+
+                if(this.onError != null) { //If the widget has a method to handle the errors, execute it
+                    this.endLoading();
+                    this.onError(event.msg);
+                } else { //Default action
+                    this.endLoading();
+                    $(this._common.container).append("<div class='widget-error'>The resource of this widget could not be retrieved!</div>")
+                }
+
+                $(this).trigger("ERROR", event.msg);
 
             }
 
