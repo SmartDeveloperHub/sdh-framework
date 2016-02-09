@@ -173,7 +173,8 @@
             for(var i = 0, nItems = this.chart.datasets[0].points.length; i < nItems; ++i) {
                 this.chart.removeData();
             }
-            for(var label in normalizedData) {
+            for(var l in this.configuration.labels) {
+                var label = this.configuration.labels[l];
                 this.chart.addData( normalizedData[label], label );
             }
             this.chart.update();
