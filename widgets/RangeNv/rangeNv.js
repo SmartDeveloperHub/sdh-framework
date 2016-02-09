@@ -328,7 +328,7 @@
                     //.forceY([this.maxY + 10, this.minY]);
                 this.chart = chart;
 
-                chart.margin({"top":10,"bottom":14});
+                chart.margin({"top":10,"bottom":14, "right":40});
 
                 chart.xAxis.tickFormat(function(d) {
                     return this.format.date(new Date(d));
