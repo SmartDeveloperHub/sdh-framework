@@ -235,13 +235,11 @@
                             return d.label;
                         })
                         .y(function(d) {
-
                             //Truncate decimals
-                            if(this.configuration.maxDecimals >= 0) {
+                            /*if(this.configuration.maxDecimals >= 0) {
                                 var pow =  Math.pow(10, this.configuration.maxDecimals);
                                 d.value = Math.floor(d.value * pow) / pow;
-                            }
-
+                            }*/
                             return d.value;
                         }.bind(this))
                         .donut(this.configuration.donut)
@@ -253,9 +251,10 @@
                         .showLabels(this.configuration.showLabels)
                         .donutRatio(this.configuration.donutRatio)
                         .duration(this.configuration.duration)
-                        .labelsOutside(this.configuration.labelsOutside)
-                        .color(this.generateColors(framework_data));
-
+                        .labelsOutside(this.configuration.labelsOutside);
+                    this.chart.tooltip.contentGenerator(function(e) {
+                         return '<p style="color:#6F6C6C">' + e.data.label + '  <strong style="color:black">' + e.data.value + '</strong><p>';
+                     });
                     d3.select(this.svg.get(0))
                         .datum(data) //TODO
                         .transition().duration(0)
