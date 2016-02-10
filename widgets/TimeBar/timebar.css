@@ -34,3 +34,15 @@
 .nvd3 .nv-axis .nv-axisMaxMin text {
     font-weight: normal;
 }
+
+.qtip.qtip-default.qtip-bootstrap.qtip-pos-tc .qtip-content{
+    margin-top: 5px;
+}
+
+.qtip.qtip-default.qtip-bootstrap.qtip-pos-tc .qtip-content p{
+    font-family: Roboto;
+    font-size: 16px;
+    color: #6F6C6C;
+    width: 100%;
+    text-align: center;
+}
