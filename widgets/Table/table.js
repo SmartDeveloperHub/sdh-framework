@@ -376,6 +376,22 @@
                         render: columnIconRenderer
                     };
 
+                } else if(columnConfig['img'] != null) { //Is an image
+                    var _data = {img: columnConfig['img']};
+                    column = {
+                        data: function(){ return _data; },
+                        orderable: false,
+                        searchable: false,
+                        render: columnIconRenderer
+                    };
+                } else if(columnConfig['icon'] != null) { //Is an icon
+                    var _data = {icon: columnConfig['icon']};
+                    column = {
+                        data: function(){ return _data; },
+                        orderable: false,
+                        searchable: false,
+                        render: columnIconRenderer
+                    }
                 }
 
                 //If it has the required properties
@@ -521,6 +537,11 @@
 
             var linkInfo = widget.table.cell(cell).data();
             var rowData = widget.table.row(cell.parent()).data();
+
+            //If link information is not set, do not try to change to a dashboard
+            if(linkInfo['href'] == null || typeof linkInfo['href'] !== 'string' || linkInfo['href'].length === 0) {
+                return;
+            }
 
             //Generate the env
             var env = null;
