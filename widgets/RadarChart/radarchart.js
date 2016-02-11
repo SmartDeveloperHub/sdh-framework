@@ -230,13 +230,16 @@
                 this.element.append('<div class="blurable"><canvas></canvas></div>');
                 this.container = this.element.children(".blurable");
                 this.canvas = this.container.children("canvas");
-                this.container.get(0).style.minHeight = this.configuration.height + "px";
+                /*this.container.get(0).style.minHeight = this.configuration.height + "px";
+
                 this.canvas.attr('height', this.configuration.height);
                 this.canvas.attr('width', this.configuration.width);
+                this.canvas.attr('margin', 0);*/
 
 
                 var ctx = this.canvas.get(0).getContext("2d");
-                Chart.defaults.global.responsive = false; //TODO: responsive works rare
+                Chart.defaults.global.responsive = true;
+                Chart.defaults.global.maintainAspectRatio = false; // Reverse behaviour ?? :/
 
                 var chartConfig = {
                     labels: this.configuration.labels,
