@@ -43,14 +43,11 @@
     // It is only for performance purposes while checking input.
     var _existentParametersList = [];
 
-    // Storage of the data data
-    var _resourcesStorage = {}; //TODO: multi-level cache
-
     var _resourcesContexts = {};
 
     // Contains a list that links user callbacks (given as parameter at the observe methods) with the internal
     // callbacks. It is need to remove handlers when not used and free memory.
-    var _event_handlers = [];
+    var _event_handlers = {};
 
     // This is a variable to make the events invisible outside the framework
     var _eventBox = {};
@@ -64,6 +61,12 @@
     var _dashboardEventListeners = {
         'change' : []
     };
+
+    //Next observe id (this is the id to assign to the next observe method)...This should be autoincremented
+    var _nextObserveId = 0;
+
+    //Next request id (this is the id of a http request)...This should be autoincremented
+    var _nextRequestId = 0;
 
     var _isReady = false;
 
@@ -110,7 +113,7 @@
             maxRetries = 2; //So up to 3 times will be requested
         }
 
-        $.ajax({
+        var xhr = $.ajax({
             dataType: "json",
             url: _serverUrl + path,
             data: queryParams,
@@ -137,14 +140,19 @@
             if (maxRetries > 0 && textStatus === "timeout") {
                 requestJSON(path, queryParams, callback, --maxRetries);
             } else {
-                error("Framework getJSON request failed\nStatus: " + textStatus + " \nError: "+ (e ? e : '-') + "\nRequested url: '"+
-                    path+"'\nParameters: " + JSON.stringify(queryParams));
+                if(e != "abort") {
+                    error("Framework getJSON request failed\nStatus: " + textStatus + " \nError: "+ (e ? e : '-') + "\nRequested url: '"+
+                        path+"'\nParameters: " + JSON.stringify(queryParams));
+                }
+
                 if(typeof onError === 'function') {
                     onError(e);
                 }
             }
 
         });
+
+        return xhr;
 
     };
 
@@ -344,12 +352,13 @@
 
     /**
      * Request a given resource
+     * param observeId
      * @param resourceId
      * @param params Parameters of the request
      * @param callback Callback to execute when the response is retrieved (or when an error happened, in which case the
      *                  data returned in the callback will be null)
      */
-    var makeResourceRequest = function makeResourceRequest(resourceId, params, callback) {
+    var makeResourceRequest = function makeResourceRequest(observeId, resourceId, params, callback) {
 
         var resourceInfo = _resourcesInfo[resourceId];
 
@@ -381,12 +390,28 @@
 
             }
 
+            //Obtain an id for the request
+            var requestId = _nextRequestId++;
 
+            // Make the request. Once it has finished, remove it from the pending requests
+            var xhr = requestJSON(
+                path,
+                queryParams,
+                function(data) { //Success
+                    delete _event_handlers[observeId]['pendingRequests'][requestId];
+                    callback(data)
+                },
+                0,
+                function(e) { //In case of error return null
+                    delete _event_handlers[observeId]['pendingRequests'][requestId];
+                    if(e != "abort") {
+                        callback(null);
+                    }
+                }
+            );
 
-            /* Make the request */
-            requestJSON(path, queryParams, callback, 0, function() { //In case of error return null
-                callback(null);
-            });
+            // Store the pending request
+           _event_handlers[observeId]['pendingRequests'][requestId] = xhr;
 
         } else {
             error("Resource '"+ resourceId + "' does not exist.");
@@ -398,10 +423,10 @@
     /**
      * Requests multiple resources
      * @param resources Normalized resource
-     * @param callback
+     * @param observeId
      * @param unique Is this is a request that do not depend on any context, so it will be executed only once
      */
-    var multipleResourcesRequest = function multipleResourcesRequest(resources, callback, unique) {
+    var multipleResourcesRequest = function multipleResourcesRequest(resources, observeId, unique) {
 
         var completedRequests = 0;
         var allData = {};
@@ -416,6 +441,12 @@
                             // - responses: all the responses that belong to the request group
                             // - originalParams: the parameters of the request group (that is the request before expanding it)
 
+        // Callback to the user when the framework has new information about the observe
+        var callback = _event_handlers[observeId].userCallback;
+
+        // Cancel the previous pending requests of that observer
+        cancelPendingObserveRequests(observeId);
+
         /**
          * Callback to execute when the response is retrieved
          * @param resourceId
@@ -429,6 +460,7 @@
 
             if(data == null) {
                 sendErrorEventToCallback("An error occurred while requesting resource " + resourceId, callback);
+                return;
             }
 
             if(allData[resourceId] == null) {
@@ -554,7 +586,24 @@
             var groupId = requests[i]['groupId'];
             var resourceReadyCallback = onResourceReady.bind(undefined, resourceId, groupId, params, postModifier);
 
-             makeResourceRequest(resourceId, params, resourceReadyCallback);
+             makeResourceRequest(observeId, resourceId, params, resourceReadyCallback);
+        }
+
+    };
+
+    /**
+     * This method cancels all the pending requests that are being done to satisfy an observer
+     * @param observeId
+     */
+    var cancelPendingObserveRequests = function(observeId) {
+
+        if(_event_handlers[observeId] != null && _event_handlers[observeId]['pendingRequests'] != null) {
+
+            for(var requestId in _event_handlers[observeId]['pendingRequests']) {
+                _event_handlers[observeId]['pendingRequests'][requestId].abort();
+                delete _event_handlers[observeId]['pendingRequests'][requestId];
+            }
+
         }
 
     };
@@ -947,8 +996,8 @@
             // Check if it still is being observed
             var observed = false;
             if(!unique) {
-                for (var i in _event_handlers) {
-                    if (_event_handlers[i].userCallback === callback) {
+                for (var observeId in _event_handlers) {
+                    if (_event_handlers[observeId].userCallback === callback) {
                         observed = true;
                         break;
                     }
@@ -1130,17 +1179,26 @@
             }
         }
 
+        //The id assigned to this observe
+        var observeId = _nextObserveId;
+
         //If contexts are defined, combine the resources with the context in order to create more complete resources that could
         // be requested.
         if(contextIds.length > 0) {
 
+            //Store information about the observe
+            _event_handlers[observeId] = {
+                userCallback: callback,
+                contexts: contextIds,
+                contextHandler: contextEventHandler,
+                pendingRequests: {}
+            };
+
+            //Increment the id of the next one
+            _nextObserveId++;
+
             //Combine the resources with the context in order to create more complete resources that could be requested.
             var resourcesWithContext = combineResourcesWithContexts(resources, contextIds);
-
-            //Request all the resources if possible
-            if(allResourcesCanBeRequested(resourcesWithContext)) {
-                multipleResourcesRequest(resourcesWithContext, callback, false);
-            }
 
             //Create the CONTEXT event handler
             var contextEventHandler = function(event, contextCounter, contextChanges, contextId) {
@@ -1171,27 +1229,37 @@
                 var resourcesWithContext = combineResourcesWithContexts(resources, contextIds);
 
                 if(allResourcesCanBeRequested(resourcesWithContext)) {
-                    multipleResourcesRequest(resourcesWithContext, callback, false);
+                    multipleResourcesRequest(resourcesWithContext, observeId, false);
                 }
             };
-
-            //Link user callbacks with event handlers
-            _event_handlers.push({
-                userCallback: callback,
-                contexts: contextIds,
-                contextHandler: contextEventHandler
-            });
 
             // Create the CONTEXT event listener for each of the contexts
             for(var c in contextIds) {
                 $(_eventBox).on("CONTEXT" + contextIds[c], contextEventHandler);
             }
 
+            //Request all the resources if possible
+            if(allResourcesCanBeRequested(resourcesWithContext)) {
+                multipleResourcesRequest(resourcesWithContext, observeId, false);
+            }
+
         } else { //No context is set
 
             //Request all the resources
             if(allResourcesCanBeRequested(resources)) {
-                multipleResourcesRequest(resources, callback, true);
+
+                //Store information about the observe (this one does not have contextHandler because it has no contexts)
+                _event_handlers[observeId] = {
+                    userCallback: callback,
+                    contexts: [],
+                    pendingRequests: {}
+                };
+
+                //Increment the id of the next one
+                _nextObserveId++;
+
+                multipleResourcesRequest(resources, observeId, true);
+
             } else {
                 errorWithObserve("Some of the resources have not information enough for an 'observe' without context or does not exist.", callback);
             }
@@ -1204,12 +1272,17 @@
      * @param callback The callback that was given to the observe methods
      */
     _self.data.stopObserve = function stopObserve(callback) {
-        for (var i in _event_handlers) {
-            if(_event_handlers[i].userCallback === callback) {
-                for (var c in _event_handlers[i]['contexts']) {
-                    $(_eventBox).off("CONTEXT" + _event_handlers[i]['contexts'][c], _event_handlers[i]['contextHandler']);
+        for (var observeId in _event_handlers) {
+            if(_event_handlers[observeId].userCallback === callback) {
+
+                //Stop its pending requests
+                cancelPendingObserveRequests(observeId);
+                console.log("Canceling requests!!");
+
+                for (var c in _event_handlers[observeId]['contexts']) {
+                    $(_eventBox).off("CONTEXT" + _event_handlers[observeId]['contexts'][c], _event_handlers[observeId]['contextHandler']);
                 }
-                _event_handlers.splice(i, 1);
+                delete _event_handlers[observeId];
             }
         }
     };
@@ -1220,14 +1293,18 @@
     _self.data.stopAllObserves = function stopAllObserves() {
 
         //Remove all the event handlers
-        for (var i in _event_handlers) {
-            for (var c in _event_handlers[i]['contexts']) {
-                $(_eventBox).off("CONTEXT" + _event_handlers[i]['contexts'][c], _event_handlers[i]['contextHandler']);
+        for (var observeId in _event_handlers) {
+
+            //Stop its pending requests
+            cancelPendingObserveRequests(observeId);
+
+            for (var c in _event_handlers[observeId]['contexts']) {
+                $(_eventBox).off("CONTEXT" + _event_handlers[observeId]['contexts'][c], _event_handlers[observeId]['contextHandler']);
             }
         }
 
-        //Empty the array
-        _event_handlers.splice(0, _event_handlers.length);
+        //Empty the object
+        delete _event_handlers[observeId];
 
     };
 
@@ -1235,7 +1312,7 @@
      * Stops all the observers and clears contexts.
      */
     _self.data.clear = function() {
-
+        console.log("Clear!!");
         //Stop all the observes
         _self.data.stopAllObserves();
 
@@ -1349,11 +1426,14 @@
 
         };
 
-        _event_handlers.push({
+        _event_handlers[_nextObserveId] = {
             userCallback: callback,
             contexts: [ contextId ],
             contextHandler: contextEventHandler
-        });
+        };
+
+        //Increment the id of the next one
+        _nextObserveId++;
 
         // Create the CONTEXT event listener
         $(_eventBox).on("CONTEXT" + contextId, contextEventHandler);

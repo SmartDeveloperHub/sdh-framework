@@ -23,6 +23,8 @@
 
     var __loader = (function() {
 
+        var oldposstyle;
+
         var CommonWidget = function CommonWidget(extending, container) {
 
             if (extending === true) {
@@ -65,13 +67,14 @@
             }.bind(this);
         };
 
-        var oldContainerClass, oldposstyle;
-
         CommonWidget.prototype.startLoading = function startLoading() {
-            this._common.isloading += 1;
-            if (this._common.isloading > 1) {
+
+            if (this._common.isloading == 1) {
                 return;
             }
+
+            this._common.isloading = 1;
+
             if (!oldposstyle) {
                 oldposstyle = this._common.container.style.position;
             }
@@ -90,8 +93,7 @@
         or the animating property's value is changed.
         */
         CommonWidget.prototype.endLoading = function endLoading(callback) {
-            this._common.isloading -= 1;
-            if(this._common.isloading == 0) {
+            this._common.isloading = 0;
                 this._common.callback = callback;
                 this._common.loadingLayer.addEventListener('transitionend', this.restoreContainerHandler);
                 setTimeout(function() {
@@ -100,9 +102,7 @@
                 this._common.secureEndTimer = setTimeout(function() {
                     this.restoreContainerHandler();
                 }.bind(this), 600);
-            } else {
-                console.log('discarding data...');
-            }
+
         };
 
         CommonWidget.prototype.extractMetrics = function extractMetrics(framework_data) {
@@ -269,11 +269,11 @@
 
             } else if(event.event === 'error') {
 
+                this.endLoading();
+
                 if(this.onError != null) { //If the widget has a method to handle the errors, execute it
-                    this.endLoading();
                     this.onError(event.msg);
                 } else { //Default action
-                    this.endLoading();
                     $(this._common.container).append("<div class='widget-error'>The resource of this widget could not be retrieved!</div>")
                 }
 
