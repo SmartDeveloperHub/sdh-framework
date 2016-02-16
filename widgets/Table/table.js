@@ -216,7 +216,6 @@
             this.tableDom = null;
             this.table = null;
             this.selected = [];
-            this.currentSelected = null;
             this.deleted = false;
 
             // Extending widget
@@ -428,31 +427,44 @@
             }
             this.table = this.tableDom.DataTable(conf);
 
-            //Previously selected rows
-            if(this.configuration.selectable && this.configuration.keepSelectedByProperty !== "") {
+            // Add scroll-table height
+            this.element.find('.scroll-table')[0].style.height = (this.configuration.height - 43) + 'px';
 
+            //Previously selected rows
+            if(this.configuration.selectable && this.configuration.keepSelectedByProperty !== "" && this.selected.length > 0) {
+                var newSelectedList = [];
                 this.table.$('tr').each(function(rowIndex, row) {
 
                     var rowdata = this.table.row($(row)).data();
                     var selectByData = rowdata[this.configuration.keepSelectedByProperty];
 
                     //If it was previously selected, select it
-                    if(this.selected.indexOf(selectByData) !== -1) {
+                    var index = this.selected.indexOf(selectByData);
+                    if(index > -1) {
+                        // Previousl selected row
                         $(row).addClass('selected');
+                        newSelectedList.push(selectByData);
                     }
 
                 }.bind(this));
+                this.selected = newSelectedList;
+                var auxDif = this.configuration.minRowsSelected - this.selected.length;
+                if (auxDif > 0) {
+                    this.table.$('tr:not(.selected)').slice(0, auxDif).each(function(rowIndex, row) {
+                        $(row).addClass('selected');
+                        if(this.configuration.keepSelectedByProperty !== "") {
+                            this.selected.push(this.table.row(rowIndex).data()[this.configuration.keepSelectedByProperty]);
+                        }
+                    }.bind(this));
+                }
             }
-
-            // If some rows must be selected from the beginning
             if(creating && this.configuration.selectable && this.configuration.initialSelectedRows > 0) {
 
                 //Select the first n rows
                 this.table.$('tr:not(.selected)').slice(0, this.configuration.initialSelectedRows).each(function(rowIndex, row) {
                     $(row).addClass('selected');
-                    this.currentSelected = row; // for alwaysOneSelected
                     if(this.configuration.keepSelectedByProperty !== "") {
-                        this.selected.push(this.table.row($(row)).data()[this.configuration.keepSelectedByProperty]);
+                        this.selected.push(this.table.row(rowIndex).data()[this.configuration.keepSelectedByProperty]);
                     }
                 }.bind(this));
 
@@ -585,20 +597,16 @@
                 }
 
             } else { //Not selected
-                if (widget.configuration.alwaysOneSelected) {
+                if (widget.configuration.alwaysOneSelected && widget.configuration.maxRowsSelected === 1 && widget.table.$('tr.selected').length === 1) {
+                    
                     //Remove from the keep selected array
-                    $(widget.currentSelected).removeClass('selected');
-                    if(selectByData != null) {
-                        var index = widget.selected.indexOf(selectByData);
-                        if(index >= 0) {
-                            widget.selected.splice(index, 1);
-                        }
-                    }
+                    getLastSelectedRow.call(widget).removeClass('selected');
+                    widget.selected.pop();
                 }
+
                 //Select it if the maximum of selected rows has not been achieved
                 if(widget.configuration.maxRowsSelected > widget.table.$('tr.selected').length) {
                     $(this).addClass('selected');
-                    widget.currentSelected = this;
                     //Add to the keep selected array
                     if(selectByData != null) {
                         widget.selected.push(selectByData);
@@ -609,6 +617,23 @@
             // Update contexts with the selected rows
             updateContexts.call(widget);
 
+        };
+
+        var getLastSelectedRow = function getLastSelectedRow () {
+            if (this.selected.length > 0) {
+                var id = this.selected[this.selected.length -1];
+            }
+            var foundRow = null;
+            this.table.$('tr').each(function(rowIndex, row) {
+                var rowdata = this.table.row(rowIndex).data();
+                var selectByData = rowdata[this.configuration.keepSelectedByProperty];
+
+                if(selectByData == id) {
+                    foundRow = row;
+                    return false; // break the each loop
+                }
+            }.bind(this));
+            return $(foundRow);
         };
 
         /**

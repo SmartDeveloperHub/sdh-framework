@@ -206,13 +206,11 @@ div.dataTables_filter input {
 }
 
 .dataTables_wrapper {
-    height: 500px;
 }
 
 .scroll-table {
     overflow: hidden;
     white-space: nowrap;
-    height: 436px;
     position: inherit;
 }
 
@@ -247,6 +245,7 @@ div.dataTables_filter input {
 }
 
 .dataTables_wrapper {
+    height: 100%;
     overflow: hidden;
 }
 
