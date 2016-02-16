@@ -1186,17 +1186,6 @@
         // be requested.
         if(contextIds.length > 0) {
 
-            //Store information about the observe
-            _event_handlers[observeId] = {
-                userCallback: callback,
-                contexts: contextIds,
-                contextHandler: contextEventHandler,
-                pendingRequests: {}
-            };
-
-            //Increment the id of the next one
-            _nextObserveId++;
-
             //Combine the resources with the context in order to create more complete resources that could be requested.
             var resourcesWithContext = combineResourcesWithContexts(resources, contextIds);
 
@@ -1238,6 +1227,17 @@
                 $(_eventBox).on("CONTEXT" + contextIds[c], contextEventHandler);
             }
 
+            //Store information about the observe
+            _event_handlers[observeId] = {
+                userCallback: callback,
+                contexts: contextIds,
+                contextHandler: contextEventHandler,
+                pendingRequests: {}
+            };
+
+            //Increment the id of the next one
+            _nextObserveId++;
+
             //Request all the resources if possible
             if(allResourcesCanBeRequested(resourcesWithContext)) {
                 multipleResourcesRequest(resourcesWithContext, observeId, false);
@@ -1277,7 +1277,6 @@
 
                 //Stop its pending requests
                 cancelPendingObserveRequests(observeId);
-                console.log("Canceling requests!!");
 
                 for (var c in _event_handlers[observeId]['contexts']) {
                     $(_eventBox).off("CONTEXT" + _event_handlers[observeId]['contexts'][c], _event_handlers[observeId]['contextHandler']);
@@ -1312,7 +1311,7 @@
      * Stops all the observers and clears contexts.
      */
     _self.data.clear = function() {
-        console.log("Clear!!");
+
         //Stop all the observes
         _self.data.stopAllObserves();
 
