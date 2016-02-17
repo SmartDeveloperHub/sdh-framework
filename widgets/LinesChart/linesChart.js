@@ -69,6 +69,18 @@
             if (typeof configuration.showLines != "boolean") {
                 configuration.showLines = true;
             }
+            if (typeof configuration.showXAxis != "boolean") {
+                configuration.showXAxis = true;
+            }
+            if (typeof configuration.showYAxis != "boolean") {
+                configuration.showYAxis = true;
+            }
+            if (typeof configuration.showXLabels != "boolean") {
+                configuration.showXLabels = true;
+            }
+            if (typeof configuration.showYLabels != "boolean") {
+                configuration.showYLabels = true;
+            }
             // Demo
             if (typeof configuration._demo != "boolean") {
                 configuration._demo = false;
@@ -99,6 +111,8 @@
          *       ~ margin: object - {'right': number, 'left': number, 'top': number, 'bottom': number} (all optionals)
          *       ~ showPoints: boolean - Whether to display points or not. Default:false
          *       ~ showLines: boolean - Whether to display lines or not. Default:true
+         *       ~ showXAxis: boolean - Whether to display X axis.
+         *       ~ showYAxis: boolean - Whether to display Y axis.
          *      }
          */
         var LinesChart = function LinesChart(element, metrics, contextId, configuration) {
@@ -292,8 +306,8 @@
                         .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
                         .duration(350)  //how fast do you want the lines to transition?
                         .showLegend(this.configuration.showLegend)       //Show the legend, allowing users to turn on/off line series.
-                        .showYAxis(true)        //Show the y-axis
-                        .showXAxis(true)        //Show the x-axis
+                        .showYAxis(this.configuration.showYAxis)        //Show the y-axis
+                        .showXAxis(this.configuration.showXAxis)        //Show the x-axis
                         .interpolate(this.configuration.interpolate) // https://github.com/mbostock/d3/wiki/SVG-Shapes#line_interpolate
                         .color(this.generateColors(framework_data, this.configuration.colors))
                     ;
@@ -307,23 +321,30 @@
                 chart.xAxis     //Chart x-axis settings
                     .axisLabel(this.configuration.xlabel)
                     .tickFormat(function(d) {
-                        return this.format.date(new Date(d));
+                        if (this.configuration.showXLabels) {
+                            return this.format.date(new Date(d));
+                        } else {
+                            return null;
+                        }
                     }.bind(this));
 
                 chart.yAxis     //Chart y-axis settings
                     .axisLabel(this.configuration.ylabel)
                     .tickFormat(function(tickVal) {
+                        if (this.configuration.showYLabels) {
+                            //Truncate decimals
+                            if(this.configuration.maxDecimals >= 0) {
+                                var pow =  Math.pow(10, this.configuration.maxDecimals);
+                                tickVal = Math.floor(tickVal * pow) / pow;
+                            }
 
-                        //Truncate decimals
-                        if(this.configuration.maxDecimals >= 0) {
-                            var pow =  Math.pow(10, this.configuration.maxDecimals);
-                            tickVal = Math.floor(tickVal * pow) / pow;
-                        }
-
-                        if (tickVal >= 1000 || tickVal <= -1000) {
-                            return tickVal/1000 + " K";
+                            if (tickVal >= 1000 || tickVal <= -1000) {
+                                return tickVal/1000 + " K";
+                            } else {
+                                return tickVal;
+                            }
                         } else {
-                            return tickVal;
+                            return null;
                         }
                     }.bind(this));
 
