@@ -42,6 +42,10 @@
             showMaxMin: {
                 type: ['boolean'],
                 default: false
+            },
+            showAxis: {
+                type: ['boolean'],
+                default: true
             }
         };
 
@@ -172,24 +176,26 @@
             }
 
             // Create axis
-            var axisSvg = this.element.find("svg.axis");
-            axisSvg.css('height', '25px');
+            if (this.configuration.showAxis) {
+                var axisSvg = this.element.find("svg.axis");
+                axisSvg.css('height', '25px');
 
-            var availableWidth = this.element.find(".progress").width();
+                var availableWidth = this.element.find(".progress").width();
 
-            var axis = nv.models.axis()
-                .showMaxMin(this.configuration.showMaxMin)
-                .height(25)
-                .scale(d3.time.scale.utc()
-                    .domain([data.interval.from, data.interval.to])
-                    .range([0, availableWidth]))
-                    .ticks(Math.round(availableWidth / 200)
-                )
-                .width(availableWidth)
-                .tickFormat(this.format.date);
+                var axis = nv.models.axis()
+                    .showMaxMin(this.configuration.showMaxMin)
+                    .height(25)
+                    .scale(d3.time.scale.utc()
+                        .domain([data.interval.from, data.interval.to])
+                        .range([0, availableWidth]))
+                        .ticks(Math.round(availableWidth / 200)
+                    )
+                    .width(availableWidth)
+                    .tickFormat(this.format.date);
 
-            d3.select(axisSvg.get(0))
-                .call(axis);
+                d3.select(axisSvg.get(0))
+                    .call(axis);
+            }
 
             var width = 100 / data.values.length;
 

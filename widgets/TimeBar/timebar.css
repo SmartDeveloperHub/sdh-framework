@@ -1,5 +1,7 @@
 .timebar-container  {
     display: block;
+    margin-left: 38px;
+    margin-right: 44px;
 }
 
 .timebar-container > .progress {
