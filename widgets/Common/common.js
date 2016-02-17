@@ -41,18 +41,23 @@
             this._common.disposed = false;
             this._common.container = container;
             this._common.resizeHandler = null;
+            this._common.hasErrorMessage = false;
 
-            this._common.loadingContainer = document.createElement('div');
-            this._common.loadingContainer.className ='loadingContainer';
+            this._common.statusContainer = document.createElement('div');
+            this._common.statusContainer.className ='statusContainer';
             var loadingLayer = document.createElement('div');
             loadingLayer.className ='loadingLayer';
             var spinner = document.createElement('i');
             spinner.className ='fa fa-spinner fa-pulse';
 
-            this._common.loadingContainer.appendChild(loadingLayer);
+            var errorLayer = $('<div class="errorLayer"><i class="fa fa-warning" data-toggle="tooltip"></i></div>')[0];
+
+            this._common.statusContainer.appendChild(loadingLayer);
+            this._common.statusContainer.appendChild(errorLayer);
             loadingLayer.appendChild(spinner);
-            this._common.container.appendChild(this._common.loadingContainer);
+            this._common.container.appendChild(this._common.statusContainer);
             this._common.loadingLayer = loadingLayer;
+            this._common.errorLayer = errorLayer;
 
             this.restoreContainerHandler = function restoreContainerHandler(e) {
                 clearTimeout(this._common.secureEndTimer);
@@ -79,11 +84,45 @@
                 oldposstyle = this._common.container.style.position;
             }
             this._common.container.style.position = 'relative';
-            setLoadingSize.call(this);
+            setStatusSize.call(this);
             this._common.resizeHandler = resizeHandler.bind(this);
             window.addEventListener("resize", this._common.resizeHandler);
             $(this._common.container).addClass('blurMode');
             $(this._common.loadingLayer).addClass('on');
+
+        };
+
+        /**
+         *
+         * @param msg
+         */
+        CommonWidget.prototype.showError = function(msg) {
+
+            if(!this._common.hasErrorMessage) {
+                $(this._common.container).addClass('blurMode');
+                $(this._common.errorLayer).addClass('on');
+                $(this._common.errorLayer).find("i").attr("title", msg).tooltip();
+                setStatusSize.call(this);
+                this._common.resizeHandler = resizeHandler.bind(this);
+                window.addEventListener("resize", this._common.resizeHandler);
+
+            } else { //If already showing an error message, change the message
+                $(this._common.errorLayer).find("i").attr("title", msg).tooltip();
+            }
+
+        };
+
+        /**
+         *
+         */
+        CommonWidget.prototype.hideError = function() {
+
+            if(this._common.hasErrorMessage) {
+                $(this._common.errorLayer).removeClass('on');
+                $(this._common.container).removeClass('blurMode');
+                window.removeEventListener("resize", this._common.resizeHandler);
+                this._common.resizeHandler = null;
+            }
 
         };
 
@@ -251,6 +290,9 @@
 
             } else if(event.event === 'data') {
 
+                //Remove the error message if was displayed
+                this.hideError();
+
                 //Check if there is any metric that needs to be filled with zeros
                 for(var resourceId in event.data) {
                     for(var i in event.data[resourceId]){
@@ -269,13 +311,16 @@
 
             } else if(event.event === 'error') {
 
-                this.endLoading();
+                this.endLoading(function() {
 
-                if(this.onError != null) { //If the widget has a method to handle the errors, execute it
-                    this.onError(event.msg);
-                } else { //Default action
-                    $(this._common.container).append("<div class='widget-error'>The resource of this widget could not be retrieved!</div>")
-                }
+                    if(this.onError != null) { //If the widget has a method to handle the errors, execute it
+                        this.onError(event.msg);
+
+                    } else { //Default action
+                        this.showError(event.msg);
+                    }
+
+                }.bind(this));
 
                 $(this).trigger("ERROR", event.msg);
 
@@ -370,21 +415,22 @@
         // ------PRIVATE METHODS------
         // ---------------------------
 
-        var setLoadingSize = function setLoadingSize() {
+        var setStatusSize = function setStatusSize() {
             var wsize = this._common.container.getBoundingClientRect();
             // center the spinner vertically because a responsive
             // widget can change it height dynamically
             this._common.loadingLayer.style.lineHeight = wsize.height + 'px';
-            this._common.loadingContainer.style.height = wsize.height + 'px';
-            this._common.loadingContainer.style.width = wsize.width + 'px';
-            if(this._common.loadingContainer.getBoundingClientRect().top == 0) {
-                this._common.loadingContainer.style.top = wsize.top + 'px';
+            this._common.errorLayer.style.lineHeight = wsize.height + 'px';
+            this._common.statusContainer.style.height = wsize.height + 'px';
+            this._common.statusContainer.style.width = wsize.width + 'px';
+            if(this._common.statusContainer.getBoundingClientRect().top == 0) {
+                this._common.statusContainer.style.top = wsize.top + 'px';
             }
-            this._common.loadingContainer.style.left = 'auto';
+            this._common.statusContainer.style.left = 'auto';
         };
 
         var resizeHandler = function resizeHandler(e) {
-            setLoadingSize.call(this);
+            setStatusSize.call(this);
         };
 
         var isNumber = function isNumber(n) {
