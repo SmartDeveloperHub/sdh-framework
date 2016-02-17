@@ -179,6 +179,7 @@
             this.svg = this.element.children("svg");
             //this.svg.get(0).style.minHeight = this.configuration.height + "px";
             this.svg.get(0).style.height = this.configuration.height + "px";
+            this.svg.get(0).style.width = this.configuration.height + "px";
 
             this.observeCallback = this.commonObserveCallback.bind(this);
 
