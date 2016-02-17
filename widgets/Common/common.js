@@ -70,6 +70,9 @@
                     this._common.callback();
                 }
             }.bind(this);
+
+            //Set the widget as loading when created
+            this.startLoading();
         };
 
         CommonWidget.prototype.startLoading = function startLoading() {
