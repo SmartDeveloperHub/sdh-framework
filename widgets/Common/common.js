@@ -308,9 +308,11 @@
                     }
                 }
 
-                this.endLoading(this.updateData.bind(this, event.data));
+                this.endLoading(function(data) {
+                    this.updateData(data);
+                    $(this).trigger("DATA_RECEIVED", data);
+                }.bind(this, event.data));
 
-                $(this).trigger("DATA_RECEIVED", event.data);
 
             } else if(event.event === 'error') {
 
