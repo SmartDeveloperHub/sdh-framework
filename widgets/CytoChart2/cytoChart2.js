@@ -202,10 +202,11 @@
                 'width':  'data(w)',
                 'height':  'data(h)',
                 'background-fit': 'cover',
-                'border-color': '#000',
-                'border-width': 3,
-                'border-opacity': 0.5,
-                'shape': 'data(faveShape)'
+                'border-color': '#004C8B',
+                'border-width': 2,
+                //'border-opacity': 0.5,
+                'shape': 'data(faveShape)',
+                'background-color': 'white'
             };
             var edgeStyle = {
                 'width': 5,
