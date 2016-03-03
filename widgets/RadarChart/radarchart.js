@@ -227,7 +227,7 @@
 
         var createChart = function createChart() {
             if(this.canvas == null) {
-                this.element.append('<div class="blurable"><canvas></canvas></div>');
+                this.element.append('<div class="blurable" style="width: 100%; height: 100%;"><canvas style="width: 100%; height: 100%;"></canvas></div>');
                 this.container = this.element.children(".blurable");
                 this.canvas = this.container.children("canvas");
                 /*this.container.get(0).style.minHeight = this.configuration.height + "px";
