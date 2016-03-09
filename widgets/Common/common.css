@@ -236,3 +236,7 @@
         -webkit-transform: translate(0px, 0px)  rotate(-0deg); 
     }
 }
+
+*, .nvd3 text {
+    font-family: Roboto;
+}

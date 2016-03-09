@@ -622,7 +622,8 @@
     if ( typeof define === "function" && define.amd) {
         define( "widgetCommon", [
             'framework',
-            'css!vendor/sdh-framework/widgets/Common/common.css'
+            'css!vendor/sdh-framework/widgets/Common/common.css',
+            'css!vendor/roboto-fontface/css/roboto-fontface.css'
         ], function () {
             return __loader();
         } );
