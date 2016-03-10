@@ -75,12 +75,6 @@
             if (typeof configuration.showYAxis != "boolean") {
                 configuration.showYAxis = true;
             }
-            if (typeof configuration.showXLabels != "boolean") {
-                configuration.showXLabels = true;
-            }
-            if (typeof configuration.showYLabels != "boolean") {
-                configuration.showYLabels = true;
-            }
             // Demo
             if (typeof configuration._demo != "boolean") {
                 configuration._demo = false;
@@ -321,31 +315,25 @@
                 chart.xAxis     //Chart x-axis settings
                     .axisLabel(this.configuration.xlabel)
                     .tickFormat(function(d) {
-                        if (this.configuration.showXLabels) {
-                            return this.format.date(new Date(d));
-                        } else {
-                            return null;
-                        }
+                        return this.format.date(new Date(d));
                     }.bind(this));
 
                 chart.yAxis     //Chart y-axis settings
                     .axisLabel(this.configuration.ylabel)
                     .tickFormat(function(tickVal) {
-                        if (this.configuration.showYLabels) {
-                            //Truncate decimals
-                            if(this.configuration.maxDecimals >= 0) {
-                                var pow =  Math.pow(10, this.configuration.maxDecimals);
-                                tickVal = Math.floor(tickVal * pow) / pow;
-                            }
 
-                            if (tickVal >= 1000 || tickVal <= -1000) {
-                                return tickVal/1000 + " K";
-                            } else {
-                                return tickVal;
-                            }
-                        } else {
-                            return null;
+                        //Truncate decimals
+                        if(this.configuration.maxDecimals >= 0) {
+                            var pow =  Math.pow(10, this.configuration.maxDecimals);
+                            tickVal = Math.floor(tickVal * pow) / pow;
                         }
+
+                        if (tickVal >= 1000 || tickVal <= -1000) {
+                            return tickVal/1000 + " K";
+                        } else {
+                            return tickVal;
+                        }
+
                     }.bind(this));
 
 
