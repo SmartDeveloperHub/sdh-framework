@@ -170,13 +170,21 @@
 
             var normalizedData = getNormalizedData.call(this,framework_data);
 
+            // Performance hack - Disable updates while modifying data
+            var realUpdate = this.chart.update;
+            this.chart.update = function() {};
+
             for(var i = 0, nItems = this.chart.datasets[0].points.length; i < nItems; ++i) {
                 this.chart.removeData();
             }
+
             for(var l in this.configuration.labels) {
                 var label = this.configuration.labels[l];
                 this.chart.addData( normalizedData[label], label );
             }
+
+            // Restore the update method
+            this.chart.update = realUpdate;
             this.chart.update();
 
         };
