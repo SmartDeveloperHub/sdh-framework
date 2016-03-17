@@ -31,6 +31,10 @@
             },
             minValue: {
                 type: ['number'],
+                default: 0
+            },
+            maxValue: {
+                type: ['number'],
                 default: 100
             },
             circleThickness: {
