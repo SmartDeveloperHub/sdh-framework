@@ -369,6 +369,12 @@
                 configuration = {};
             }
 
+            // Clone the configuration into a new object
+            var retConfig = {};
+            for(var k in configuration) {
+                retConfig[k] = configuration[k];
+            }
+
             for(var confName in defaultConfig) {
 
                 var conf = defaultConfig[confName];
@@ -385,13 +391,12 @@
 
                 //If not valid, change its value with the default
                 if(!isValidValue) {
-                    configuration[confName] = conf['default'];
+                    retConfig[confName] = conf['default'];
                 }
 
             }
 
-            return configuration;
-
+            return retConfig;
 
         };
 
