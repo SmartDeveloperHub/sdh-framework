@@ -175,10 +175,10 @@
             //var paths = data['swaggerjson']['paths'];
             var paths = [{
                 path :"/metrics",
-                variable: "mid"
+                variable: "id"
             },{
                 path :"/tbdata",
-                variable: "tid"
+                variable: "id"
             }];
 
             var apiPaths = data['swaggerjson']['paths'];
