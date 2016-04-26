@@ -1512,6 +1512,7 @@
 
     /**
      * Gets the dashboard environment
+     * @param paramName Optional. Get that specific variable in the environment.
      */
     _self.dashboard.getEnv = function getEnv(paramName) {
 

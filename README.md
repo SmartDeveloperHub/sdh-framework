@@ -32,70 +32,179 @@ resourcesInfo[<String:resourceId>] = {
 };
 ```
     
+## How to use the framework
+
+Before trying to use the framework, make sure that you have done the steps in the "How to connect with your own API" section.
+To create your first visualization of metrics follow the following steps:
+  1. Install bower (http://bower.io/)
+  2. Install framework dependencies with bower: `bower install`
+  3. This framework makes use of require.js (http://requirejs.org/) so you will need to download it.
+  4. Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
+  Here is an example of configuration (require-config.js)
+  
+```javascript
+require.config({
+    baseUrl: /, //The base url for the paths
+    map: {
+      '*': {
+          'css': 'require-css' // or whatever the path to require-css is
+      }
+    },
+    paths: {
+      'require-css': 'vendor/require-css/css',
+      'framework': "vendor/sdh-framework/framework",
+      'widgetCommon': 'vendor/sdh-framework/widgets/Common/common',
+      'backbone': 'vendor/backbone/backbone-min',
+      'underscore': 'vendor/underscore/underscore-min',
+      'd3': "vendor/d3/d3.min",
+      'nvd3': "vendor/nvd3/build/nv.d3.min",
+      'jquery': 'vendor/jquery/dist/jquery',
+      'jquery-qtip': 'vendor/qtip2/jquery.qtip.min',
+      'moment': "vendor/moment/moment",
+      'datatables' : 'vendor/datatables/media/js/jquery.dataTables.min',
+      'lodash': 'vendor/lodash/lodash.min',
+      'joint': 'vendor/joint/dist/joint.min',
+      'cytoscape': 'vendor/cytoscape/dist/cytoscape',
+      'cytoscape-qtip': 'vendor/cytoscape-qtip/cytoscape-qtip',
+      'cola': 'vendor/cytoscape/lib/cola.v3.min'
+    },
+    shim : {
+      'nvd3': {
+          exports: 'nv',
+          deps: ['d3']
+      },
+      'cytoscape': {
+          exports: 'cytoscape',
+          deps: ['jquery']
+      },
+      'cytoscape-qtip': {
+          exports: 'cytoscape-qtip',
+          deps: ['jquery', 'jquery-qtip', 'cytoscape']
+      },
+      'cola': {
+          exports: 'cola'
+      }
+    }
+});
+```
+
+  5. Load require.js and then dashboard.js from your index.html file adding the following lines between the `<head></head>` tags.
+  
+    ```html
+      <script src="vendor/requirejs/require.js"></script>
+      <script>
+          require(['require-config.js'], function() {
+              require(['dashboard.js']);
+          });
+      </script>
+    ```
+  
+  6. Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
+  
+    ```javascript
+        require(["framework" /*, your other dependencies here */], function() {
+            framework.ready(function() {
+                console.log("Framework ready");
+                
+                /* Your code to instantiate widgets here!
+                Example: 
+                var sample_dom = document.getElementById("chart-div");
+                var sample_metrics = [
+                    {
+                        id: 'metric_id',
+                        // fixed metric parameters
+                    }
+                ];
+                var sample_configuration = {
+                    // Widget configuration
+                };
+        
+                var widget = new framework.widgets.MySampleWidget(sample_dom, sample_metrics, [], sample_configuration);
+                */
+        
+            });
+        });
+    ```
+
 ## How to create a new widget
 Just create a new file based on the following template.
 ```javascript
 (function() {
 
-    /* MySampleWidget constructor
-    *   element: the DOM element that will contain the widget
-    *   resources: resources to observe
-    *   contexts: list of contexts
-    *   configuration: you can use his optional parameter to assing a custom widget configuration.
-    */
-    var MySampleWidget = function MySampleWidget(element, resources, contexts, configuration) {
+    var __loader = (function() {
 
-        //TODO: your code here
-
-        // Extending widget
-        framework.widgets.CommonWidget.call(this, false, element);
-
-        // Use the callback offered by widget.common
-        this.observeCallback = this.commonObserveCallback.bind(this);
-
-        framework.data.observe(resources, this.observeCallback, contexts);
-
-    };
-
-    MySampleWidget.prototype = new framework.widgets.CommonWidget(true);
-
-    MySampleWidget.prototype.updateData = function(framework_data) {
-        //TODO: your code here
-    };
-
-    MySampleWidget.prototype.delete = function() {
+        /* MySampleWidget constructor
+        *   element: the DOM element that will contain the widget
+        *   resources: resources to observe
+        *   contexts: list of contexts
+        *   configuration: you can use his optional parameter to assing a custom widget configuration.
+        */
+        var MySampleWidget = function MySampleWidget(element, resources, contexts, configuration) {
     
-        // Stop observing for data changes
-        framework.data.stopObserve(this.observeCallback);
-
-        //TODO: your code here
-
-    };
+            //TODO: your code here
     
-    // Register the widget in the framework
-    window.framework.widgets.MySampleWidget = MySampleWidget;
+            // Extending widget
+            framework.widgets.CommonWidget.call(this, false, element);
+    
+            // Use the callback offered by widget.common
+            this.observeCallback = this.commonObserveCallback.bind(this);
+    
+            framework.data.observe(resources, this.observeCallback, contexts);
+    
+        };
+    
+        MySampleWidget.prototype = new framework.widgets.CommonWidget(true);
+    
+        MySampleWidget.prototype.updateData = function(framework_data) {
+            //TODO: your code here
+        };
+    
+        MySampleWidget.prototype.delete = function() {
+        
+            // Stop observing for data changes
+            framework.data.stopObserve(this.observeCallback);
+    
+            //TODO: your code here
+    
+        };
+    
+        window.framework.widgets.MySampleWidget = MySampleWidget;
+        return MySampleWidget;
+
+    });
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( [ /* List of dependencies */ ], function () { return MySampleWidget; } );
+        define( [
+            /* List of dependencies */
+        ], function () {
+            return __loader();
+        } );
+    } else {
+        __loader();
     }
 
 })();
 ```
+For more advanced features provided by the widget.common see the existing widgets in /widgets  directory.
+
 ## Public methods
 The framework is accessible through a global variable (registered in the window Javascript variable) named *framework*. Threrefore, if you want to use some method of the framework, you just have to write *framework.methodname*. This is a list of the available public methods:
-- frameworkReady: Add a callback that will be executed when the framework is ready.
-- isFrameworkReady: Checks if the framework is ready returning true in that case.
-- data.observe: Observes a list of resources depending on a list of contexts.
-- data.updateContext: Updates a context with the given data.
-- data.stopObserve: Cancels observing for an specific callback.
-- data.stopAllObserves: Cancels all the active observes.
-- data.clear: Stops all the observes and disposes all the contexts.
-- dashboard.setDashboardController: Sets the dashboard controller for the framework.
-- dashboard.registerWidget: Registers a new widget in the current dashboard.
-- dashboard.changeTo: Changes the current dashboard.
-- dashboard.getEnv: Gets the dashboard environment.
-- dashboard.addEventListener: Add event listeners to the dashboard. Currently there is only the 'change' event.
-- dashboard.removeEventListener: Removes an event listener from the dashboard.
+- `frameworkReady(callback)`: Add a callback that will be executed when the framework is ready.
+- `isFrameworkReady()`: Checks if the framework is ready returning true in that case.
+- `data.observe(resources, obs_callback, contextIds)`: Observes a list of resources depending on a list of contexts.
+- `data.stopObserve(obs_callback)`: Cancels observing for an specific callback.
+- `data.stopAllObserves()`: Cancels all the active observes.
+- `data.clear()`: Stops all the observes and disposes all the contexts.
+- `data.updateContext(contextId, contextData)`: Updates a context with the given data.
+- `data.getContextData(contextId)`: Gets the data stored in a given context.
+- `data.observeContext(contextId, callback)`: Observe changes in a context.
+- `dashboard.setDashboardController(controller)`: Sets the dashboard controller for the framework for a multi-dashboard platform.
+- `dashboard.registerWidget(widget)`: Registers a new widget in the current dashboard.
+- `dashboard.changeTo(newDashboard, env, category)`: Changes the current dashboard.
+- `dashboard.getEnv(paramName)`: Gets the dashboard environment. 
+- `dashboard.addEventListener(event, callback)`: Add event listeners to the dashboard. Currently there is only the 'change' event.
+- `dashboard.removeEventListener(event, callback)`: Removes an event listener from the dashboard.
+- `utils.resourceHash(resourceId, requestParams)`: Calculate the hash of a resource.
 
 *For more information about their parameters and return values, see the documentation inside the framework.js source file.*
