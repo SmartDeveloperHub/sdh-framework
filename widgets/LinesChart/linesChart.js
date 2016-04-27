@@ -361,9 +361,9 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'd3',
-            'css!vendor/sdh-framework/widgets/LinesChart/linesChart.css'
+            'css!./linesChart.css'
         ], function () {
             return __loader();
         } );

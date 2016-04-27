@@ -748,10 +748,10 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'datatables',
-            'css!vendor/sdh-framework/widgets/Table/table.css',
-            'css!vendor/datatables/media/css/jquery.dataTables.min'
+            'css!./table.css',
+            'css!datatables/media/css/jquery.dataTables.min'
         ], function () {
             return __loader();
         } );

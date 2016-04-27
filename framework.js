@@ -1533,7 +1533,7 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( "framework", [
+        define( "sdh-framework", [
             './api-connector',
             'jquery'
         ], function (_loadResourcesInfo) {

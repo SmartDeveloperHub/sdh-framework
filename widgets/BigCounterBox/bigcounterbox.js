@@ -262,8 +262,8 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
-            'css!vendor/sdh-framework/widgets/BigCounterBox/bigcounterbox.css'
+            'sdh-framework/widgets/Common/common',
+            'css!./bigcounterbox.css'
         ], function () {
             return __loader();
         } );

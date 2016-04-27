@@ -281,7 +281,7 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'nvd3'
         ], function () {
             return __loader();

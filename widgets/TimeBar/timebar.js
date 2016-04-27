@@ -263,12 +263,12 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'nvd3',
             'jquery-qtip',
-            'css!vendor/bootstrap/dist/css/bootstrap.min.css',
-            'css!vendor/sdh-framework/widgets/TimeBar/timebar.css',
-            'css!vendor/qtip2/jquery.qtip.min.css'
+            'css!bootstrap/dist/css/bootstrap.min.css',
+            'css!./timebar.css',
+            'css!jquery-qtip/jquery.qtip.min.css'
         ], function () {
             return __loader();
         } );

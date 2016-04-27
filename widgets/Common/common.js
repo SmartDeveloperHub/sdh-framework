@@ -625,10 +625,10 @@
 
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
-        define( "widgetCommon", [
-            'framework',
-            'css!vendor/sdh-framework/widgets/Common/common.css',
-            'css!vendor/roboto-fontface/css/roboto-fontface.css'
+        define( "sdh-framework/widgets/Common/common", [
+            'sdh-framework',
+            'css!./common.css',
+            'css!roboto-fontface/css/roboto-fontface.css'
         ], function () {
             return __loader();
         } );

@@ -520,7 +520,7 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'd3'
         ], function () {
             return __loader();

@@ -369,11 +369,11 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
+            'sdh-framework/widgets/Common/common',
             'jquery-qtip',
             'cytoscape',
             'cytoscape-qtip',
-            'css!vendor/sdh-framework/widgets/CytoChart2/cytoChart2.css'
+            'css!./cytoChart2.css'
         ], function () {
             return __loader();
         } );

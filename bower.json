@@ -35,7 +35,10 @@
     "datatables": "1.10.7",
     "qtip2": "2.2.1",
     "cytoscape-qtip": "2.2.5",
-    "roboto-fontface": "^0.4.5"
+    "roboto-fontface": "^0.4.5",
+    "requirejs": "2.x.x",
+    "require-css": "0.1.8",
+    "bootstrap": "3.3.4"
   },
   "resolutions": {
     "jquery": "2.1.x"

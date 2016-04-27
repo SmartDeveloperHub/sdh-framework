@@ -9,7 +9,7 @@ The aim of this framework is to facilitate the acquisition of data from an API a
 
 In order to connect this framework with your own API you just have to:
   1. Create a Javascript global variable *SDH_API_URL* with the URL of your API server.
-  2. Edit the *loadResourcesInfo* method in framework.js to adapt it to your API structure. That method must:
+  2. Edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
     1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
     2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
 ```javascript
@@ -36,95 +36,123 @@ resourcesInfo[<String:resourceId>] = {
 
 Before trying to use the framework, make sure that you have done the steps in the "How to connect with your own API" section.
 To create your first visualization of metrics follow the following steps:
-  1. Install bower (http://bower.io/)
-  2. Install framework dependencies with bower: `bower install`
-  3. This framework makes use of require.js (http://requirejs.org/) so you will need to download it.
-  4. Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
-  Here is an example of configuration (require-config.js)
+  1 - Install bower (http://bower.io/)
+  2 - Install framework dependencies with bower: `bower install`
+  3 - Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
+  Here is an example of configuration (require-config.js).
   
 ```javascript
 require.config({
-    baseUrl: /, //The base url for the paths
+    baseUrl: PUBLIC_PATH,
+    //enforceDefine: true,
     map: {
-      '*': {
-          'css': 'require-css' // or whatever the path to require-css is
-      }
+        '*': {
+            'css': 'require-css' // or whatever the path to require-css is
+        }
     },
+    packages: [
+        {
+            name: 'sdh-framework',
+            location: 'vendor/sdh-framework',
+            main: 'framework'
+        },
+        {
+            name: 'datatables',
+            location: 'vendor/datatables',
+            main: 'media/js/jquery.dataTables.min'
+        },
+        {
+            name: 'bootstrap',
+            location: 'vendor/bootstrap',
+            main: 'dist/js/bootstrap.min',
+            deps: ['jquery']
+        },
+        {
+            name: 'jquery-qtip',
+            location: 'vendor/qtip2',
+            main: 'jquery.qtip.min' 
+        }
+    ],
     paths: {
-      'require-css': 'vendor/require-css/css',
-      'framework': "vendor/sdh-framework/framework",
-      'widgetCommon': 'vendor/sdh-framework/widgets/Common/common',
-      'backbone': 'vendor/backbone/backbone-min',
-      'underscore': 'vendor/underscore/underscore-min',
-      'd3': "vendor/d3/d3.min",
-      'nvd3': "vendor/nvd3/build/nv.d3.min",
-      'jquery': 'vendor/jquery/dist/jquery',
-      'jquery-qtip': 'vendor/qtip2/jquery.qtip.min',
-      'moment': "vendor/moment/moment",
-      'datatables' : 'vendor/datatables/media/js/jquery.dataTables.min',
-      'lodash': 'vendor/lodash/lodash.min',
-      'joint': 'vendor/joint/dist/joint.min',
-      'cytoscape': 'vendor/cytoscape/dist/cytoscape',
-      'cytoscape-qtip': 'vendor/cytoscape-qtip/cytoscape-qtip',
-      'cola': 'vendor/cytoscape/lib/cola.v3.min'
+        'require-css': 'vendor/require-css/css',
+        'headerHandler': "assets/js/header/headerHandler",
+        'widgetCommon': 'vendor/sdh-framework/widgets/Common/common',
+        'backbone': 'vendor/backbone/backbone-min',
+        'underscore': 'vendor/underscore/underscore-min',
+        'd3': "vendor/d3/d3.min",
+        'nvd3': "vendor/nvd3/build/nv.d3.min",
+        'jquery': 'vendor/jquery/dist/jquery',
+        'jquery-ui': 'vendor/jquery-ui/ui',
+        'moment': "vendor/moment/moment",
+        'lodash': 'vendor/lodash/lodash.min',
+        'gridstack': 'vendor/gridstack/dist/gridstack',
+        'joint': 'vendor/joint/dist/joint.min',
+        'cytoscape': 'vendor/cytoscape/dist/cytoscape',
+        'cytoscape-qtip': 'vendor/cytoscape-qtip/cytoscape-qtip',
+        'cola': 'vendor/cytoscape/lib/cola.v3.min',
+        'chartjs': 'vendor/Chart.js/Chart.min',
+        'roboto-fontface': 'vendor/roboto-fontface'
     },
     shim : {
-      'nvd3': {
-          exports: 'nv',
-          deps: ['d3']
-      },
-      'cytoscape': {
-          exports: 'cytoscape',
-          deps: ['jquery']
-      },
-      'cytoscape-qtip': {
-          exports: 'cytoscape-qtip',
-          deps: ['jquery', 'jquery-qtip', 'cytoscape']
-      },
-      'cola': {
-          exports: 'cola'
-      }
+        'nvd3': {
+            exports: 'nv',
+            deps: ['d3']
+        },
+        'headerHandler': {
+            deps: ['jquery']
+        },
+        'cytoscape': {
+            exports: 'cytoscape',
+            deps: ['jquery']
+        },
+        'cytoscape-qtip': {
+            exports: 'cytoscape-qtip',
+            deps: ['jquery', 'jquery-qtip', 'cytoscape']
+        },
+        'cola': {
+            exports: 'cola'
+        }
     }
 });
 ```
 
-  5. Load require.js and then dashboard.js from your index.html file adding the following lines between the `<head></head>` tags.
+  4 - Load require.js and then dashboard.js from your index.html file adding the following lines between the `<head></head>` tags.
+
+```html
+  <script src="vendor/requirejs/require.js"></script>
+  <script>
+      require(['require-config.js'], function() {
+          require(['dashboard.js']);
+      });
+  </script>
+```
   
-    ```html
-      <script src="vendor/requirejs/require.js"></script>
-      <script>
-          require(['require-config.js'], function() {
-              require(['dashboard.js']);
-          });
-      </script>
-    ```
+  5 - Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
   
-  6. Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
-  
-    ```javascript
-        require(["framework" /*, your other dependencies here */], function() {
-            framework.ready(function() {
-                console.log("Framework ready");
-                
-                /* Your code to instantiate widgets here!
-                Example: 
-                var sample_dom = document.getElementById("chart-div");
-                var sample_metrics = [
-                    {
-                        id: 'metric_id',
-                        // fixed metric parameters
-                    }
-                ];
-                var sample_configuration = {
-                    // Widget configuration
-                };
-        
-                var widget = new framework.widgets.MySampleWidget(sample_dom, sample_metrics, [], sample_configuration);
-                */
-        
-            });
+```javascript
+    require(["framework" /*, your other dependencies here */], function() {
+        framework.ready(function() {
+            console.log("Framework ready");
+            
+            /* Your code to instantiate widgets here!
+            Example: 
+            var sample_dom = document.getElementById("chart-div");
+            var sample_metrics = [
+                {
+                    id: 'metric_id',
+                    // fixed metric parameters
+                }
+            ];
+            var sample_configuration = {
+                // Widget configuration
+            };
+    
+            var widget = new framework.widgets.MySampleWidget(sample_dom, sample_metrics, [], sample_configuration);
+            */
+    
         });
-    ```
+    });
+```
 
 ## How to create a new widget
 Just create a new file based on the following template.

@@ -336,8 +336,8 @@
     // AMD compliant
     if ( typeof define === "function" && define.amd) {
         define( [
-            'widgetCommon',
-            'vendor/Chart.js/Chart'
+            'sdh-framework/widgets/Common/common',
+            'chartjs'
         ], function () {
             return __loader();
         } );
