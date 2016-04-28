@@ -7,9 +7,9 @@ The aim of this framework is to facilitate the acquisition of data from an API a
  
 ##How to connect with your own API
 
-In order to connect this framework with your own API you just have to:
-  1. Create a Javascript global variable *SDH_API_URL* with the URL of your API server.
-  2. Edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
+This repository brings by default de api-connector.js needed to connect to the SDH API. To indicate where your SDH API is located just create a Javascript global variable *SDH_API_URL* with the URL of your API server.
+
+In case you want to connect this framework with your own API you just have to edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
     1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
     2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
 ```javascript
@@ -39,11 +39,11 @@ To create your first visualization of metrics follow the following steps:
   1 - Install bower (http://bower.io/)
   2 - Install framework dependencies with bower: `bower install`
   3 - Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
-  Here is an example of configuration (require-config.js).
+  Here is an example of configuration (require-config.js) assuming the bower libraries are located un /vendor (you can define this with .bowerrc file).
   
 ```javascript
 require.config({
-    baseUrl: PUBLIC_PATH,
+    baseUrl: "/",
     //enforceDefine: true,
     map: {
         '*': {
