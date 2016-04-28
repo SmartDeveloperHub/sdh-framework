@@ -1452,7 +1452,7 @@
 
         _serverUrl = SDH_API_URL.trim();
 
-        if(SDH_API_KEY != null) {
+        if(typeof SDH_API_KEY === 'string') {
             _serverKey = SDH_API_KEY.trim();
         } else {
             _serverKey = null;

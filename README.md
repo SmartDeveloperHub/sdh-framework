@@ -7,44 +7,48 @@ The aim of this framework is to facilitate the acquisition of data from an API a
  
 ##How to connect with your own API
 
-This repository brings by default de api-connector.js needed to connect to the SDH API. To indicate where your SDH API is located just create a Javascript global variable *SDH_API_URL* with the URL of your API server.
+To indicate where your SDH API is located just create a Javascript global variable *SDH_API_URL* with the URL of your API server.
+In case your API needs a Bearer authorization key, create a Javascript global variable *SDH_API_KEY* with the key.
 
-In case you want to connect this framework with your own API you just have to edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
-    1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
-    2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
+This repository brings by default the api-connector.js needed to connect to the SDH API. In case you want to connect this framework with your own API you just have to edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
+
+1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
+2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
 ```javascript
-resourcesInfo[<String:resourceId>] = {
-    path: <String:resourceRelativePath>,
-    requiredParams: { //list of required parameters
-        <String:paramName>: {
-            name: <String:paramName>,
-            in: <"query" or "path">,
-            required: true
-        };
-    }, 
-    optionalParams: { //list of optional parameters
-        <String:paramName>: {
-            name: <String:paramName>,
-            in: <"query" or "path">,
-            required: false
-        };
-    }
-};
+    resourcesInfo[<String:resourceId>] = {
+        path: <String:resourceRelativePath>,
+        requiredParams: { //list of required parameters
+            <String:paramName>: {
+                name: <String:paramName>,
+                in: <"query" or "path">,
+                required: true
+            };
+        }, 
+        optionalParams: { //list of optional parameters
+            <String:paramName>: {
+                name: <String:paramName>,
+                in: <"query" or "path">,
+                required: false
+            };
+        }
+    };
 ```
     
 ## How to use the framework
 
+In the GitHub repository https://github.com/SmartDeveloperHub/sdh-framework-example you can find a good example of use of the framework that you can use as an starting code template. However, if you want to do it by yourself then keep reading.
+
 Before trying to use the framework, make sure that you have done the steps in the "How to connect with your own API" section.
 To create your first visualization of metrics follow the following steps:
-  1 - Install bower (http://bower.io/)
-  2 - Install framework dependencies with bower: `bower install`
-  3 - Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
+
+  1. Install bower (http://bower.io/)
+  2. Install framework with bower: `bower install sdh-framework#master --save`
+  3. Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
   Here is an example of configuration (require-config.js) assuming the bower libraries are located un /vendor (you can define this with .bowerrc file).
   
 ```javascript
 require.config({
-    baseUrl: "/",
-    //enforceDefine: true,
+    baseUrl: "./",
     map: {
         '*': {
             'css': 'require-css' // or whatever the path to require-css is
@@ -62,20 +66,16 @@ require.config({
             main: 'media/js/jquery.dataTables.min'
         },
         {
-            name: 'bootstrap',
-            location: 'vendor/bootstrap',
-            main: 'dist/js/bootstrap.min',
-            deps: ['jquery']
-        },
-        {
             name: 'jquery-qtip',
             location: 'vendor/qtip2',
-            main: 'jquery.qtip.min' 
+            main: 'jquery.qtip.min'
         }
     ],
     paths: {
         'require-css': 'vendor/require-css/css',
         'headerHandler': "assets/js/header/headerHandler",
+        'bootstrap': "vendor/bootstrap/dist/js/bootstrap.min",
+        'bootstrap-css': "vendor/bootstrap/dist/css/bootstrap.min",
         'widgetCommon': 'vendor/sdh-framework/widgets/Common/common',
         'backbone': 'vendor/backbone/backbone-min',
         'underscore': 'vendor/underscore/underscore-min',
@@ -111,6 +111,9 @@ require.config({
         },
         'cola': {
             exports: 'cola'
+        },
+        'bootstrap': {
+            deps: ['jquery']
         }
     }
 });
@@ -130,7 +133,7 @@ require.config({
   5 - Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
   
 ```javascript
-    require(["framework" /*, your other dependencies here */], function() {
+    require(["sdh-framework" /*, your other dependencies here */], function() {
         framework.ready(function() {
             console.log("Framework ready");
             

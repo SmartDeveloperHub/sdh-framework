@@ -32,7 +32,7 @@ table.dataTable, table.dataTable thead th, table.dataTable thead td {
 }
 .table-search {
     width: 100%;
-    padding: 0 10px 5px 10px;
+    padding-bottom: 5px;
     border: 0;
 }
 .table-search label {

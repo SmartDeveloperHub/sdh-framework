@@ -266,7 +266,7 @@
             'sdh-framework/widgets/Common/common',
             'nvd3',
             'jquery-qtip',
-            'css!bootstrap/dist/css/bootstrap.min.css',
+            'css!bootstrap-css',
             'css!./timebar.css',
             'css!jquery-qtip/jquery.qtip.min.css'
         ], function () {

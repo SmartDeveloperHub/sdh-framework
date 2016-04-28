@@ -362,7 +362,7 @@
     if ( typeof define === "function" && define.amd) {
         define( [
             'sdh-framework/widgets/Common/common',
-            'd3',
+            'nvd3',
             'css!./linesChart.css'
         ], function () {
             return __loader();
