@@ -34,7 +34,7 @@ This repository brings by default the api-connector.js needed to connect to the 
     };
 ```
     
-## How to use the framework
+## How to install the framework
 
 In the GitHub repository https://github.com/SmartDeveloperHub/sdh-framework-example you can find a good example of use of the framework that you can use as an starting code template. However, if you want to do it by yourself then keep reading.
 
@@ -156,6 +156,57 @@ require.config({
         });
     });
 ```
+
+## How to instantiate a new widget
+All the widgets have the same parameters: `MySampleWidget(element, resources, contexts, configuration)`
+
+ * **element**: DOM element where all the content of he widet should be placed.
+ * **resources**: Array of objects that define a resource. These objects can have the following properties (whose values can be modified through context updates):
+    * *id*: Id of the resource. This parameter is required.
+    * *\<api_parameters\>*: these are the parameters that the API accepts for this resource (i.e. from, to, max, accumulated, aggr...). The value of these parameters can be a single value or an array of values (multiparameters) which are expanded to all the possible combinations of values of the multiparameters of the resource. 
+    * *post_aggr*: An String with a named post aggregator or a function. A post aggregator is executed after retrieving all the simple requests of a requests group (request that contains multiparameters) in order to combine them into a single response. The framework currently has two predefined post agregators: sum and avg. Note that the use of a post_aggr is not compulsory with multiparameters.
+        You can also define your own post aggregator functions. This functions must have the following parameters: 
+        `function myPostAggregator(responses, skel)`
+        * responses: List of framework responses to a request group (all the requests generated after expanding all the multiparameters).
+        * skel: The framework builds a response with an empty data property, which the post aggregator should fill.
+        
+        See an example with the "sum" post aggregator that is implemented in the framework:
+
+        ```javascript
+        var sumPostAggregator = function sumPostAggregator(responses, skel) {
+        
+            var sum = 0;
+            for(var i = 0; i < responses.length; ++i, sum += vSum) {
+                var values = responses[i]['data']['values'];
+                for(var x = 0, vSum = 0; x < values.length; vSum += values[x++]);
+            }
+        
+            skel['data']['values'] = [sum];
+        
+            return skel;
+        
+        };
+        ```
+    * *post_modifier*: Function executed after the post_aggr (if any) to modify an individual response. It receives a framework response and must return it.
+        See an example with a "toPercentage" post modifier:
+        
+        ```javascript
+        var toPercentagePostModifier = function toPercentagePostModifier(resourceData) {
+
+            var values = resourceData['data']['values'];
+            for(var x = 0; x < values.length; x++) {
+                values[x] = Math.round(values[x] * 100);
+            }
+
+            return resourceData;
+
+        };
+        ```
+    * *static*: Array with a list of parameters for this resource that should be unalterable by context updates. As a consequence, static parameters must have a value as they can not be created through context updates.
+ * **contexts**: List with the name of the contexts that affect to the resources of this widget.
+ * **configuration**: Specific configuration for this widget. Each widget has their own configuration parameters. Check the code of the widget to see the detailed description of the configuration parameters it accepts.
+ 
+        
 
 ## How to create a new widget
 Just create a new file based on the following template.
