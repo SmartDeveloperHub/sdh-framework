@@ -2,7 +2,7 @@
 The aim of this framework is to facilitate the acquisition of data from an API and the creation of dashboards to visualize that information.
 
 ##Components of the framework
- - Base Layer: this layer, that corresponds to the framework.js file, is the core of the framework. It provides the basic functionality to obtain data from the API and control the dashboards.
+ - Core Layer: this layer, that corresponds to the framework.js file, is the core of the framework. It provides the basic functionality to obtain data from the API and control the dashboards.
  - Widgets: the framework is designed to be extended with widgets. These widgets, that must "implement" a simple interface, can register themselves in the framework in order to be used by the dashboard developer.
  
 ##How to connect with your own API
@@ -42,9 +42,16 @@ Before trying to use the framework, make sure that you have done the steps in th
 To create your first visualization of metrics follow the following steps:
 
   1. Install bower (http://bower.io/)
-  2. Install framework with bower: `bower install sdh-framework#master --save`
-  3. Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
-  Here is an example of configuration (require-config.js) assuming the bower libraries are located un /vendor (you can define this with .bowerrc file).
+  2. Create a .bowerrc file to tell bower where to place the libraries.
+    
+    ```
+    {
+      "directory" : "vendor"
+    }
+    ```
+  3. Install framework with bower: `bower install sdh-framework#master --save`
+  4. Now you need to configure require.js (http://requirejs.org/docs/api.html#config) to define the shims, paths to the dependencies, etc. 
+  Here is an example of configuration (require-config.js) assuming the bower libraries are located in /vendor (you can define this with .bowerrc file).
   
 ```javascript
 require.config({
@@ -73,10 +80,8 @@ require.config({
     ],
     paths: {
         'require-css': 'vendor/require-css/css',
-        'headerHandler': "assets/js/header/headerHandler",
         'bootstrap': "vendor/bootstrap/dist/js/bootstrap.min",
         'bootstrap-css': "vendor/bootstrap/dist/css/bootstrap.min",
-        'widgetCommon': 'vendor/sdh-framework/widgets/Common/common',
         'backbone': 'vendor/backbone/backbone-min',
         'underscore': 'vendor/underscore/underscore-min',
         'd3': "vendor/d3/d3.min",
@@ -85,7 +90,6 @@ require.config({
         'jquery-ui': 'vendor/jquery-ui/ui',
         'moment': "vendor/moment/moment",
         'lodash': 'vendor/lodash/lodash.min',
-        'gridstack': 'vendor/gridstack/dist/gridstack',
         'joint': 'vendor/joint/dist/joint.min',
         'cytoscape': 'vendor/cytoscape/dist/cytoscape',
         'cytoscape-qtip': 'vendor/cytoscape-qtip/cytoscape-qtip',
@@ -97,9 +101,6 @@ require.config({
         'nvd3': {
             exports: 'nv',
             deps: ['d3']
-        },
-        'headerHandler': {
-            deps: ['jquery']
         },
         'cytoscape': {
             exports: 'cytoscape',
@@ -119,7 +120,7 @@ require.config({
 });
 ```
 
-  4 - Load require.js and then dashboard.js from your index.html file adding the following lines between the `<head></head>` tags.
+  5 - Load require.js and then dashboard.js from your index.html file adding the following lines between the `<head></head>` tags.
 
 ```html
   <script src="vendor/requirejs/require.js"></script>
@@ -130,7 +131,7 @@ require.config({
   </script>
 ```
   
-  5 - Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
+  6 - Create a file (dashboard.js in this example) that loads the framework and executes your Javascript code.
   
 ```javascript
     require(["sdh-framework" /*, your other dependencies here */], function() {
