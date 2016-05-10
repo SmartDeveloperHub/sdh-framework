@@ -5,41 +5,11 @@ The aim of this framework is to facilitate the acquisition of data from an API a
  - Core Layer: this layer, that corresponds to the framework.js file, is the core of the framework. It provides the basic functionality to obtain data from the API and control the dashboards.
  - Widgets: the framework is designed to be extended with widgets. These widgets, that must "implement" a simple interface, can register themselves in the framework in order to be used by the dashboard developer.
  
-##How to connect with your own API
-
-To indicate where your SDH API is located just create a Javascript global variable *SDH_API_URL* with the URL of your API server.
-In case your API needs a Bearer authorization key, create a Javascript global variable *SDH_API_KEY* with the key.
-
-This repository brings by default the api-connector.js needed to connect to the SDH API. In case you want to connect this framework with your own API you just have to edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
-
-1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
-2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
-```javascript
-    resourcesInfo[<String:resourceId>] = {
-        path: <String:resourceRelativePath>,
-        requiredParams: { //list of required parameters
-            <String:paramName>: {
-                name: <String:paramName>,
-                in: <"query" or "path">,
-                required: true
-            };
-        }, 
-        optionalParams: { //list of optional parameters
-            <String:paramName>: {
-                name: <String:paramName>,
-                in: <"query" or "path">,
-                required: false
-            };
-        }
-    };
-```
-    
 ## How to install the framework
 
 In the GitHub repository https://github.com/SmartDeveloperHub/sdh-framework-example you can find a good example of use of the framework that you can use as an starting code template. However, if you want to do it by yourself then keep reading.
 
-Before trying to use the framework, make sure that you have done the steps in the "How to connect with your own API" section.
-To create your first visualization of metrics follow the following steps:
+To install the SDH Framework follow the following steps:
 
   1. Install bower (http://bower.io/)
   2. Create a .bowerrc file to tell bower where to place the libraries.
@@ -158,6 +128,37 @@ require.config({
     });
 ```
 
+Before trying to use the framework, make sure that you have done the steps in the "How to connect with your own API" section.
+
+##How to connect with your own API
+
+To indicate where your SDH API is located just create a Javascript global variable *SDH_API_URL* with the URL of your API server.
+In case your API needs a Bearer authorization key, create a Javascript global variable *SDH_API_KEY* with the key.
+
+This repository brings by default the api-connector.js needed to connect to the SDH API. In case you want to connect this framework with your own API you just have to edit the *loadApiResourcesInfo* method in api-connector.js to adapt it to your API structure. That method must:
+
+1. Add each new resource parameter name to the *_existentParametersList* array (this is like a cache of the parameters that can be used in the API, needed for performance reasons).
+2. Fill the *_resourcesInfo* private variable with information for each API resource.  It must have the following structure:
+```javascript
+    resourcesInfo[<String:resourceId>] = {
+        path: <String:resourceRelativePath>,
+        requiredParams: { //list of required parameters
+            <String:paramName>: {
+                name: <String:paramName>,
+                in: <"query" or "path">,
+                required: true
+            };
+        }, 
+        optionalParams: { //list of optional parameters
+            <String:paramName>: {
+                name: <String:paramName>,
+                in: <"query" or "path">,
+                required: false
+            };
+        }
+    };
+```
+    
 ## How to instantiate a new widget
 All the widgets have the same parameters: `MySampleWidget(element, resources, contexts, configuration)`
 
