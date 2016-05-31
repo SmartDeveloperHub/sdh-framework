@@ -31,6 +31,12 @@
                 return;
             }
 
+            if(!container || !container.tagName) {
+                console.error(new Error("Invalid container element provided to insert the widget in."));
+                this._common = { disposed: true };
+                return;
+            }
+
             //First of all, register this widget with the dashboard
             framework.dashboard.registerWidget(this);
 
