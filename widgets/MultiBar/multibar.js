@@ -83,6 +83,10 @@
                     var dateExtent = [new Date(metric['data']['interval']['from']), new Date(metric['data']['interval']['to'])];
                     return dateExtent[0].getTime() + extra.valueIndex * metric['data']['step'];
                 }
+            },
+            sort: {
+                type: ['string'],
+                default: undefined
             }
         };
 
@@ -108,6 +112,9 @@
          *       ~ labelFormat: string - Format string for the labels. Metric parameters can be used as variables by
          *         surrounding their names with percentages. The metric name can also be accessed with %mid%. For example,
          *         the following is a valid labelFormat: "User: %uid%".
+         *       ~ xAxisTickFormat: function - x axis format function
+         *       ~ yAxisTickFormat: function - y axis format function
+         *       ~ order: string: 'asc' to make an ascendant order based in the y value, 'desc' for descendant order.
          *      }
          */
         var MultiBar = function MultiBar(element, metrics, contextId, configuration) {
@@ -268,6 +275,24 @@
 
 
                 }
+            }
+
+            if(this.configuration.sort) {
+
+                var asc = this.configuration.sort != 'desc';
+
+                // First order inside each category
+                for(var v = 0; v < values.length; v++) {
+                    values[v].values = values[v].values.sort(function(a, b) {
+                        return (asc ? a.y - b.y : b.y - a.y);
+                    })
+                }
+
+                // Then sort between categories based in the first value of each
+                values = values.sort(function(a, b) {
+                    return (asc ? a.values[0].y - b.values[0].y : b.values[0].y - a.values[0].y);
+                })
+
             }
 
             return values;
