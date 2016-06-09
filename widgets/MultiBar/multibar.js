@@ -68,6 +68,14 @@
                 type: ['number'],
                 default: 2
             },
+            xAxisTickFormat: {
+                type: ['function'],
+                default: null
+            },
+            yAxisTickFormat: {
+                type: ['function'],
+                default: null
+            },
             x: {
                 type: ['function'],
                 default: function(metric, extra) {
@@ -295,29 +303,40 @@
                         }
                     }.bind(this));
                 }
-                chart.xAxis.tickFormat(function(d) {
-                    if (typeof d === 'string') {
-                        return d;
-                    } else {
-                        return this.format.date(new Date(d));
-                    }
-                }.bind(this))
-                .showMaxMin(false);
 
-                chart.yAxis.tickFormat(function(d) {
+                if(this.configuration.xAxisTickFormat) {
+                    chart.xAxis.tickFormat(this.configuration.xAxisTickFormat.bind(this));
+                } else {
+                    chart.xAxis.tickFormat(function(d) {
+                        if (typeof d === 'string') {
+                            return d;
+                        } else {
+                            return this.format.date(new Date(d));
+                        }
+                    }.bind(this));
+                }
 
-                    //Truncate decimals
-                    if(this.configuration.maxDecimals >= 0) {
-                        var pow =  Math.pow(10, this.configuration.maxDecimals);
-                        d = Math.floor(d * pow) / pow;
-                    }
+                chart.xAxis.showMaxMin(false);
 
-                    if (d >= 1000 || d <= -1000) {
-                        return Math.abs(d/1000) + " K";
-                    } else {
-                        return Math.abs(d);
-                    }
-                }.bind(this));
+                if(this.configuration.yAxisTickFormat) {
+                    chart.yAxis.tickFormat(this.configuration.yAxisTickFormat.bind(this));
+                } else {
+                    chart.yAxis.tickFormat(function(d) {
+
+                        //Truncate decimals
+                        if(this.configuration.maxDecimals >= 0) {
+                            var pow =  Math.pow(10, this.configuration.maxDecimals);
+                            d = Math.floor(d * pow) / pow;
+                        }
+
+                        if (d >= 1000 || d <= -1000) {
+                            return Math.abs(d/1000) + " K";
+                        } else {
+                            return Math.abs(d);
+                        }
+                    }.bind(this));
+                }
+
 
                 d3.select(this.svg.get(0))
                     .datum(data)
