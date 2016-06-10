@@ -75,6 +75,12 @@
             if (typeof configuration.showYAxis != "boolean") {
                 configuration.showYAxis = true;
             }
+            if (typeof configuration.xAxisTickFormat != "function") {
+                configuration.xAxisTickFormat = null;
+            }
+            if (typeof configuration.yAxisTickFormat != "function") {
+                configuration.yAxisTickFormat = null;
+            }
             // Demo
             if (typeof configuration._demo != "boolean") {
                 configuration._demo = false;
@@ -107,6 +113,8 @@
          *       ~ showLines: boolean - Whether to display lines or not. Default:true
          *       ~ showXAxis: boolean - Whether to display X axis.
          *       ~ showYAxis: boolean - Whether to display Y axis.
+         *       ~ xAxisTickFormat: function - x axis format function
+         *       ~ yAxisTickFormat: function - y axis format function
          *      }
          */
         var LinesChart = function LinesChart(element, metrics, contextId, configuration) {
@@ -313,14 +321,23 @@
                 }
 
                 chart.xAxis     //Chart x-axis settings
-                    .axisLabel(this.configuration.xlabel)
-                    .tickFormat(function(d) {
+                    .axisLabel(this.configuration.xlabel);
+
+                if(this.configuration.xAxisTickFormat) {
+                    chart.xAxis.tickFormat(this.configuration.xAxisTickFormat.bind(this));
+                } else {
+                    chart.xAxis.tickFormat(function (d) {
                         return this.format.date(new Date(d));
                     }.bind(this));
+                }
 
                 chart.yAxis     //Chart y-axis settings
-                    .axisLabel(this.configuration.ylabel)
-                    .tickFormat(function(tickVal) {
+                    .axisLabel(this.configuration.ylabel);
+
+                if(this.configuration.yAxisTickFormat) {
+                    chart.yAxis.tickFormat(this.configuration.yAxisTickFormat.bind(this));
+                } else {
+                    chart.yAxis.tickFormat(function(tickVal) {
 
                         //Truncate decimals
                         if(this.configuration.maxDecimals >= 0) {
@@ -335,6 +352,7 @@
                         }
 
                     }.bind(this));
+                }
 
 
                 d3.select(this.svg.get(0))   //Select the <svg> element you want to render the chart in.
