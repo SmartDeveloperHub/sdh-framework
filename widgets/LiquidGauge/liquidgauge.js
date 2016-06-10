@@ -97,9 +97,9 @@
                 type: ['boolean'],
                 default: true
             },
-            displayPercent: {
-                type: ['boolean'],
-                default: true
+            suffix: {
+                type: ['string'],
+                default: '%'
             },
             textColor: {
                 type: ['string', Array],
@@ -144,7 +144,7 @@
          *       ~ textSize: number - The relative height of the text to display in the wave circle. 1 = 50%
          *       ~ valueCountUp: boolean - If true, the displayed value counts up from 0 to it's final value upon loading.
          *         If false, the final value is displayed.
-         *       ~ displayPercent: boolean - If true, a % symbol is displayed after the value.
+         *       ~ suffix: string - Text displayed after the value.
          *       ~ textColor: string or array - The color of the value text when the wave does not overlap it or an array of
          *         colors describing a liner scale.
          *       ~ waveTextColor: string or array - The color of the value text when the wave overlaps it or an array of
@@ -279,7 +279,7 @@
             var textPixels = (config.textSize*radius/2);
             var textFinalValue = parseFloat(value).toFixed(2);
             var textStartValue = config.valueCountUp?config.minValue:textFinalValue;
-            var percentText = config.displayPercent?"%":"";
+            var suffix = config.suffix;
             var circleThickness = config.circleThickness * radius;
             var circleFillGap = config.circleFillGap * radius;
             var fillCircleMargin = circleThickness + circleFillGap;
@@ -346,7 +346,7 @@
 
             // Text where the wave does not overlap.
             var text1 = gaugeGroup.append("text")
-                .text(textRounder(textStartValue) + percentText)
+                .text(textRounder(textStartValue) + suffix)
                 .attr("class", "liquidFillGaugeText")
                 .attr("text-anchor", "middle")
                 .attr("font-size", textPixels + "px")
@@ -378,7 +378,7 @@
 
             // Text where the wave does overlap.
             var text2 = fillCircleGroup.append("text")
-                .text(textRounder(textStartValue) + percentText)
+                .text(textRounder(textStartValue) + suffix)
                 .attr("class", "liquidFillGaugeText")
                 .attr("text-anchor", "middle")
                 .attr("font-size", textPixels + "px")
@@ -389,7 +389,7 @@
             if(config.valueCountUp){
                 var textTween = function(){
                     var i = d3.interpolate(this.textContent, textFinalValue);
-                    return function(t) { this.textContent = textRounder(i(t)) + percentText; }
+                    return function(t) { this.textContent = textRounder(i(t)) + suffix; }
                 };
                 text1.transition()
                     .duration(config.waveRiseTime)
@@ -439,7 +439,7 @@
 
                     var textTween = function(){
                         var i = d3.interpolate(this.textContent, parseFloat(value).toFixed(2));
-                        return function(t) { this.textContent = textRounderUpdater(i(t)) + percentText; }
+                        return function(t) { this.textContent = textRounderUpdater(i(t)) + suffix; }
                     };
 
                     text1.transition()
