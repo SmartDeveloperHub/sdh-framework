@@ -61,7 +61,7 @@
                 default: true
             },
             labelFormat: {
-                type: ['string'],
+                type: ['string', 'function'],
                 default: '¬_E.resource¬'
             },
             maxDecimals: {
@@ -75,6 +75,10 @@
             yAxisTickFormat: {
                 type: ['function'],
                 default: null
+            },
+            showXMaxMin: {
+                type: ['boolean'],
+                default: false
             },
             x: {
                 type: ['function'],
@@ -109,11 +113,12 @@
          *       ~ showLegend: boolean - Whether to display the legend or not.
          *       ~ showXAxis: boolean - Display or hide the X axis.
          *       ~ showYAxis: boolean - Display or hide the Y axis.
-         *       ~ labelFormat: string - Format string for the labels. Metric parameters can be used as variables by
+         *       ~ labelFormat: string|function - Format string for the labels. Metric parameters can be used as variables by
          *         surrounding their names with percentages. The metric name can also be accessed with %mid%. For example,
          *         the following is a valid labelFormat: "User: %uid%".
          *       ~ xAxisTickFormat: function - x axis format function
          *       ~ yAxisTickFormat: function - y axis format function
+         *       ~ showXMaxMin: boolean - show x axis max min values.
          *       ~ order: string: 'asc' to make an ascendant order based in the y value, 'desc' for descendant order.
          *      }
          */
@@ -232,7 +237,13 @@
                     }
 
                     //Generate the label by replacing the variables
-                    var label = this.replace(this.configuration.labelFormat, metric, {resource: resourceName, resourceId:  resId});
+                    var label;
+                    if(typeof this.configuration.labelFormat === 'function') {
+                        label = this.configuration.labelFormat(metric, {resource: resourceName, resourceId:  resId});
+                    } else {
+                        label = this.replace(this.configuration.labelFormat, metric, {resource: resourceName, resourceId:  resId});
+                    }
+
 
                     var mData = null;
                     var newDataGroup = true;
@@ -341,7 +352,7 @@
                     }.bind(this));
                 }
 
-                chart.xAxis.showMaxMin(false);
+                chart.xAxis.showMaxMin(this.configuration.showXMaxMin);
 
                 if(this.configuration.yAxisTickFormat) {
                     chart.yAxis.tickFormat(this.configuration.yAxisTickFormat.bind(this));
