@@ -142,6 +142,10 @@
             showMaxMin: {
                 type: ['boolean'],
                 default: true
+            },
+            onclick: {
+                type: ['function'],
+                default: null
             }
 
         };
@@ -180,6 +184,7 @@
          *       ~ showMaxMin: boolean - Display or hide the max min ticks in axis.
          *       ~ yAxisGradient: array - Margin of the image inside the circle.
          *       ~ xAxisGradient: array - Margin of the image inside the circle.
+         *       ~ onclick: function - The given function is triggered when the user clicks in one of the elements of the chart.
          *      }
          */
         var Scatter = function Scatter(element, metrics, contextId, configuration) {
@@ -233,6 +238,9 @@
                 return;
 
             var normalizedData = getNormalizedData.call(this,framework_data);
+            this.data = normalizedData;
+console.log(normalizedData);
+            this.svg.on('click', ".nv-point-paths path, .nv-groups .nv-group path, .nv-groups .nv-group image", handleClickEvent.bind(this));
 
             //Update data
             if(this.status === 1) {
@@ -246,6 +254,56 @@
 
             } else { // Paint it for first time
                 paint.call(this, normalizedData, framework_data);
+            }
+
+        };
+
+        /**
+         * Try to extract the index in the data array that belongs to the item where the click has been done
+         * @param event
+         * @returns {*}
+         */
+        var extractDataIndex = function(event) {
+            var dataIndex;
+            var res;
+            var groupElem;
+            var $target = $(event.target);
+
+            if(event.target.tagName === 'path' && $target.attr('class') && $target.attr('class').split(' ').indexOf("nv-point") === 0) {
+                groupElem = $target.parent();
+            } else if(event.target.tagName === 'image') {
+                groupElem = $target.parent().parent();
+            }
+
+            if(groupElem) {
+                var classList = groupElem.attr('class').split(/\s+/);
+                for (var i = 0; i < classList.length; i++) {
+                    res = /^nv-series-(\d+)$/.exec(classList[i]);
+                    if(res) {
+                        return res[1];
+                    }
+                }
+            }
+
+            if(event.target.tagName === 'path') {
+
+                if(event.target.id) { //Extract index from the .nv-point-paths path
+                    res = /^nv-path-(\d+)$/.exec(event.target.id);
+                    if(res) {
+                        return res[1];
+                    }
+                }
+
+            }
+        };
+
+        var handleClickEvent = function (event) {
+            var dataIndex = extractDataIndex(event);
+
+            if(dataIndex) {
+                if(typeof this.configuration.onclick === 'function') {
+                    this.configuration.onclick(this.data[dataIndex].values[0]);
+                }
             }
 
         };
