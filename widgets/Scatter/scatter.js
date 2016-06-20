@@ -239,7 +239,7 @@
 
             var normalizedData = getNormalizedData.call(this,framework_data);
             this.data = normalizedData;
-console.log(normalizedData);
+
             this.svg.on('click', ".nv-point-paths path, .nv-groups .nv-group path, .nv-groups .nv-group image", handleClickEvent.bind(this));
 
             //Update data
