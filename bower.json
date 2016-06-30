@@ -26,7 +26,7 @@
   "dependencies": {
     "jquery": "2.1.x",
     "d3": "3.5.x",
-    "joint": "0.9.x",
+    "joint": "0.9.7",
     "nvd3": "1.8.1",
     "moment": "2.9.0",
     "cytoscape": "2.4.8",
