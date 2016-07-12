@@ -29,7 +29,7 @@
                 default: 240
             },
             color: {
-                type: ['object'],
+                type: ['function', 'object'],
                 default: null
             },
             stacked: {
@@ -320,7 +320,7 @@
 
                 var chart = nv.models.multiBarChart()
                     .height(this.configuration.height)
-                    .color(this.generateColors(framework_data, this.configuration.color))
+                    .color(typeof this.configuration.color === 'function' ? this.configuration.color : this.generateColors(framework_data, this.configuration.color))
                     .stacked(this.configuration.stacked)
                     .groupSpacing(this.configuration.groupSpacing)
                     .duration(this.configuration.duration)
