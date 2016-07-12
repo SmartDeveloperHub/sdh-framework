@@ -385,7 +385,6 @@ var first = true;
 
                 var timer = null;
                 chart.dispatch.on('brush', function(extent){
-                    console.log("BrushHandler: " + JSON.stringify(extent))
                     if(JSON.stringify(this.lastExtent) == JSON.stringify(extent.extent)){
                         // Resize event causes a unwanted brush event in this chart
                         return;
@@ -605,7 +604,6 @@ var createDateControls = function createDateControls(container, theChart) {
         extraContainer.appendChild(newRightDiv);
         button.parentNode.appendChild(extraContainer);
         var closeHandler = function (e) {
-            console.log('custom event');
             destroyLeftRightControls(null);
             document.removeEventListener('rangeClose', closeHandler);
         }
@@ -626,7 +624,6 @@ var createDateControls = function createDateControls(container, theChart) {
             timer = null;
         }
         butTimer = setTimeout(function() {
-            console.log('timer-ADD buttonMode false');
             buttonMode = false;
         }, 2000);
     };
@@ -663,7 +660,6 @@ var createDateControls = function createDateControls(container, theChart) {
             timer = null;
         }
         butTimer = setTimeout(function() {
-            console.log('timer-goBack buttonMode false');
             buttonMode = false;
         }, 2000);
         return [startRange.valueOf(), endRange.valueOf()];
@@ -686,7 +682,6 @@ var createDateControls = function createDateControls(container, theChart) {
             timer = null;
         }
         butTimer = setTimeout(function() {
-            console.log('timer-goNext buttonMode false');
             buttonMode = false;
         }, 2000);
         return [startRange.valueOf(), endRange.valueOf()];
@@ -710,7 +705,6 @@ var createDateControls = function createDateControls(container, theChart) {
 /*Custom model based in LineWithFocusChart*/
 MyCustomChart = function() {
     "use strict";
-    console.log("cblanco custom Range Chart");
     //============================================================
     // Public Variables with Default Settings
     //------------------------------------------------------------
@@ -1150,12 +1144,10 @@ MyCustomChart = function() {
                 var nExtent = getNormalExtent(extent);
                 if (first) {
                     first = false;
-                    console.log("-> First Dispatch");
                     dispatch.brush({extent: extent, brush: brush});
                 } else {
                     if (nExtent[0] !== lastExtent[0] || nExtent[1] !== lastExtent[1] || fromPaint) {
                         lastExtent = nExtent;
-                        console.log("+Dispatching brush-> " + nExtent);
                         dispatch.brush({extent: nExtent, brush: brush});
                         updateBrushBG();
                     } else {
