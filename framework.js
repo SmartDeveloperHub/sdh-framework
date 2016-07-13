@@ -281,6 +281,7 @@
         var completedRequests = 0;
         var allData = {};
         var requests = [];
+        var responses = [];
         var requestGroupId = 0; //This id is used to identify groups of requests, that is for example a request that contains
                                 // multiparameters...So a group can be composed of multiple requests.
         var groupInfo = []; //This array contains all the information needed for each post-aggregator having as index
@@ -298,7 +299,33 @@
         cancelPendingObserveRequests(observeId);
 
         /**
-         * Callback to execute when the response is retrieved
+         *
+         * @param resourceId
+         * @param groupId
+         * @param params
+         * @param postModifier
+         * @param requestOrder Index of the request. Is needed to then process the responses in the same order they
+         *          were requested.
+         * @param data
+         */
+        var waitAndReorderResources = function(resourceId, groupId, params, postModifier, requestOrder, data) {
+
+            // Store the responses
+            responses[requestOrder] = [resourceId, groupId, params, postModifier, data];
+
+            // When all the responses have been retrieved, process each of them
+            if(++completedRequests === requests.length) {
+                completedRequests = 0; //Reset for the next method
+                for(var r = 0; r < responses.length; r++) {
+                    if(responses[r] != null) {
+                        processResourceResponse.apply(null, responses[r]);
+                    }
+                }
+            }
+        };
+
+        /**
+         * Process responses and send data when all responses have been retrieved and processed
          * @param resourceId
          * @param groupId
          * @param params
@@ -306,7 +333,7 @@
          *          order to modify the data to send. Null if the post modifier is not defined.
          * @param data
          */
-        var onResourceReady = function(resourceId, groupId, params, postModifier, data) {
+        var processResourceResponse = function(resourceId, groupId, params, postModifier, data) {
 
             if(data == null) {
                 sendErrorEventToCallback("An error occurred while requesting resource " + resourceId, callback);
@@ -317,7 +344,7 @@
                 allData[resourceId] = [];
             }
 
-            //Add the framework info to the data received from the api
+            // Add the framework info to the data received from the api
             var resUID = _self.utils.resourceHash(resourceId, params);
             var info = {
                 UID: resUID,
@@ -340,7 +367,7 @@
 
             } else {
 
-                //Execute post modifier
+                // Execute post modifier
                 if(typeof postModifier === 'function') {
                     response = postModifier(response);
                 }
@@ -349,7 +376,7 @@
             }
 
 
-            // All the responses have been received
+            // All the responses have been processed
             if(++completedRequests === requests.length) {
 
                 // Process all the post aggregators (allData is modified)
@@ -430,11 +457,11 @@
 
         }
 
-        for(var i in requests) {
+        for(var i = 0; i< requests.length; i++) {
             var resourceId = requests[i]['resourceId'];
             var params = requests[i]['params'];
             var groupId = requests[i]['groupId'];
-            var resourceReadyCallback = onResourceReady.bind(undefined, resourceId, groupId, params, postModifier);
+            var resourceReadyCallback = waitAndReorderResources.bind(undefined, resourceId, groupId, params, postModifier, i);
 
              makeResourceRequest(observeId, resourceId, params, resourceReadyCallback);
         }
