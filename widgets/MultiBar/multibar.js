@@ -179,7 +179,7 @@
             //Update data
             if(this.status === 1) {
                 d3.select(this.svg.get(0)).datum(normalizedData);
-                this.chart.color(this.generateColors(framework_data, this.configuration.color));
+                this.chart.color(typeof this.configuration.color === 'function' ? this.configuration.color : this.generateColors(framework_data, this.configuration.color));
                 this.updateChart();
 
             } else { // Paint it for first time
